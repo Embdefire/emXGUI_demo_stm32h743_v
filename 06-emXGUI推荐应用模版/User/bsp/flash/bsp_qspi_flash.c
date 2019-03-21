@@ -16,7 +16,7 @@
   */
   
 #include "./flash/bsp_qspi_flash.h"
-
+#include <emXGUI.h>
 QSPI_HandleTypeDef QSPIHandle;
 
 /**
@@ -283,24 +283,30 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		/* 启用写操作 */
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
+      printf("写使能失败\n");
+      while(1);
 			return QSPI_ERROR;
 		}
 
 		/* 配置命令 */
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
+      printf("配置失败\n");
+      while(1);
 			return QSPI_ERROR;
 		}
 
 		/* 传输数据 */
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
+      printf("传输失败\n");
 			return QSPI_ERROR;
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
+      printf("超时\n");
 			return QSPI_ERROR;
 		}
 
@@ -384,6 +390,8 @@ uint8_t BSP_QSPI_Erase_Chip(void)
 	/* 配置自动轮询模式等待擦除结束 */  
 	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
 	{
+    printf("等待超时\n");
+    while(1);
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -681,7 +689,8 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	s_command.Instruction       = READ_STATUS_REG2_CMD;
 	else if(reg == 3)
 	s_command.Instruction       = READ_STATUS_REG3_CMD;
-	
+	else
+  s_command.Instruction       = reg; 
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
 	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
 	s_command.Address           = 0x000000;
@@ -798,7 +807,7 @@ void QSPI_Set_WP_High(void)
 	/*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
 	HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);	
 	
-	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,1);
+	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,GPIO_PIN_SET);
 }
 void QSPI_Set_WP_TO_QSPI_IO(void)
 {
@@ -815,4 +824,116 @@ void QSPI_Set_WP_TO_QSPI_IO(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO2_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO2_PORT, &GPIO_InitStruct);
 }
+ /**
+  * @brief  向FLASH发送 写使能 命令
+  * @param  none
+  * @retval none
+  */
+void SPI_FLASH_WriteEnable(void)
+{
+  /* 通讯开始：CS低 */
+//  SPI_FLASH_CS_LOW();
+
+  /* 发送写使能命令*/
+  QSPI_WriteEnable();
+
+  /*通讯结束：CS高 */
+//  SPI_FLASH_CS_HIGH();
+}
+/**
+  * @brief  等待超时回调函数
+  * @param  None.
+  * @retval None.
+  */
+static  uint16_t SPI_TIMEOUT_UserCallback(uint8_t errorCode)
+{
+  /* 等待超时后的处理,输出错误信息 */
+  GUI_DEBUG("SPI 等待超时!errorCode = %d",errorCode);
+  return 0;
+}
+#include "gui_drv_cfg.h"
+
+#if (GUI_APP_RES_WRITER_EN)
+
+extern HWND wnd_res_writer_progbar;
+#define ESTIMATE_ERASING_TIME (40*1000)
+
+ /**
+  * @brief  擦除FLASH扇区，整片擦除，带GUI
+  * @param  无
+  * @retval 无
+  */
+int i = 0;
+void SPI_FLASH_BulkErase_GUI(void)
+{
+  
+  /* 重置进度条 */
+  u32 progbar_val = 0;
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
+  SetWindowText(wnd_res_writer_progbar,L"Erasing Flash");
+
+  /* 设置最大值，擦除大概需要30s */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
+  
+  /* 发送FLASH写使能命令 */
+  SPI_FLASH_WriteEnable();
+
+  /* 整块 Erase */
+  /* 选择FLASH: CS低电平 */
+//  SPI_FLASH_CS_LOW();
+  /* 发送整块擦除指令*/
+  BSP_QSPI_Erase_Chip();
+  /* 停止信号 FLASH: CS 高电平 */
+//  SPI_FLASH_CS_HIGH();
+
+  GUI_msleep(10);
+  /* 等待擦除完毕*/
+  {
+    u8 FLASH_Status = 0;
+
+    /* 选择 FLASH: CS 低 */
+//    SPI_FLASH_CS_LOW();
+
+    /* 发送 读状态寄存器 命令 */
+    //BSP_QSPI_GetStatus();
+
+    progbar_val = 0;
+    /* 若FLASH忙碌，则等待 */
+    do
+    {
+      i++;
+      /* 读取FLASH芯片的状态寄存器 */
+      FLASH_Status = BSP_QSPI_GetStatus();
+      
+      progbar_val += 100;
+      /* 超过40*1000ms没完成，继续等*/
+      if(progbar_val >= ESTIMATE_ERASING_TIME - 10*1000)
+          progbar_val =ESTIMATE_ERASING_TIME - 10*1000;
+
+      SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,progbar_val);
+      /* 让出cpu */
+      GUI_msleep(100);
+
+      {
+        /* 大于2倍预估时间，跳出 */
+        if(progbar_val > 2*ESTIMATE_ERASING_TIME) 
+        {
+          SPI_TIMEOUT_UserCallback(4);
+          return;
+        }
+      } 
+    }
+    while (FLASH_Status == QSPI_BUSY); /* 正在写入标志 */
+
+    /* 停止信号  FLASH: CS 高 */
+//    SPI_FLASH_CS_HIGH();
+  }
+  
+  /* 完成 */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
+}
+
+#endif
 /*********************************************END OF FILE**********************/
