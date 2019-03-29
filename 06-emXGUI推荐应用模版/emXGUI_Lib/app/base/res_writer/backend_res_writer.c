@@ -637,7 +637,7 @@ FRESULT BurnFile(void)
 {
   FRESULT result;   
   DIR dir; 
-  uint8_t *rx_buff;
+
   /* 初始化各种全局变量 */
   {
    src_dir =  (char *)GUI_VMEM_Alloc(BUFFER_SIZE);
@@ -677,9 +677,9 @@ FRESULT BurnFile(void)
     printf("Erase Error\n");
     while(1);
   }
-  rx_buff = (uint8_t *)GUI_VMEM_Alloc(4096);
   
-  SPI_FLASH_BufferRead(rx_buff,0,4096);
+  
+
   
   /* 生成烧录目录信息文件 */
   Make_Catalog(src_dir,0);
