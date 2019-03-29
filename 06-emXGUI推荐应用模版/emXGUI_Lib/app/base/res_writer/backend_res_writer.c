@@ -393,7 +393,7 @@ void Burn_Catalog(void)
     GUI_msleep(20);
 
     /* 把dir信息烧录到FLASH中 */  
-    state = SPI_FLASH_BufferWrite((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    SPI_FLASH_BufferWrite((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
     rx_buff = (uint8_t *)GUI_VMEM_Alloc(sizeof(dir));
     SPI_FLASH_BufferRead(rx_buff,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
     
@@ -404,8 +404,8 @@ void Burn_Catalog(void)
     
     
     GUI_VMEM_Free(rx_buff);
-    if(state != QSPI_OK)
-      printf("Error Write\n");
+//    if(state != QSPI_OK)
+//      printf("Error Write\n");
   }
   
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);

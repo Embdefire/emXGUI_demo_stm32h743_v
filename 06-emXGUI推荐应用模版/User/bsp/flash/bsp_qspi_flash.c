@@ -231,6 +231,53 @@ uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	}
 	return QSPI_OK;
 }
+
+static uint8_t BSP_QSPI_WritePage(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
+{
+	QSPI_CommandTypeDef s_command;
+
+
+	/* 初始化程序命令 */
+	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+	s_command.Instruction       = QUAD_INPUT_PAGE_PROG_CMD;
+	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
+	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	s_command.DataMode          = QSPI_DATA_4_LINES;
+	s_command.DummyCycles       = 0;
+	s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
+	s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
+	s_command.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
+  s_command.Address           = WriteAddr;
+  s_command.NbData            = Size;
+  
+  /* 启用写操作 */
+  if (QSPI_WriteEnable() != QSPI_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+  /* 配置命令 */
+  if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+  /* 传输数据 */
+  if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+  /* 配置自动轮询模式等待程序结束 */  
+  if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+	return QSPI_OK;
+}
+#if 0
 /**
   * @brief  将大量数据写入QSPI存储器
   * @param  pData: 指向要写入数据的指针
@@ -282,28 +329,24 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		/* 启用写操作 */
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
-      printf("WE Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 配置命令 */
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      printf("C Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 传输数据 */
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      printf("T Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
-      printf("P Err\n\r");
 			return QSPI_ERROR;
 		}
 
@@ -313,6 +356,94 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		current_size = ((current_addr + W25Q256JV_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : W25Q256JV_PAGE_SIZE;
 	} while (current_addr < end_addr);
 	return QSPI_OK;
+}
+#endif
+
+void BSP_QSPI_Write(uint8_t* pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite)
+{
+  uint8_t NumOfPage = 0, NumOfSingle = 0, Addr = 0, count = 0, temp = 0;
+	
+	/*mod运算求余，若writeAddr是W25Q256JV_PAGE_SIZE整数倍，运算结果Addr值为0*/
+  Addr = WriteAddr % W25Q256JV_PAGE_SIZE;
+	
+	/*差count个数据值，刚好可以对齐到页地址*/
+  count = W25Q256JV_PAGE_SIZE - Addr;	
+	/*计算出要写多少整数页*/
+  NumOfPage =  NumByteToWrite / W25Q256JV_PAGE_SIZE;
+	/*mod运算求余，计算出剩余不满一页的字节数*/
+  NumOfSingle = NumByteToWrite % W25Q256JV_PAGE_SIZE;
+
+	 /* Addr=0,则WriteAddr 刚好按页对齐 aligned  */
+  if (Addr == 0) 
+  {
+		/* NumByteToWrite < W25Q256JV_PAGE_SIZE */
+    if (NumOfPage == 0) 
+    {
+      BSP_QSPI_WritePage(pBuffer, WriteAddr, NumByteToWrite);
+    }
+    else /* NumByteToWrite > W25Q256JV_PAGE_SIZE */
+    {
+			/*先把整数页都写了*/
+      while (NumOfPage--)
+      {
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, W25Q256JV_PAGE_SIZE);
+        WriteAddr +=  W25Q256JV_PAGE_SIZE;
+        pBuffer += W25Q256JV_PAGE_SIZE;
+      }
+			if(NumOfSingle != 0)
+        /*若有多余的不满一页的数据，把它写完*/
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumOfSingle);
+    }
+  }
+	/* 若地址与 W25Q256JV_PAGE_SIZE 不对齐  */
+  else 
+  {
+		/* NumByteToWrite < W25Q256JV_PAGE_SIZE */
+    if (NumOfPage == 0) 
+    {
+			/*当前页剩余的count个位置比NumOfSingle小，写不完*/
+      if (NumOfSingle > count) 
+      {
+        temp = NumOfSingle - count;
+				
+				/*先写满当前页*/
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, count);
+        WriteAddr +=  count;
+        pBuffer += count;
+				
+				/*再写剩余的数据*/
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, temp);
+      }
+      else /*当前页剩余的count个位置能写完NumOfSingle个数据*/
+      {				
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumByteToWrite);
+      }
+    }
+    else /* NumByteToWrite > W25Q256JV_PAGE_SIZE */
+    {
+			/*地址不对齐多出的count分开处理，不加入这个运算*/
+      NumByteToWrite -= count;
+      NumOfPage =  NumByteToWrite / W25Q256JV_PAGE_SIZE;
+      NumOfSingle = NumByteToWrite % W25Q256JV_PAGE_SIZE;
+
+      BSP_QSPI_WritePage(pBuffer, WriteAddr, count);
+      WriteAddr +=  count;
+      pBuffer += count;
+			
+			/*把整数页都写了*/
+      while (NumOfPage--)
+      {
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, W25Q256JV_PAGE_SIZE);
+        WriteAddr +=  W25Q256JV_PAGE_SIZE;
+        pBuffer += W25Q256JV_PAGE_SIZE;
+      }
+			/*若有多余的不满一页的数据，把它写完*/
+      if (NumOfSingle != 0)
+      {
+        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumOfSingle);
+      }
+    }
+  }
 }
 
 /**
