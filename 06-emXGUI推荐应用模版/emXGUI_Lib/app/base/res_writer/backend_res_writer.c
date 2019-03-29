@@ -367,7 +367,7 @@ void Burn_Catalog(void)
   CatalogTypeDef dir;
   uint8_t i;
   uint8_t is_end;
-//  uint8_t* rx_buff;
+  uint8_t* rx_buff;
   /* 重置进度条 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
   SetWindowText(wnd_res_writer_progbar,L"Writing catalog...");
@@ -394,13 +394,16 @@ void Burn_Catalog(void)
 
     /* 把dir信息烧录到FLASH中 */  
     state = SPI_FLASH_BufferWrite((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
-//    rx_buff = (uint8_t *)GUI_VMEM_Alloc(sizeof(dir));
-//    SPI_FLASH_BufferRead(rx_buff,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
-//    
-//    printf("%d:%d\n",i,Buffercmp((u8*)&dir, rx_buff, sizeof(dir)));
+    rx_buff = (uint8_t *)GUI_VMEM_Alloc(sizeof(dir));
+    SPI_FLASH_BufferRead(rx_buff,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    
+    if(0 == Buffercmp((u8*)&dir, rx_buff, sizeof(dir)))
+    {
+      BURN_ERROR("Flash Write Error!");
+    }    
     
     
-//    GUI_VMEM_Free(rx_buff);
+    GUI_VMEM_Free(rx_buff);
     if(state != QSPI_OK)
       printf("Error Write\n");
   }
@@ -479,14 +482,17 @@ FRESULT Burn_Content(void)
         }      
         SPI_FLASH_BufferWrite(tempbuf,write_addr,bw);  //拷贝数据到外部flash上    
         
-//        rx_buff = (uint8_t *)GUI_VMEM_Alloc(bw);
-//        
-//        SPI_FLASH_BufferRead(rx_buff,write_addr,bw);
-//        SCB_InvalidateDCache_by_Addr((uint32_t*)rx_buff, bw/4);
-////        printf("%d:%d --%d\n",i,Buffercmp(tempbuf, rx_buff, bw),bw);
-//        Buffercmp(tempbuf, rx_buff, bw);
-//    
-//        GUI_VMEM_Free(rx_buff);
+        rx_buff = (uint8_t *)GUI_VMEM_Alloc(bw);
+        
+        SPI_FLASH_BufferRead(rx_buff,write_addr,bw);
+
+        
+        if(0 == Buffercmp(tempbuf, rx_buff, bw))
+        {
+          BURN_ERROR("Flash Write Error!");
+        }
+    
+        GUI_VMEM_Free(rx_buff);
 
         
         write_addr+=bw;				
@@ -683,7 +689,7 @@ FRESULT BurnFile(void)
   /* 根据 目录 烧录内容至FLASH*/
   Burn_Content();
   /* 校验烧录的内容 */
-  result =  Check_Resource();
+  //result =  Check_Resource();
 
 exit:
   /* 释放申请的空间 */
