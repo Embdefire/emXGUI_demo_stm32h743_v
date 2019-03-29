@@ -41,10 +41,10 @@
 #define	LCD_ROTATE      ROTATE_0
 
 /* 是否使用硬件图形加速器（DMA2D之类，驱动需要重新定制） */
-#define	DMA2D_EN                   0
+#define	DMA2D_EN                   1
 
 /* 是否使用缓冲型控件，使用的话会增加一层液晶像素数据的消耗，显示效果减少闪烁*/
-#define  FRAME_BUFFER_EN            0
+#define  FRAME_BUFFER_EN            1
 
 /*==========输入设备配置===gui_input_port.c==================================================*/
 /* 是否使用输入设备 */
@@ -59,7 +59,7 @@
 #define	GUI_TOUCHSCREEN_CALIBRATE       0
 
 /* 是否显示光标 */
-#define  GUI_SHOW_CURSOR_EN        1
+#define  GUI_SHOW_CURSOR_EN        0
 
 /*===========存储器配置===gui_mem_port.c===============================================*/
 /* 通常GUI内核使用MEM内存堆，VMEM内存堆给用户使用 */
@@ -68,7 +68,7 @@
 //#define	GUI_CORE_MEM_BASE	  0xD0100000  //本例子使用RTT管理，使用内部sram，不指定地址
 
 /* GUI内核使用的存储区大小，推荐最小值为8KB */
-#define  GUI_CORE_MEM_SIZE  (32*1024) //本例子使用系统管理，在rtt系统在board.c实现，freertos在heap_4.c实现
+#define  GUI_CORE_MEM_SIZE  (100*1024) //本例子使用系统管理，在rtt系统在board.c实现，freertos在heap_4.c实现
 /* 最小分配粒度，单位为字节*/  
 #define	GUI_CORE_MEM_ALLOC_UNIT   (64)         
 
@@ -130,8 +130,15 @@
 
 /* 要使用的外部默认字体文件，USE_EXTERN_FONT为1时生效 */
 #define GUI_DEFAULT_EXTERN_FONT   gui_font_param[cur_lcd].default_extern_cn
+#define GUI_LOGO_FONT_50          gui_font_param[cur_lcd].default_extern_logo50
+#define GUI_LOGO_FONT_100         gui_font_param[cur_lcd].default_extern_logo100
+#define GUI_LOGO_FONT_252         gui_font_param[cur_lcd].default_extern_logo252
 
-
+#define GUI_CTRL_FONT_32          gui_font_param[cur_lcd].default_extern_ctrl32
+#define GUI_CTRL_FONT_48          gui_font_param[cur_lcd].default_extern_ctrl48
+#define GUI_CTRL_FONT_64          gui_font_param[cur_lcd].default_extern_ctrl64
+#define GUI_CTRL_FONT_72          gui_font_param[cur_lcd].default_extern_ctrl72
+#define GUI_CTRL_FONT_100          gui_font_param[cur_lcd].default_extern_ctrl100
 /*===========日志输出设备配置===gui_log_port.c===============================================*/
 
 /* 是否开启调试输出、数组输出、进入函数的输出功能 */

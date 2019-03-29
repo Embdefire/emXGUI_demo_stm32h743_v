@@ -16,7 +16,7 @@
   */
   
 #include "./flash/bsp_qspi_flash.h"
-#include <emXGUI.h>
+
 QSPI_HandleTypeDef QSPIHandle;
 
 /**
@@ -73,11 +73,11 @@ uint8_t QSPI_FLASH_Init(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_CS_GPIO_AF;
 	HAL_GPIO_Init(QSPI_FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
-  PeriphClkInitStruct.PLL2.PLL2M = 5;
-  PeriphClkInitStruct.PLL2.PLL2N = 144;
-  PeriphClkInitStruct.PLL2.PLL2P = 2;
-  PeriphClkInitStruct.PLL2.PLL2Q = 2;
-  PeriphClkInitStruct.PLL2.PLL2R = 3;
+  PeriphClkInitStruct.PLL2.PLL2M = 25;
+  PeriphClkInitStruct.PLL2.PLL2N = 200;
+  PeriphClkInitStruct.PLL2.PLL2P = 1;
+  PeriphClkInitStruct.PLL2.PLL2Q = 1;
+  PeriphClkInitStruct.PLL2.PLL2R = 1;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
   PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
   PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
@@ -86,7 +86,7 @@ uint8_t QSPI_FLASH_Init(void)
 	/* QSPI_FLASH 模式配置 */
 	QSPIHandle.Instance = QUADSPI;
 	/*二分频，时钟为216/(1+1)=108MHz */
-	QSPIHandle.Init.ClockPrescaler = 1;
+	QSPIHandle.Init.ClockPrescaler = 2;
 	/*FIFO 阈值为 4 个字节*/
 	QSPIHandle.Init.FifoThreshold = 4;
 	/*采样移位半个周期*/
@@ -102,9 +102,6 @@ uint8_t QSPI_FLASH_Init(void)
 	HAL_QSPI_Init(&QSPIHandle);
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
-  
-  
-  
   return 0;
 }
 
@@ -185,12 +182,14 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
+    printf("C Err\n\r");
 		return QSPI_ERROR;
 	}
 
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
+    printf("R Err\n\r");
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -283,30 +282,28 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		/* 启用写操作 */
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
-      printf("写使能失败\n");
-      while(1);
+      printf("WE Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 配置命令 */
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      printf("配置失败\n");
-      while(1);
+      printf("C Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 传输数据 */
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      printf("传输失败\n");
+      printf("T Err\n\r");
 			return QSPI_ERROR;
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
-      printf("超时\n");
+      printf("P Err\n\r");
 			return QSPI_ERROR;
 		}
 
@@ -390,8 +387,6 @@ uint8_t BSP_QSPI_Erase_Chip(void)
 	/* 配置自动轮询模式等待擦除结束 */  
 	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
 	{
-    printf("等待超时\n");
-    while(1);
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -466,8 +461,8 @@ static uint8_t QSPI_ResetMemory()
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = RESET_ENABLE_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_NONE;
-	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
-	s_command.DataMode          = QSPI_DATA_NONE;
+	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;//跳过交替字节阶段
+	s_command.DataMode          = QSPI_DATA_NONE;//跳过数据阶段
 	s_command.DummyCycles       = 0;
 	s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
 	s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
@@ -539,7 +534,7 @@ static uint8_t QSPI_WriteEnable()
 }
 
 /**
-  * @brief  读取存储器的SR并等待EOP
+  * @brief  读取存储器的SR
   * @param  QSPIHandle: QSPI句柄
   * @param  Timeout 超时
   * @retval 无
@@ -561,9 +556,14 @@ static uint8_t QSPI_AutoPollingMemReady(uint32_t Timeout)
 
 	s_config.Match           = 0x00;
 	s_config.Mask            = W25Q256JV_FSR_BUSY;
+  
+  //此处只需要匹配一位，所以AND或者OR模式均可；
+  //若有多个标志位需要配置时，AND模式：必须全部满足；OR模式：只满足其中一个即可
 	s_config.MatchMode       = QSPI_MATCH_MODE_AND;
+  //SPI_FLASH有三个状态寄存器，返回值为1个字节
 	s_config.StatusBytesSize = 1;
 	s_config.Interval        = 0x10;
+  //发生匹配时，自动轮询模式停止。
 	s_config.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
 	if (HAL_QSPI_AutoPolling(&QSPIHandle, &s_command, &s_config, Timeout) != HAL_OK)
@@ -689,8 +689,7 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	s_command.Instruction       = READ_STATUS_REG2_CMD;
 	else if(reg == 3)
 	s_command.Instruction       = READ_STATUS_REG3_CMD;
-	else
-  s_command.Instruction       = reg; 
+	
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
 	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
 	s_command.Address           = 0x000000;
@@ -824,116 +823,4 @@ void QSPI_Set_WP_TO_QSPI_IO(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO2_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO2_PORT, &GPIO_InitStruct);
 }
- /**
-  * @brief  向FLASH发送 写使能 命令
-  * @param  none
-  * @retval none
-  */
-void SPI_FLASH_WriteEnable(void)
-{
-  /* 通讯开始：CS低 */
-//  SPI_FLASH_CS_LOW();
-
-  /* 发送写使能命令*/
-  QSPI_WriteEnable();
-
-  /*通讯结束：CS高 */
-//  SPI_FLASH_CS_HIGH();
-}
-/**
-  * @brief  等待超时回调函数
-  * @param  None.
-  * @retval None.
-  */
-static  uint16_t SPI_TIMEOUT_UserCallback(uint8_t errorCode)
-{
-  /* 等待超时后的处理,输出错误信息 */
-  GUI_DEBUG("SPI 等待超时!errorCode = %d",errorCode);
-  return 0;
-}
-#include "gui_drv_cfg.h"
-
-#if (GUI_APP_RES_WRITER_EN)
-
-extern HWND wnd_res_writer_progbar;
-#define ESTIMATE_ERASING_TIME (40*1000)
-
- /**
-  * @brief  擦除FLASH扇区，整片擦除，带GUI
-  * @param  无
-  * @retval 无
-  */
-int i = 0;
-void SPI_FLASH_BulkErase_GUI(void)
-{
-  
-  /* 重置进度条 */
-  u32 progbar_val = 0;
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Erasing Flash");
-
-  /* 设置最大值，擦除大概需要30s */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,ESTIMATE_ERASING_TIME);
-  GUI_msleep(10);
-  
-  /* 发送FLASH写使能命令 */
-  SPI_FLASH_WriteEnable();
-
-  /* 整块 Erase */
-  /* 选择FLASH: CS低电平 */
-//  SPI_FLASH_CS_LOW();
-  /* 发送整块擦除指令*/
-  BSP_QSPI_Erase_Chip();
-  /* 停止信号 FLASH: CS 高电平 */
-//  SPI_FLASH_CS_HIGH();
-
-  GUI_msleep(10);
-  /* 等待擦除完毕*/
-  {
-    u8 FLASH_Status = 0;
-
-    /* 选择 FLASH: CS 低 */
-//    SPI_FLASH_CS_LOW();
-
-    /* 发送 读状态寄存器 命令 */
-    //BSP_QSPI_GetStatus();
-
-    progbar_val = 0;
-    /* 若FLASH忙碌，则等待 */
-    do
-    {
-      i++;
-      /* 读取FLASH芯片的状态寄存器 */
-      FLASH_Status = BSP_QSPI_GetStatus();
-      
-      progbar_val += 100;
-      /* 超过40*1000ms没完成，继续等*/
-      if(progbar_val >= ESTIMATE_ERASING_TIME - 10*1000)
-          progbar_val =ESTIMATE_ERASING_TIME - 10*1000;
-
-      SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,progbar_val);
-      /* 让出cpu */
-      GUI_msleep(100);
-
-      {
-        /* 大于2倍预估时间，跳出 */
-        if(progbar_val > 2*ESTIMATE_ERASING_TIME) 
-        {
-          SPI_TIMEOUT_UserCallback(4);
-          return;
-        }
-      } 
-    }
-    while (FLASH_Status == QSPI_BUSY); /* 正在写入标志 */
-
-    /* 停止信号  FLASH: CS 高 */
-//    SPI_FLASH_CS_HIGH();
-  }
-  
-  /* 完成 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
-  GUI_msleep(10);
-}
-
-#endif
 /*********************************************END OF FILE**********************/

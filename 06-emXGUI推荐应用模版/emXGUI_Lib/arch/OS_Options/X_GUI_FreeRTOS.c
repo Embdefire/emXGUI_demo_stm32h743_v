@@ -113,7 +113,16 @@ void	GUI_SemPost(GUI_SEM *hsem)
 {
 	xSemaphoreGive((SemaphoreHandle_t)hsem);
 }
-
+void GUI_SemPostISR(GUI_SEM *hsem)
+{
+   
+  BaseType_t pxHigherPriorityTaskWoken;
+  
+  
+	xSemaphoreGiveFromISR((SemaphoreHandle_t)hsem, &pxHigherPriorityTaskWoken);
+  
+  portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+}
 /*===================================================================================*/
 /*
 函数功能: 信号量删除

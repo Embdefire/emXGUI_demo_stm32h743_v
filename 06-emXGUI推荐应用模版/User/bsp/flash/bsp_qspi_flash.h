@@ -46,7 +46,7 @@ typedef struct {
 #define W25Q256JV_DUMMY_CYCLES_READ           4
 #define W25Q256JV_DUMMY_CYCLES_READ_QUAD      10
 
-#define W25Q256JV_BULK_ERASE_MAX_TIME         250000
+#define W25Q256JV_BULK_ERASE_MAX_TIME         0xffffffff
 #define W25Q256JV_SECTOR_ERASE_MAX_TIME       3000
 #define W25Q256JV_SUBSECTOR_ERASE_MAX_TIME    800
 
@@ -142,12 +142,7 @@ typedef struct {
 #define QSPI_FLASH_CS_GPIO_CLK_ENABLE()   __GPIOG_CLK_ENABLE()
 #define QSPI_FLASH_CS_GPIO_AF             GPIO_AF10_QUADSPI
 
-#define SPI_FLASH_CS_LOW()      {QSPI_FLASH_CS_GPIO_PORT->BSRRH=QSPI_FLASH_CS_PIN;}
-#define SPI_FLASH_CS_HIGH()     {QSPI_FLASH_CS_GPIO_PORT->BSRRL=QSPI_FLASH_CS_PIN;}
 
-
-#define WIP_Flag                  0x01  /* Write In Progress (WIP) flag */
-#define Dummy_Byte                0xFF
 
 uint8_t QSPI_FLASH_Init(void);
 uint8_t BSP_QSPI_Init(void);
@@ -156,7 +151,7 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
 uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
 uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
 
-
+uint8_t BSP_QSPI_Erase_Chip(void);
 static uint8_t QSPI_ResetMemory          (void);
 static uint8_t QSPI_WriteEnable          (void);
 static uint8_t QSPI_AutoPollingMemReady  (uint32_t Timeout);
@@ -167,6 +162,6 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg);
 uint32_t QSPI_FLASH_WriteStatusReg(uint8_t reg,uint8_t regvalue);
 void QSPI_Set_WP_High(void);
 void QSPI_Set_WP_TO_QSPI_IO(void);
-void SPI_FLASH_BulkErase_GUI(void);
+
 #endif /* __SPI_FLASH_H */
 

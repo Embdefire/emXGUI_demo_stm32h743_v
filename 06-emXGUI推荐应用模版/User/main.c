@@ -25,8 +25,11 @@
 #include "task.h"
 /* 开发板硬件bsp头文件 */
 #include "board.h"
-
+#include "string.h"
 #include <cm_backtrace.h>
+
+
+#include "Backend_RGBLED.h" 
 
 /* hardfault跟踪器需要的定义 */
 #define HARDWARE_VERSION               "V1.0.0"
@@ -67,7 +70,7 @@ static void GUI_Thread_Entry(void* pvParameters);/* Test_Task任务实现 */
 
 static void SystemClock_Config(void);
 static void BSP_Init(void);/* 用于初始化板载相关资源 */
-
+static void MPU_Config(void);
 
 /***********************************************************************
   * @ 函数名  ： BSP_Init
@@ -82,10 +85,13 @@ static void BSP_Init(void)
 
   /* Enable D-Cache */
   SCB_EnableDCache();
+  
+  SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
 
   /* 系统时钟初始化成400MHz */
 	SystemClock_Config();
-  	
+ 
+  MPU_Config();
   /*
 	 * STM32中断优先级分组为4，即4bit都用来表示抢占优先级，范围为：0~15
 	 * 优先级分组只需要分组一次即可，以后如果有其他的任务需要用到中断，
@@ -101,7 +107,9 @@ static void BSP_Init(void)
 	/* usart 端口初始化 */
   UARTx_Config();
   
-  /*hardfault 跟踪器初始化*/  
+  /* 基本定时器初始化	*/
+	TIM_Basic_Init();  
+  /*hardfault 跟踪器初始化*/ 
   cm_backtrace_init("Fire_emxgui", HARDWARE_VERSION, SOFTWARE_VERSION);
  
 }
@@ -209,7 +217,7 @@ int main(void)
                         (const char*    )"gui",/* 任务名字 */
                         (uint16_t       )2*1024,  /* 任务栈大小 */
                         (void*          )NULL,/* 任务入口函数参数 */
-                        (UBaseType_t    )3, /* 任务的优先级 */
+                        (UBaseType_t    )8, /* 任务的优先级 */
                         (TaskHandle_t*  )NULL);/* 任务控制块指针 */ 
   /* 启动任务调度 */           
   if(pdPASS == xReturn)
@@ -231,23 +239,52 @@ extern void GUI_Startup(void);
   ********************************************************************/
 static void GUI_Thread_Entry(void* parameter)
 {	
-  
+//  uint8_t CPU_RunInfo[400];		//保存任务运行时间信息
   printf("野火emXGUI演示例程\n\n");
-
   /* 执行本函数不会返回 */
 	GUI_Startup();
   
   while (1)
   {
-    LED1_ON;
-    printf("Test_Task Running,LED1_ON\r\n");
-    vTaskDelay(500);   /* 延时500个tick */
-    
-    LED1_OFF;     
-    printf("Test_Task Running,LED1_OFF\r\n");
-    vTaskDelay(500);   /* 延时500个tick */
+//    LED1_ON;
+//    printf("Test_Task Running,LED1_ON\r\n");
+//    vTaskDelay(500);   /* 延时500个tick */
+//    
+//    LED1_OFF;     
+//    printf("Test_Task Running,LED1_OFF\r\n");
+//    vTaskDelay(500);   /* 延时500个tick */
+//    
   }
 }
-
+static void MPU_Config(void)
+{
+  
+  MPU_Region_InitTypeDef MPU_Region_Init;
+  
+	MPU_Region_Init.Enable=MPU_REGION_ENABLE;			              //使能region
+	MPU_Region_Init.Number=0;			                              //region号
+	MPU_Region_Init.BaseAddress=((uint32_t)0xD0000000);	        //SDRAM基地址            
+	MPU_Region_Init.Size=MPU_REGION_SIZE_32MB;				          //32MB大小          
+	MPU_Region_Init.SubRegionDisable=0X00;                      //不使能
+	MPU_Region_Init.TypeExtField=MPU_TEX_LEVEL0;                //
+	MPU_Region_Init.AccessPermission=MPU_REGION_FULL_ACCESS  ;	//用户级RW
+	MPU_Region_Init.DisableExec=MPU_INSTRUCTION_ACCESS_ENABLE;	//
+	MPU_Region_Init.IsShareable=MPU_ACCESS_NOT_SHAREABLE  ;     //
+  MPU_Region_Init.IsCacheable=MPU_ACCESS_CACHEABLE;       //  
+	MPU_Region_Init.IsBufferable=MPU_ACCESS_NOT_BUFFERABLE;     //
+	HAL_MPU_ConfigRegion(&MPU_Region_Init);                     //
+  
+  
+  MPU_Region_Init.Number=1;
+  MPU_Region_Init.BaseAddress=((uint32_t)0x20000000);	        //SDRAM基地址 
+  MPU_Region_Init.Size=MPU_REGION_SIZE_512KB;				          //32MB大小
+  MPU_Region_Init.IsShareable=MPU_ACCESS_NOT_SHAREABLE  ;     //
+  MPU_Region_Init.IsCacheable=MPU_ACCESS_CACHEABLE;       //  
+	MPU_Region_Init.IsBufferable=MPU_ACCESS_BUFFERABLE;     //
+	HAL_MPU_ConfigRegion(&MPU_Region_Init);                     //
+	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);			                //
+  
+    
+}
 
 /********************************END OF FILE****************************/

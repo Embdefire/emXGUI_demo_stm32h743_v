@@ -169,23 +169,25 @@ void SysTick_Handler(void)
 
 ///* 用于统计运行时间 */
 
-//volatile uint32_t CPU_RunTime = 0UL;
-//extern TIM_HandleTypeDef TIM_Base;
+volatile uint32_t CPU_RunTime = 0UL;
+extern TIM_HandleTypeDef TIM_Base;
 
-//void BASIC_TIM_IRQHandler(void)
-//{
-//    HAL_TIM_IRQHandler(&TIM_Base);
-//}
-///**
-//  * @brief  定时器更新中断回调函数
-//  * @param  htim : TIM句柄
-//  * @retval 无
-//  */
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//    if(htim->Instance == TIM6)
-//        CPU_RunTime++;
-//}
+void BASIC_TIM_IRQHandler(void)
+{
+    HAL_TIM_IRQHandler(&TIM_Base);
+}
+/**
+  * @brief  定时器更新中断回调函数
+  * @param  htim : TIM句柄
+  * @retval 无
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance == TIM6)
+        CPU_RunTime++;
+}
+
+
 
 
 

@@ -128,7 +128,7 @@
  *			STMISP -> 清除芯片(z)
  */
 #define configUSE_TICKLESS_IDLE													0   
-
+#include "gui_drv_cfg.h"
 /*
  * 写入实际的CPU内核时钟频率，也就是CPU指令执行频率，通常称为Fclk
  * Fclk为供给CPU内核的时钟信号，我们所说的cpu主频为 XX MHz，
@@ -183,7 +183,7 @@
 //支持静态内存
 #define configSUPPORT_STATIC_ALLOCATION					0					
 //系统所有总的堆大小
-#define configTOTAL_HEAP_SIZE					((size_t)(36*1024))    
+#define configTOTAL_HEAP_SIZE					((size_t)GUI_CORE_MEM_SIZE)   
 
 
 /***************************************************************
@@ -227,17 +227,23 @@
           FreeRTOS与运行时间和任务状态收集有关的配置选项   
 **********************************************************************/
 //启用运行时间统计功能
-#define configGENERATE_RUN_TIME_STATS	        0             
+#define configGENERATE_RUN_TIME_STATS	        1             
  //启用可视化跟踪调试
-#define configUSE_TRACE_FACILITY				      0    
+#define configUSE_TRACE_FACILITY				      1    
 /* 与宏configUSE_TRACE_FACILITY同时为1时会编译下面3个函数
  * prvWriteNameToBuffer()
  * vTaskList(),
  * vTaskGetRunTimeStats()
 */
 #define configUSE_STATS_FORMATTING_FUNCTIONS	1                       
-                                                                        
-                                                                        
+//                                                                        
+// 
+extern volatile uint32_t CPU_RunTime;
+
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()     (CPU_RunTime = 0ul)
+#define portGET_RUN_TIME_COUNTER_VALUE()             CPU_RunTime                            
+                                                                      
+
 /********************************************************************
                 FreeRTOS与协程有关的配置选项                                                
 *********************************************************************/
@@ -305,8 +311,8 @@
 
 /* 以下为使用Percepio Tracealyzer需要的东西，不需要时将 configUSE_TRACE_FACILITY 定义为 0 */
 #if ( configUSE_TRACE_FACILITY == 1 )
-#include "trcRecorder.h"
-#define INCLUDE_xTaskGetCurrentTaskHandle               1   // 启用一个可选函数（该函数被 Trace源码使用，默认该值为0 表示不用）
+//#include "trcRecorder.h"
+//#define INCLUDE_xTaskGetCurrentTaskHandle               1   // 启用一个可选函数（该函数被 Trace源码使用，默认该值为0 表示不用）
 #endif
 
 

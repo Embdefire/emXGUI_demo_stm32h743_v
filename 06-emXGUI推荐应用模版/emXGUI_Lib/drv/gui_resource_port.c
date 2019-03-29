@@ -41,13 +41,20 @@ BOOL RES_DevInit(void)
 #elif defined(STM32H743xx)
   if(QSPI_FLASH_Init() == 0)
   {
+    QSPI_FLASH_WriteStatusReg(1,0X00);
+    QSPI_FLASH_WriteStatusReg(2,0X00);
+    QSPI_FLASH_WriteStatusReg(3,0X60);
+    GUI_DEBUG("\r\nFlash Status Reg1 is 0x%02X", QSPI_FLASH_ReadStatusReg(1));	
+    GUI_DEBUG("\r\nFlash Status Reg2 is 0x%02X", QSPI_FLASH_ReadStatusReg(2));
+    GUI_DEBUG("\r\nFlash Status Reg3 is 0x%02X", QSPI_FLASH_ReadStatusReg(3));    
+    //RES_DevTest();
 #endif
     return TRUE;
   }
   else
     return FALSE;
 
-//	RES_DevTest();
+	
 }
 
 /**
@@ -205,25 +212,29 @@ TestStatus Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength
   }
   return PASSED;
 }
-
+CatalogTypeDef dir;
+int font_base; 
 void RES_DevTest(void)
 {
-  BSP_QSPI_Erase_Block(FLASH_SectorToErase);
-  HAL_InitTick(5);
+  u8 Rx_Buffer[23288];
+//  BSP_QSPI_Erase_Block(FLASH_SectorToErase);
+//  HAL_InitTick(5);
   BSP_QSPI_Write(Tx_Buffer, FLASH_WriteAddress, BufferSize);
-  HAL_InitTick(5);
-  BSP_QSPI_FastRead(Rx_Buffer, FLASH_ReadAddress, BufferSize);
-  TransferStatus1 = Buffercmp(Tx_Buffer, Rx_Buffer, BufferSize);
-  if( PASSED == TransferStatus1 )
-  {    
-    LED_GREEN;
-    GUI_DEBUG("\r\n16M¥Æ––flash(W25Q256)≤‚ ‘≥…π¶!\n\r");
-  }
-  else
-  {        
-    LED_RED;
-    GUI_DEBUG("\r\n16M¥Æ––flash(W25Q256)≤‚ ‘ ß∞‹!\n\r");
-  }
+//  HAL_InitTick(5);
+//  BSP_QSPI_FastRead(Rx_Buffer, FLASH_ReadAddress, BufferSize);
+//  TransferStatus1 = Buffercmp(Tx_Buffer, Rx_Buffer, BufferSize);
+//  if( PASSED == TransferStatus1 )
+//  {    
+//    LED_GREEN;
+//    GUI_DEBUG("\r\n16M¥Æ––flash(W25Q256)≤‚ ‘≥…π¶!\n\r");
+//  }
+//  else
+//  {        
+//    LED_RED;
+//    GUI_DEBUG("\r\n16M¥Æ––flash(W25Q256)≤‚ ‘ ß∞‹!\n\r");
+//  }
+  font_base = RES_GetInfo_AbsAddr("GB2312_24_4BPP.xft", &dir);
+  RES_DevRead(Rx_Buffer, font_base, dir.size);
 }
 #endif
 

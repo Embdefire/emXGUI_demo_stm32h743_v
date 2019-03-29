@@ -11,14 +11,14 @@
 #include <tchar.h>
 
 #else			/* Embedded platform */
-
+#include "def.h"
 /* This type MUST be 8 bit */
 typedef unsigned char	BYTE;
 
 /* These types MUST be 16 bit */
 typedef short			SHORT;
 typedef unsigned short	WORD;
-typedef unsigned short	WCHAR;
+//typedef unsigned short	WCHAR;
 
 /* These types MUST be 16 bit or 32 bit */
 typedef int				INT;

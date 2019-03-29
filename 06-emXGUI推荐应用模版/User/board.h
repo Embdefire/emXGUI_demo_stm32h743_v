@@ -20,7 +20,7 @@
 //#include "./flash/bsp_spi_flash.h"
 //#include "./font/fonts.h"
 
-
+#include "./tim/bsp_basic_tim.h"
 
 /*
 *************************************************************************

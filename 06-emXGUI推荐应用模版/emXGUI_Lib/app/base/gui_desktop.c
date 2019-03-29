@@ -17,16 +17,15 @@
 
 
 #include "emXGUI.h"
-
+#include "GUI_AppDef.h"
 
 /* 外部资源加载完成标志 */
 BOOL Load_state = FALSE;
 
 /*===================================================================================*/
-//extern void	GUI_Boot_Interface_Dialog(void *param);
+extern void	GUI_Boot_Interface_Dialog(void *param);
 extern void GUI_AppMain(void);
 
-extern void GUI_Boot_Interface_Dialog(void *param);
 
 void	gui_app_thread(void *p)
 {
@@ -80,26 +79,73 @@ static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 	{
 		CopyRect(&rc,lprc);
 	}
+	SetBrushColor(hdc,MapRGB(hdc,COLOR_DESKTOP_BACK_GROUND));
+	FillRect(hdc,&rc);
 
   /* 恢复默认字体 */
   SetFont(hdc, defaultFont);
 
-	SetBrushColor(hdc,MapRGB(hdc,32,72,144));
-	FillRect(hdc,&rc);
-  	
-  SetTextColor(hdc,MapRGB(hdc,250,250,250));
-
-
-#if (GUI_EXTERN_FONT_EN || GUI_INER_CN_FONT_EN)
-  /* 居中显示结果 */
-	DrawText(hdc,L"您好，野火emXGUI!",-1,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER);  
-#else
-  /* 居中显示结果 */
-	DrawText(hdc,L"Hello emXGUI@Embedfire!",-1,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER);
-#endif
+	SetTextColor(hdc,MapRGB(hdc,255,255,255));
+  rc.y +=20;
+  DrawText(hdc,L"emXGUI@Embedfire STM32H743X ",-1,&rc,DT_CENTER);
+    
+  /* 背景 */
+  GetClientRect(hwnd,&rc);
+  SetBrushColor(hdc,MapRGB(hdc,82,85,82));
+  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+  rc.h = HEAD_INFO_HEIGHT;
+  FillRect(hdc,&rc);
   
-	SetTextColor(hdc,MapRGB(hdc,250,250,250));
-	TextOut(hdc,20,20,L"emXGUI@Embedfire STM32F429 ",-1);
+    /* 首栏 */ 
+  SetFont(hdc, logoFont50);
+  /* 显示logo */
+  GetClientRect(hwnd,&rc);
+  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT-10;
+  rc.h = HEAD_INFO_HEIGHT;
+  
+  SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
+  DrawText(hdc,L" B",-1,&rc,DT_LEFT|DT_VCENTER);
+  
+  
+  GetClientRect(hwnd,&rc);
+  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+  rc.h = HEAD_INFO_HEIGHT;
+
+  /* 恢复默认字体 */
+  SetFont(hdc, defaultFont);
+  rc.x +=50;
+  DrawText(hdc,L" 野火@emXGUI",-1,&rc,DT_LEFT|DT_VCENTER);
+
+  GetClientRect(hwnd,&rc);
+  rc.x = 350;
+  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT-25;
+  rc.h = HEAD_INFO_HEIGHT;
+  rc.w = 80;    
+  /* 控制图标字体 */
+  SetFont(hdc, ctrlFont100);
+
+  /* 向上图标 */
+  SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
+//  DrawText(hdc,L"D",-1,&rc,DT_TOP|DT_CENTER);
+  DrawText(hdc,L"f",-1,&rc,DT_TOP);
+
+// /* 恢复默认字体 */
+  SetFont(hdc, defaultFont);
+  OffsetRect(&rc,20,-5);
+//  DrawText(hdc,L"广告",-1,&rc,DT_LEFT|DT_VCENTER);
+//  rc.x = 360;
+//  rc.w = 100;
+//  rc.h = 40;
+//  rc.y = 480-45-10;
+//  SetPenColor(hdc, MapRGB(hdc, 250, 250, 250));
+//  DrawRoundRect(hdc, &rc, MIN(rc.w, rc.h)>>1);
+//  rc.y -= 20;
+//  DrawText(hdc,L"\r\n\r\n详细",-1,&rc,DT_BOTTOM|DT_CENTER);
+  GetClientRect(hwnd,&rc);
+  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+  rc.h = HEAD_INFO_HEIGHT;
+
+  DrawText(hdc,L"www.embedFire.com  ",-1,&rc,DT_RIGHT|DT_VCENTER);  
 
 }
 
@@ -131,7 +177,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
     /* 桌面创建时,会产生该消息,可以在这里做一些初始化工作. */
 		case	WM_CREATE:	
 			   //创建1个20ms定时器，处理循环事件.
-				 SetTimer(hwnd,1,30,TMR_START,NULL);
+				 SetTimer(hwnd,1,20,TMR_START,NULL);
 
 				//创建App线程						
 				{
@@ -170,7 +216,27 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
         }
       #endif
 		break;
+    case WM_LBUTTONDOWN:
+		{
 
+			POINT pt;
+			RECT rc;
+
+			pt.x =GET_LPARAM_X(lParam);
+			pt.y =GET_LPARAM_Y(lParam);
+
+			GetClientRect(hwnd,&rc);
+      
+      rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+      rc.h = HEAD_INFO_HEIGHT;          
+
+      /* 若触摸到，则发送消息到slide window */
+			if(PtInRect(&rc,&pt))
+			{
+        PostMessage(GetDlgItem(hwnd,ID_SLIDE_WINDOW), WM_MSG_FRAME_DOWN,0,0);
+			}
+		}
+		break;
     /* 客户区背景需要被擦除 */
 		case	WM_ERASEBKGND:
 		{   

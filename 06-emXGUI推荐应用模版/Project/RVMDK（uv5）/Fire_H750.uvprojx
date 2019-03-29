@@ -207,7 +207,7 @@
             <Ra1Chk>0</Ra1Chk>
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
-            <Im1Chk>1</Im1Chk>
+            <Im1Chk>0</Im1Chk>
             <Im2Chk>1</Im2Chk>
             <OnChipMemories>
               <Ocm1>
@@ -310,7 +310,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>2</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,X_GUI_USE_FREERTOS,</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\app\base\res_writer</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -804,6 +804,16 @@
               <FileType>5</FileType>
               <FilePath>..\..\User\FreeRTOSConfig.h</FilePath>
             </File>
+            <File>
+              <FileName>cpuusage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\cpuusage.c</FilePath>
+            </File>
+            <File>
+              <FileName>Widget.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\OwnerDraw\Widget.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -823,6 +833,11 @@
               <FileName>bsp_sdram.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\sdram\bsp_sdram.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_qspi_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\flash\bsp_qspi_flash.c</FilePath>
             </File>
             <File>
               <FileName>bsp_lcd.c</FileName>
@@ -850,39 +865,14 @@
               <FilePath>..\..\User\bsp\sd_card\bsp_sdio_sd.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_qspi_flash.c</FileName>
+              <FileName>bsp_basic_tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\flash\bsp_qspi_flash.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Fafts</GroupName>
-          <Files>
-            <File>
-              <FileName>diskio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\FATFS\diskio.c</FilePath>
+              <FilePath>..\..\User\bsp\tim\bsp_basic_tim.c</FilePath>
             </File>
             <File>
-              <FileName>ff.c</FileName>
+              <FileName>dma2d_emxgui.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\FATFS\ff.c</FilePath>
-            </File>
-            <File>
-              <FileName>cc936.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\FATFS\option\cc936.c</FilePath>
-            </File>
-            <File>
-              <FileName>syscall.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\FATFS\option\syscall.c</FilePath>
-            </File>
-            <File>
-              <FileName>ffconf.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\User\bsp\FATFS\ffconf.h</FilePath>
+              <FilePath>..\..\User\bsp\dma2d\dma2d_emxgui.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -985,14 +975,14 @@
               <FilePath>..\..\emXGUI_Lib\arch\OS_Options\X_GUI_FreeRTOS.c</FilePath>
             </File>
             <File>
-              <FileName>gui_os_port.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\emXGUI_Lib\arch\Inc\gui_os_port.h</FilePath>
-            </File>
-            <File>
               <FileName>gui_drv.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\emXGUI_Lib\arch\Inc\gui_drv.h</FilePath>
+            </File>
+            <File>
+              <FileName>gui_os_port.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\emXGUI_Lib\arch\Inc\gui_os_port.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1018,6 +1008,171 @@
               <FileName>GB2312_16_2BPP.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\resource\xft_font\GB2312_16_2BPP.c</FilePath>
+            </File>
+            <File>
+              <FileName>blue_fish_bitmap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\resource\pic\blue_fish_bitmap.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
+            <File>
+              <FileName>crocodile_bitmap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\resource\pic\crocodile_bitmap.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
+            <File>
+              <FileName>red_fish_bitmap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\resource\pic\red_fish_bitmap.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
             </File>
           </Files>
         </Group>
@@ -1074,6 +1229,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\drv\gui_touch_port.c</FilePath>
             </File>
+            <File>
+              <FileName>gui_picture_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\drv\gui_picture_port.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1115,9 +1275,9 @@
               <FilePath>..\..\emXGUI_Lib\inc\x_obj.h</FilePath>
             </File>
             <File>
-              <FileName>emxgui_png.h</FileName>
+              <FileName>Clist.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\emXGUI_Lib\inc\emxgui_png.h</FilePath>
+              <FilePath>..\..\emXGUI_Lib\inc\Clist.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1130,6 +1290,11 @@
               <FilePath>..\..\emXGUI_Lib\libs\emXGUI100_MDK_M7.lib</FilePath>
             </File>
             <File>
+              <FileName>libjpeg_MDK_M7.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M7.lib</FilePath>
+            </File>
+            <File>
               <FileName>x_libc_MDK_M7.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\emXGUI_Lib\libs\x_libc_MDK_M7.lib</FilePath>
@@ -1139,25 +1304,44 @@
               <FileType>4</FileType>
               <FilePath>..\..\emXGUI_Lib\libs\libpng_MDK_M7.lib</FilePath>
             </File>
+            <File>
+              <FileName>x_obj.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\x_obj.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>libjpeg_MDK_M4.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M4.lib</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds/>
+              </FileOption>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>base_app</GroupName>
           <Files>
             <File>
-              <FileName>GUI_AppDef.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\emXGUI_Lib\app\base\GUI_AppDef.h</FilePath>
-            </File>
-            <File>
               <FileName>gui_desktop.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\base\gui_desktop.c</FilePath>
-            </File>
-            <File>
-              <FileName>gui_bootinterface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\emXGUI_Lib\app\base\gui_bootinterface.c</FilePath>
             </File>
             <File>
               <FileName>backend_res_writer.c</FileName>
@@ -1169,6 +1353,51 @@
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\base\res_writer\GUI_RES_Writer_Dialog.c</FilePath>
             </File>
+            <File>
+              <FileName>GUI_Boot_Interface_Dialog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\base\boot_interface\GUI_Boot_Interface_Dialog.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_DEMO_SlideWindow.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\demo\GUI_DEMO_SlideWindow.c</FilePath>
+            </File>
+            <File>
+              <FileName>CListMenu.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\base\CListMenu.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CListMenu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\base\CListMenu.h</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_AppDef.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\base\GUI_AppDef.h</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_Board_App_Desktop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\demo\GUI_Board_App_Desktop.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_App_Desktop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\demo\GUI_App_Desktop.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_DEMO_Graphics_Accelerator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\demo\GUI_DEMO_Graphics_Accelerator.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_DEMO_ShowWave.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\demo\GUI_DEMO_ShowWave.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1177,7 +1406,7 @@
             <File>
               <FileName>boot_logo.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\emXGUI_Lib\resource\pic\原件\boot_logo.c</FilePath>
+              <FilePath>..\..\emXGUI_Lib\app\base\boot_interface\boot_logo.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1188,6 +1417,51 @@
               <FileName>必读说明.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\必读说明.txt</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Fafts</GroupName>
+          <Files>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\ff.c</FilePath>
+            </File>
+            <File>
+              <FileName>cc936.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\option\cc936.c</FilePath>
+            </File>
+            <File>
+              <FileName>syscall.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\option\syscall.c</FilePath>
+            </File>
+            <File>
+              <FileName>ffconf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\User\bsp\FATFS\ffconf.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tutorial/rgb_led</GroupName>
+          <Files>
+            <File>
+              <FileName>Backend_RGBLED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\rgb_led\Backend_RGBLED.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_RGBLED_DIALOG.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\rgb_led\GUI_RGBLED_DIALOG.c</FilePath>
             </File>
           </Files>
         </Group>

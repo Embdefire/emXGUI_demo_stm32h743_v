@@ -129,10 +129,10 @@ const TOUCH_PARAM_TypeDef touch_param[3] =
 static int8_t GTP_I2C_Test(void);
 //static void GT91xx_Config_Read_Proc(void);
 
-static void Delay(__IO uint32_t nCount)	 //简单的延时函数
-{
-	for(; nCount != 0; nCount--);
-}
+//static void Delay(__IO uint32_t nCount)	 //简单的延时函数
+//{
+//	for(; nCount != 0; nCount--);
+//}
 
 
 /**
