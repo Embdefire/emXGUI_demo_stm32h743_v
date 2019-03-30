@@ -146,12 +146,108 @@
           <Name></Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>466</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230408</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\base\res_writer\backend_res_writer.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/base/res_writer/backend_res_writer.c\466</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>402</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230110</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\base\res_writer\backend_res_writer.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/base/res_writer/backend_res_writer.c\402</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>522</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134231240</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\base\res_writer\backend_res_writer.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/base/res_writer/backend_res_writer.c\522</Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>531</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134231248</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\base\res_writer\backend_res_writer.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/base/res_writer/backend_res_writer.c\531</Expression>
+        </Bp>
+        <Bp>
+          <Number>4</Number>
+          <Type>0</Type>
+          <LineNumber>506</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230580</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\base\res_writer\backend_res_writer.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/base/res_writer/backend_res_writer.c\506</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
           <ItemText>QSPIHandle</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>fp,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>flash_buf</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>tempbuf[256]</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -160,12 +256,17 @@
           <WinNumber>2</WinNumber>
           <ItemText>uSdHandle</ItemText>
         </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>fp</ItemText>
+        </Ww>
       </WatchWindow2>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>GUI_LOGO_FONT_252</ItemText>
+          <ItemText>rx_buff</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -1588,7 +1689,7 @@
 
   <Group>
     <GroupName>emxgui/arch</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1656,7 +1757,7 @@
 
   <Group>
     <GroupName>emxgui/resource</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1748,7 +1849,7 @@
 
   <Group>
     <GroupName>emxgui/drv</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1888,7 +1989,7 @@
 
   <Group>
     <GroupName>emxgui/inc</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1992,7 +2093,7 @@
 
   <Group>
     <GroupName>emxgui/libs</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2332,7 +2433,7 @@
 
   <Group>
     <GroupName>tutorial/rgb_led</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

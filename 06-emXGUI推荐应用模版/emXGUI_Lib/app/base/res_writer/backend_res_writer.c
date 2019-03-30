@@ -429,13 +429,13 @@ FRESULT Burn_Content(void)
   FRESULT result;   
   UINT  bw;            					    /* File R/W count */
   uint32_t write_addr=0;
-  uint8_t tempbuf[256];
+  uint8_t tempbuf[4096];
   
   /* 重置进度条 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Writing file");
-  /* 设置最大值*/
-  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
+//  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
+//  SetWindowText(wnd_res_writer_progbar,L"Writing file");
+//  /* 设置最大值*/
+//  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
   GUI_msleep(20);
 
  
@@ -452,11 +452,11 @@ FRESULT Burn_Content(void)
     BURN_INFO("-------------------------------------"); 
     BURN_INFO("准备烧录内容：%s",full_file_name);
     
-    x_wsprintf((WCHAR*)tempbuf,L"Writing file %d/%d.\r\nWriting big files will take a long time.\r\nPlease wait...",i,file_num);
-    SetWindowText(wnd_res_writer_info_textbox,(WCHAR*)tempbuf);
-    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
+//    x_wsprintf((WCHAR*)tempbuf,L"Writing file %d/%d.\r\nWriting big files will take a long time.\r\nPlease wait...",i,file_num);
+//    SetWindowText(wnd_res_writer_info_textbox,(WCHAR*)tempbuf);
+//    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
 
-    GUI_msleep(20);
+//    GUI_msleep(20);
 
     LED_BLUE;
      
@@ -473,7 +473,7 @@ FRESULT Burn_Content(void)
       write_addr = dir.offset + RESOURCE_BASE_ADDR;
       while(result == FR_OK) 
       {
-        result = f_read( fp, tempbuf, 256, &bw);//读取数据	 
+        result = f_read( fp, tempbuf, 4096, &bw);//读取数据	 
         if(result!=FR_OK)			 //执行错误
         {
           BURN_ERROR("读取文件失败！");
@@ -481,22 +481,22 @@ FRESULT Burn_Content(void)
           return result;
         }      
         SPI_FLASH_BufferWrite(tempbuf,write_addr,bw);  //拷贝数据到外部flash上    
-        
-        rx_buff = (uint8_t *)GUI_VMEM_Alloc(bw);
-        
-        SPI_FLASH_BufferRead(rx_buff,write_addr,bw);
+//        
+//        rx_buff = (uint8_t *)GUI_VMEM_Alloc(bw);
+//        
+//        SPI_FLASH_BufferRead(rx_buff,write_addr,bw);
 
-        
-        if(0 == Buffercmp(tempbuf, rx_buff, bw))
-        {
-          BURN_ERROR("Flash Write Error!");
-        }
-    
-        GUI_VMEM_Free(rx_buff);
+//        
+//        if(0 == Buffercmp(tempbuf, rx_buff, bw))
+//        {
+//          BURN_ERROR("Flash Write Error!");
+//        }
+//    
+//        GUI_VMEM_Free(rx_buff);
 
         
         write_addr+=bw;				
-        if(bw !=256)break;
+        if(bw !=4096)break;
       }
       BURN_INFO("内容写入完毕");          
            
@@ -506,9 +506,9 @@ FRESULT Burn_Content(void)
   BURN_INFO("************************************");
   BURN_INFO("所有文件均已烧录完毕！（非文件系统部分）");
   
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"All file have been complete.");
-  GUI_msleep(20);
+//  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
+//  SetWindowText(wnd_res_writer_info_textbox,L"All file have been complete.");
+//  GUI_msleep(20);
 
   return FR_OK;
 }
@@ -689,7 +689,7 @@ FRESULT BurnFile(void)
   /* 根据 目录 烧录内容至FLASH*/
   Burn_Content();
   /* 校验烧录的内容 */
-  //result =  Check_Resource();
+  result =  Check_Resource();
 
 exit:
   /* 释放申请的空间 */
