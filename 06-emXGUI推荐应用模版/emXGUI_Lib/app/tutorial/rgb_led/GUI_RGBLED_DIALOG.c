@@ -792,7 +792,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void	GUI_LED_DIALOG(void *param)
+void	GUI_LED_DIALOG(void)
 {
 	HWND	hwnd;
 	WNDCLASS	wcex;
@@ -834,30 +834,31 @@ void	GUI_LED_DIALOG(void *param)
 
 }
 
-//void GUI_PicViewer_DIALOGTest(void *param)
-//{
-//  static int thread = 0;
-//  int app = 0;
-//  
-//  if(thread == 0)
-//  {
-//     GUI_Thread_Create(GUI_PicViewer_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
-//     thread = 1;
-//     return;
-//  }
-//  if(thread == 1)
-//  {
-//		if(app==0)
-//		{
-//			app=1;
-//			GUI_LED_DIALOG();
-//      
-//      
-//			app=0;
-//			thread=0;
-//		}    
-//  }
-//}
+void GUI_PicViewer_DIALOGTest(void *param)
+{
+  static int thread = 0;
+  int app = 0;
+  
+  if(thread == 0)
+  {
+     GUI_Thread_Create(GUI_PicViewer_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
+     thread = 1;
+     return;
+  }
+  if(thread == 1)
+  {
+		if(app==0)
+		{
+			app=1;
+			GUI_LED_DIALOG();
+      
+      
+			app=0;
+			thread=0;
+      GUI_Thread_Delete(GUI_GetCurThreadHandle());
+		}    
+  }
+}
 
 
 
