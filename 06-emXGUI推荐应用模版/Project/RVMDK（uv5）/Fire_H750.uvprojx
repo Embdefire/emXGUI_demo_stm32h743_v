@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,X_GUI_USE_FREERTOS,</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw;..\..\emXGUI_Lib\app\tutorial\music_player</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1462,6 +1462,16 @@
               <FileName>GUI_RGBLED_DIALOG.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\tutorial\rgb_led\GUI_RGBLED_DIALOG.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tutorial/musci_player</GroupName>
+          <Files>
+            <File>
+              <FileName>GUI_MUSICPLAYER_DIALOG.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\music_player\GUI_MUSICPLAYER_DIALOG.c</FilePath>
             </File>
           </Files>
         </Group>

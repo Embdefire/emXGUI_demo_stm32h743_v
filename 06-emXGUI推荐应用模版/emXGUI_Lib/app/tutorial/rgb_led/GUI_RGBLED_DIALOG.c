@@ -24,7 +24,7 @@ struct leddlg
    int colB_ctr;//硬件RGB灯控制位
 }leddlg_S={255, 165, 208, 255, 165, 208, 1, 1, 1};
 
-icon_S GUI_RGBLED_Icon[18] = 
+ICON_Typedef GUI_RGBLED_Icon[18] = 
 {
       {"tuichu",           {730,0,70,70},       FALSE},//退出按键
       {"biaotilan",        {100,0,600,80},      FALSE},//APP标题栏
@@ -46,7 +46,7 @@ icon_S GUI_RGBLED_Icon[18] =
       {"Bshuzhi",          {356, 355, 72, 72}, FALSE},//文字-B数值
 };
 
-RGBLED_DIALOG_s RGBLED_DIALOG =
+RGBLED_DIALOG_Typedef RGBLED_DIALOG =
 {
    .RGBLED_Hwnd = NULL,
    .State = TRUE,

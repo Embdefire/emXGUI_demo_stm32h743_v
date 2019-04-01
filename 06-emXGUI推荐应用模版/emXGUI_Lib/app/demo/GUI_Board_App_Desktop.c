@@ -50,7 +50,7 @@ extern void GUI_App_Desktop(void *param);
 extern void GUI_PicViewer_DIALOGTest(void *param);
 
 extern void	GUI_LED_DIALOG(void *param);
- 
+extern void GUI_MUSIC_DIALOGTest(void *param);
 //extern void GUI_DEMO_DrawJPEG(void);
 //extern void App_LED_DIALOG(void);
 //extern void	GUI_App_Desktop(void);
@@ -135,7 +135,7 @@ static const struct __obj_list menu_list_1[] = {
     //L"Textbox",		app_1, 		NULL,	 	RGB_WHITE,			dummy,
 
       L"GUI应用",		NULL, 	L"J", 	RGB_WHITE,			GUI_App_Desktop,
-      L"MP3播放器",		NULL,	  L"I", RGB_WHITE,				dummy,
+      L"MP3播放器",		NULL,	  L"I", RGB_WHITE,				GUI_MUSIC_DIALOGTest,
       L"视频播放器",		NULL,	  L"D", RGB_WHITE,				dummy,
 
       L"RGB彩灯",		NULL,	  L"L", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
