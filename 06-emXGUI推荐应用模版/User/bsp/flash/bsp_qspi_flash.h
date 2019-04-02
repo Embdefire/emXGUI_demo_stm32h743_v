@@ -138,7 +138,7 @@ typedef struct {
 #define QSPI_FLASH_BK1_IO3_AF              GPIO_AF9_QUADSPI
 
 #define QSPI_FLASH_CS_PIN                 GPIO_PIN_6              
-#define QSPI_FLASH_CS_GPIO_PORT           GPIOG                   
+#define QSPI_FLASH_CS_GPIO_PORT           GPIOG                    
 #define QSPI_FLASH_CS_GPIO_CLK_ENABLE()   __GPIOG_CLK_ENABLE()
 #define QSPI_FLASH_CS_GPIO_AF             GPIO_AF10_QUADSPI
 

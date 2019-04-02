@@ -14,11 +14,11 @@
   *
   ******************************************************************************
   */
-#include "./drivers/fatfs_sd_sdio.h"
+#include "./sd_card/bsp_sdio_sd.h"
 #include <stdio.h>
 #include <string.h>
 #include "./sd_card/bsp_sdio_sd.h"
-#include "ff_gen_drv.h"
+#include "diskio.h"	
 #include "./led/bsp_led.h" 
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
@@ -28,19 +28,19 @@ extern SD_HandleTypeDef uSdHandle;
 extern volatile uint8_t TX_Flag;
 //接受标志位
 extern volatile uint8_t RX_Flag; 
-const Diskio_drvTypeDef  SD_Driver =
-{
-  disk_initialize,
-  disk_status,
-  disk_read, 
-#if  _USE_WRITE == 1
-  disk_write,
-#endif /* _USE_WRITE == 1 */
-  
-#if  _USE_IOCTL == 1
-  disk_ioctl,
-#endif /* _USE_IOCTL == 1 */
-};
+//const Diskio_drvTypeDef  SD_Driver =
+//{
+//  disk_initialize,
+//  disk_status,
+//  disk_read, 
+//#if  _USE_WRITE == 1
+//  disk_write,
+//#endif /* _USE_WRITE == 1 */
+//  
+//#if  _USE_IOCTL == 1
+//  disk_ioctl,
+//#endif /* _USE_IOCTL == 1 */
+//};
 DSTATUS disk_initialize(BYTE lun)
 {
     Stat = STA_NOINIT;
