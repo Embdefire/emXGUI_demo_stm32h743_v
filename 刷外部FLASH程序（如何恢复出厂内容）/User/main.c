@@ -4,11 +4,11 @@
   * @author  fire
   * @version V1.0
   * @date    2018-xx-xx
-  * @brief   SDMMC—SD卡读写测试
+  * @brief   用V1.2.0版本库建的工程模板
   ******************************************************************
   * @attention
   *
-  * 实验平台:野火 STM32H743开发板 
+  * 实验平台:野火  STM32H743开发板 
   * 论坛    :http://www.firebbs.cn
   * 淘宝    :http://firestm32.taobao.com
   *
@@ -16,15 +16,17 @@
   */  
 #include "stm32h7xx.h"
 #include "main.h"
-#include "./led/bsp_led.h"
+#include "./led/bsp_led.h" 
 #include "./usart/bsp_debug_usart.h"
 #include "./sdmmc/bsp_sdmmc_sd.h"
-#include "./key/bsp_key.h"
+#include "./key/bsp_key.h" 
+#include "./delay/core_delay.h"  
 /* FatFs includes component */
 #include "ff.h"
 #include "ff_gen_drv.h"
+//#include "sd_diskio.h"
 #include "./fatfs/drivers/fatfs_flash_qspi.h"
-#include "aux_data.h"
+#include "./res_mgr/RES_MGR.h"
 /**
   ******************************************************************************
   *                              定义变量
@@ -33,13 +35,11 @@
 char SDPath[4]; /* SD逻辑驱动器路径 */
 extern FATFS sd_fs;	
 FRESULT res_sd;                /* 文件操作结果 */
-uint8_t SDworkBuffer[_MAX_SS];
-static void SystemClock_Config(void);
+extern char src_dir[];
+
 extern FATFS flash_fs;
 extern Diskio_drvTypeDef  SD_Driver;
-//要复制的文件路径，到aux_data.c修改
-extern char src_dir[];
-extern char dst_dir[];
+
 
 /**
 	**************************************************************
@@ -68,10 +68,27 @@ static void WIFI_PDN_INIT(void)
 	HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_RESET);  
 }
 /**
+  * @brief  CPU L1-Cache enable.
+  * @param  None
+  * @retval None
+  */
+static void CPU_CACHE_Enable(void)
+{
+  /* Enable I-Cache */
+  SCB_EnableICache();
+
+  /* Enable D-Cache */
+  SCB_EnableDCache();
+
+  //将Cache设置write-through方式
+  //SCB->CACR|=1<<2;
+}
+/**
   * @brief  主函数
   * @param  无
   * @retval 无
   */
+uint8_t state = QSPI_ERROR;
 int main(void)
 {
 	MPU_Config();
@@ -89,70 +106,67 @@ int main(void)
 	
 	/* 配置串口1为：115200 8-N-1 */
 	DEBUG_USART_Config();
-	/* 初始化独立按键 */
-	Key_GPIO_Config();
-	printf("****** 这是一个SD卡文件系统实验 ******\r\n");
-
+  
+    Key_GPIO_Config();
+  	printf("****** 这是一个刷flash实验 ******\r\n");
+//    QSPI_FLASH_Init();
+//    QSPI_Set_WP_High();
+//    /*写状态寄存器*/
+//    QSPI_FLASH_WriteStatusReg(1,0X00);
+//    QSPI_FLASH_WriteStatusReg(2,0X00);
+//    QSPI_FLASH_WriteStatusReg(3,0X60);
+//    printf("\r\nFlash Status Reg1 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(1));	
+//    printf("\r\nFlash Status Reg2 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(2));
+//    printf("\r\nFlash Status Reg3 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(3));
+//    QSPI_Set_WP_TO_QSPI_IO();  
 	//在外部SPI Flash挂载文件系统，文件系统挂载时会对SPI设备初始化
 	TM_FATFS_FLASH_SPI_disk_initialize(NULL);
 
-	//链接驱动器，创建盘符
-	FATFS_LinkDriver(&SD_Driver, SDPath);
-	//f_mkfs(SDPath, FM_ANY, 0, SDworkBuffer, sizeof(SDworkBuffer));		
-	res_sd = f_mount(&sd_fs,(TCHAR const*)SDPath,1);
-  //如果文件系统挂载失败就退出
-  if(res_sd != FR_OK)
-  {
-    BURN_ERROR("f_mount ERROR!请给开发板插入SD卡然后重新复位开发板!");
-    LED_RED;
-    while(1);
-  }    
-    
-  printf("\r\n 按一次KEY1开始烧写字库并复制文件到FLASH。 \r\n"); 
-  printf("\r\n 注意该操作会把FLASH的原内容会被删除！！ \r\n"); 
-
-  while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0)==0){};
-  while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0)==1){}; 
-
-    
-      //     for(j=0;j < dat[i].length/4096 ;j++)//擦除扇区，起始位置710*4096共2116KB
-      // {
-      //   BSP_QSPI_Erase_Block(write_addr+j*4096);
-      // }
-      printf("\r\n 正在擦除整片FLASH，请耐心等候 \r\n"); 
-
-      // BSP_QSPI_Erase_Chip();
-  //烧录数据到flash的非文件系统区域    
-  res_sd = burn_file_sd2flash(burn_data,AUX_MAX_NUM); 
-#if 0
-  if(res_sd == FR_OK)
-  {
-    printf("\r\n\r\n\r\n"); 
-
-    //复制文件到FLASH的文件系统区域
-    copy_file_sd2flash(src_dir,dst_dir);
+  
+    //链接驱动器，创建盘符
+    FATFS_LinkDriver(&SD_Driver, SDPath);
+    //在外部SD卡挂载文件系统，文件系统挂载时会对SD卡初始化
+    res_sd = f_mount(&sd_fs,"0:",1);  
+  
+    if(res_sd != FR_OK)
+    {
+      printf("f_mount ERROR!请给开发板插入SD卡然后重新复位开发板!");
+      LED_RED;
+      while(1);
+    }    
       
-    if(res_sd == FR_OK)
-    {
-      printf("\r\n 所有数据已成功复制到FLASH！！！ \r\n");  
-      LED_GREEN;
-    }
-    else
-    {
-      printf("\r\n 复制文件到FLASH失败(文件系统部分)，请复位重试！！ \r\n"); 
-    }
-  }
-  else
-  {
-    printf("\r\n 拷贝数据到FLASH失败(非文件系统部分)，请复位重试！！ \r\n"); 
-  }
- #endif 
-  while(1)
-	{
-			
-	}
-}
+    printf("\r\n 按一次KEY1开始烧写字库并复制文件到FLASH。 \r\n"); 
+    printf("\r\n 注意该操作会把FLASH的原内容会被删除！！ \r\n"); 
 
+    while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0)==0);
+    while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0)==1); 
+    printf("\r\n 正在进行整片擦除，时间很长，请耐心等候...\r\n"); 
+    
+    BSP_QSPI_Erase_Chip();
+    // for(int i = 0; i < 50; i++)
+    // {
+      
+    //   state = BSP_QSPI_Erase_Block(i*4096);
+    //   if(state != QSPI_OK)
+    //     printf("擦除Block失败\n");
+    //   else
+    //     printf("OK\n");
+    // }
+    
+    /* 生成烧录目录信息文件 */
+    Make_Catalog(src_dir,0);
+
+    /* 烧录 目录信息至FLASH*/
+    Burn_Catalog();
+     /* 根据 目录 烧录内容至FLASH*/
+    Burn_Content();
+    /* 校验烧录的内容 */
+    Check_Resource();    
+    /* 操作完成，停机 */
+    while(1)
+    {
+    }
+}
 /**
   * @brief  System Clock 配置
   *         system Clock 配置如下: 
@@ -231,6 +245,5 @@ static void SystemClock_Config(void)
   {
     while(1) { ; }
   }
-
 }
 /****************************END OF FILE***************************/

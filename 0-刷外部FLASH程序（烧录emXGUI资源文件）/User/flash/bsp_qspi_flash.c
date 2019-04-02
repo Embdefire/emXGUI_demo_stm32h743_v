@@ -16,7 +16,7 @@
   */
   
 #include "./flash/bsp_qspi_flash.h"
-
+#include "res_mgr.h"
 QSPI_HandleTypeDef QSPIHandle;
 
 /**
@@ -74,12 +74,12 @@ void QSPI_FLASH_Init(void)
 	HAL_GPIO_Init(QSPI_FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
     //QSPI freq = osc/PLL2M*PLL2N/PLL2R/（ClockPrescaler+1）
-  PeriphClkInitStruct.PLL2.PLL2M = 25;
-  PeriphClkInitStruct.PLL2.PLL2N = 90;
-  PeriphClkInitStruct.PLL2.PLL2P = 1;
-  PeriphClkInitStruct.PLL2.PLL2Q = 1;
-  PeriphClkInitStruct.PLL2.PLL2R = 1;
-  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
+  PeriphClkInitStruct.PLL2.PLL2M = 5;
+  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 3;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_2;
   PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
   PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
   PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL2;
@@ -182,12 +182,16 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
+          QSPI_FLASH_Init();
+
 		return QSPI_ERROR;
 	}
 
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
+          QSPI_FLASH_Init();
+
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -280,24 +284,35 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		/* 启用写操作 */
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
+      BURN_ERROR("QSPI_WriteEnable");
+      QSPI_FLASH_Init();
 			return QSPI_ERROR;
 		}
 
 		/* 配置命令 */
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
+      BURN_ERROR("HAL_QSPI_Command");
+            QSPI_FLASH_Init();
+
 			return QSPI_ERROR;
 		}
 
 		/* 传输数据 */
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
+      BURN_ERROR("HAL_QSPI_Transmit errorcode =%d",QSPIHandle.ErrorCode);
+      QSPI_FLASH_Init();
+
 			return QSPI_ERROR;
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
+       BURN_ERROR("QSPI_AutoPollingMemReady");
+             QSPI_FLASH_Init();
+
 			return QSPI_ERROR;
 		}
 

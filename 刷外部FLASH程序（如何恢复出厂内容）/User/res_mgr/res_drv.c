@@ -29,7 +29,7 @@
 #define RES_BASE 0x00200000
 
 
-int GetResOffset(u32 res_base,const char *res_name);
+int GetResOffset(uint32_t res_base,const char *res_name);
 
 /*=========================================================================================*/
 
@@ -70,7 +70,7 @@ uint32_t RES_DevGetID(void)
 	return id;
 }
 
-int8_t RES_DevWrite(u8 *buf,u32 addr,u32 size)
+int8_t RES_DevWrite(uint8_t *buf,uint32_t addr,uint32_t size)
 {
 //	GUI_MutexLock(mutex_lock,5000);
 	SPI_FLASH_SectorErase(addr&0xFFFFF000);
@@ -79,7 +79,7 @@ int8_t RES_DevWrite(u8 *buf,u32 addr,u32 size)
 	return 1;
 }
 
-int8_t RES_DevRead(u8 *buf,u32 addr,u32 size)
+int8_t RES_DevRead(uint8_t *buf,uint32_t addr,uint32_t size)
 {
 //	GUI_MutexLock(mutex_lock,5000);
 
@@ -88,7 +88,7 @@ int8_t RES_DevRead(u8 *buf,u32 addr,u32 size)
 	return 1;
 }
 
-int RES_DevEraseSector(u32 addr)
+int RES_DevEraseSector(uint32_t addr)
 {
 //	GUI_MutexLock(mutex_lock,5000);
 	SPI_FLASH_SectorErase(addr&0xFFFFF000);
@@ -102,7 +102,7 @@ void RES_DevTest(void)
 {
 	int i;
 	char *buf;
-	volatile u32 id;
+	volatile uint32_t id;
 
 	buf =malloc(4096);
 	i=0;
@@ -121,7 +121,7 @@ void RES_DevTest(void)
 		RES_DevWrite(buf,i,4096);
 #endif
 		memset(buf,0,4096);
-		RES_DevRead((u8 *)buf,i,4096);
+		RES_DevRead((uint8_t *)buf,i,4096);
 
 		i += 4096;
 //		GUI_msleep(100);

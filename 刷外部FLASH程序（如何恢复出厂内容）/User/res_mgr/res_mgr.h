@@ -14,9 +14,9 @@ extern "C"{
 #define FLASH_ROOT    "1:"
 
 /* 资源在SD卡中的路径 */
-#define RESOURCE_DIR         "0:/srcdata"
+#define RESOURCE_DIR         "0:/srcdata_backup"
 /* 资源烧录到的FLASH基地址（目录地址） */
-#define RESOURCE_BASE_ADDR    8*1024
+#define RESOURCE_BASE_ADDR    (8*1024)
 /* 存储在FLASH中的资源目录大小 */
 #define CATALOG_SIZE           (8*1024)
   
@@ -35,8 +35,8 @@ extern "C"{
 typedef struct 
 {
 	char 	name[40];  /* 资源的名字 */
-	u32  	size;      /* 资源的大小 */ 
-	u32 	offset;    /* 资源相对于基地址的偏移 */
+	uint32_t  	size;      /* 资源的大小 */ 
+	uint32_t 	offset;    /* 资源相对于基地址的偏移 */
 }CatalogTypeDef;
 
 /*=========================================================================================*/
