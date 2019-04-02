@@ -12,11 +12,20 @@
 #define MULTI_BUFFER_SIZE    (BLOCK_SIZE * NUMBER_OF_BLOCKS)
 
 
+#define MSD_OK                        ((uint8_t)0x00)
+#define MSD_ERROR                     ((uint8_t)0x01)
+
 void BSP_SD_MspInit(void);
 HAL_StatusTypeDef BSP_SD_Init(void);
 static void SD_EraseTest(void);
 static HAL_StatusTypeDef Wait_SDCARD_Ready(void);
 static HAL_StatusTypeDef Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength);
+
+uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint64_t ReadAddr,uint32_t NumOfBlocks);
+uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr, uint32_t NumOfBlocks);
+uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks);
+uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint64_t WriteAddr, uint32_t NumOfBlocks);
+
 
 void WIFI_PDN_INIT(void);
 void SD_Test(void);

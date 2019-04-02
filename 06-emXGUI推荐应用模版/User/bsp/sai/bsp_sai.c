@@ -122,7 +122,7 @@ void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num)
   __HAL_DMA_ENABLE_IT(&h_txdma,DMA_IT_TC);
   HAL_DMAEx_MultiBufferStart(&h_txdma,(uint32_t)buffer0,(uint32_t)&SAI1_Block_A->DR,(uint32_t)buffer1,num);//开启双缓冲
   
-  HAL_NVIC_SetPriority(DMA_IRQn,7,0);                    //DMA中断优先级
+  HAL_NVIC_SetPriority(DMA_IRQn,2,0);                    //DMA中断优先级
   HAL_NVIC_EnableIRQ(DMA_IRQn);
 
 }

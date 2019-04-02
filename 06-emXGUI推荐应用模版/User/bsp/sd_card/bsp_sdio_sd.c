@@ -17,6 +17,9 @@
 #include "./sd_card/bsp_sdio_sd.h"
 #include "./led/bsp_led.h"   
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 SD_HandleTypeDef uSdHandle;
 
 uint8_t Buffer_Block_Tx[MULTI_BUFFER_SIZE/4];
@@ -57,6 +60,7 @@ void SD_Test(void)
 } 
 
 
+
 /**
   * @brief  初始化SDMMC1及SD卡
   * @param  无
@@ -64,39 +68,26 @@ void SD_Test(void)
   */
 HAL_StatusTypeDef BSP_SD_Init(void)
 { 
-    HAL_StatusTypeDef sd_state = HAL_OK;
-    
-    /* 定义SDMMC句柄 */
-    uSdHandle.Instance = SDMMC1;
-    uSdHandle.Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
-    uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-    uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
-    uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    uSdHandle.Init.ClockDiv            = 0;
-    
-    /* 初始化SD底层驱动 */
-    BSP_SD_MspInit();
+  uint8_t sd_state = HAL_OK;
+  
+  /* 定义SDMMC句柄 */
+  uSdHandle.Instance = SDMMC1;
+  HAL_SD_DeInit(&uSdHandle);
+	/* SDMMC内核时钟200Mhz, SDCard时钟25Mhz  */
+  uSdHandle.Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
+  uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
+  uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+  uSdHandle.Init.ClockDiv            = 4;
+  
+  /* 初始化SD底层驱动 */
+  BSP_SD_MspInit();
 
-    /* HAL SD 初始化 */
-    if(HAL_SD_Init(&uSdHandle) != HAL_OK)
-    {
-      sd_state = HAL_OK;
-    }
-    
-    /* 配置SD总线位宽 */
-    if(sd_state == HAL_OK)
-    {
-      /* 配置为4bit模式 */
-      if(HAL_SD_ConfigWideBusOperation(&uSdHandle, uSdHandle.Init.BusWide) != HAL_OK)
-      {
-        sd_state = HAL_ERROR;
-      }
-      else
-      {
-        sd_state = HAL_OK;
-      }
-    }
-    
+  /* HAL SD 初始化 */
+  if(HAL_SD_Init(&uSdHandle) != HAL_OK)
+  {
+    sd_state = MSD_ERROR;
+  }
   return  sd_state;
 }
 /**
@@ -301,7 +292,86 @@ void WIFI_PDN_INIT(void)
     /*禁用WiFi模块*/
     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_RESET);  
 }
+/**
+  * @brief  在轮询模式下从SD卡中的指定地址读取块
+  * @param  pData: 指向将包含要传输的数据的缓冲区的指针
+  * @param  ReadAddr: 从哪里读取数据的地址  
+  * @param  NumOfBlocks: 读取的扇区数 
+  * @retval SD 状态
+  */
+uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
+{
+  if(HAL_SD_ReadBlocks(&uSdHandle,(uint8_t *)pData, ReadAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
+  {
+    return HAL_OK;
+  }
+  else
+  {
+    return MSD_ERROR;
+  }
+}
 
+/**
+  * @brief  在轮询模式下从SD卡中的指定地址写入块 
+  * @param  pData: 指向将包含要传输的数据的缓冲区的指针
+  * @param  WriteAddr: 从哪里读取数据的地址  
+  * @param  NumOfBlocks: 读取的扇区数 
+  * @retval SD 状态
+  */
+uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr,uint32_t NumOfBlocks)
+{
+  if(HAL_SD_WriteBlocks(&uSdHandle,(uint8_t *)pData, WriteAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
+  {
+    return MSD_OK;
+  }
+  else
+  {
+    return MSD_ERROR;
+  }
+}
+
+/**
+  * @brief  以DMA方式从SD卡中的指定地址读取块
+  * @param  pData: 指向将包含要传输的数据的缓冲区的指针
+  * @param  ReadAddr: 从哪里读取数据的地址  
+  * @param  NumOfBlocks: 读取的扇区数 
+  * @retval SD 状态
+  */
+uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
+{ 
+  taskENTER_CRITICAL();
+  /* 以DMA方式从SD卡中的指定地址读取块 */
+  if(HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t *)pData, ReadAddr,NumOfBlocks) == HAL_OK)
+  {
+    taskEXIT_CRITICAL();	
+    return MSD_OK;
+  }
+  else
+  {
+    taskEXIT_CRITICAL();	
+    return MSD_ERROR;
+  }
+}
+
+/**
+  * @brief  以DMA方式从SD卡中的指定地址写入块
+  * @param  pData: 指向将包含要传输的数据的缓冲区的指针
+  * @param  ReadAddr: 从哪里写入数据的地址  
+  * @param  NumOfBlocks: 读取的扇区数 
+  * @retval SD 状态
+  */
+uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint64_t WriteAddr, uint32_t NumOfBlocks)
+{  
+  /* 以DMA方式从SD卡中的指定地址写入块 */
+  if(HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t *)pData, WriteAddr, NumOfBlocks) == HAL_OK)
+  {
+    return MSD_OK;
+  }
+  else
+  {
+    return MSD_ERROR;
+  }
+}
 /**
   * @brief  初始化SD外设
   * @param  无
@@ -336,7 +406,7 @@ void BSP_SD_MspInit(void)
     //禁用WIFI模块
     WIFI_PDN_INIT();
         
-    HAL_NVIC_SetPriority(SDMMC1_IRQn,0,0);  //配置SDMMC1中断
+    HAL_NVIC_SetPriority(SDMMC1_IRQn,0x0,0);  //配置SDMMC1中断
     HAL_NVIC_EnableIRQ(SDMMC1_IRQn);        //使能SDMMC1中断
     
     HAL_NVIC_SetPriority(SysTick_IRQn, 0x0E ,0);

@@ -43,7 +43,7 @@ static uint8_t bufflag=0;          /* 数据缓存区选择标志 */
 uint32_t led_delay=0;
 
 uint8_t inputbuf[INPUTBUF_SIZE]={0};        /* 解码输入缓冲区，1940字节为最大MP3帧大小  */
-__attribute__((at(0x30000000))) short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
+short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
 
 
 FIL file;											/* file objects */

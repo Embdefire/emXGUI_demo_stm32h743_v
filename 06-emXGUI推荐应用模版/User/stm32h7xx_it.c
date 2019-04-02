@@ -140,13 +140,13 @@ void DebugMon_Handler(void)
 
 void SDMMC1_IRQHandler(void)
 {
-  uint32_t ulReturn;
-  /* 进入临界段，临界段可以嵌套 */
-  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
+//  uint32_t ulReturn;
+//  /* 进入临界段，临界段可以嵌套 */
+//  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
   HAL_SD_IRQHandler(&uSdHandle);
 		
   /* 退出临界段 */
-  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+//  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
 }
 
 /**
@@ -189,11 +189,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void DMA1_Stream2_IRQHandler(void)
 {
-  uint32_t ulReturn;
-  /* 进入临界段，临界段可以嵌套 */
-  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
+//  uint32_t ulReturn;
+//  /* 进入临界段，临界段可以嵌套 */
+//  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
   I2Sx_TX_DMA_STREAM_IRQFUN();
-  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+//  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
 }
 
 
