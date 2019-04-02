@@ -37,12 +37,18 @@ typedef struct
 { 
   HWND MUSIC_Hwnd;                 //播放器窗口句柄
   HWND LIST_Hwnd;
+  HWND LRC_Hwnd;
+  
+  
   HDC hdc_bk;
   uint8_t  music_file_num;//歌曲数目
+  
+  uint8_t  play_index;
   char* filename;
   uint16_t power;                  //音量值       
   BOOL Load_File;
   BOOL Init_State;
+  BOOL mLRC_State;
 }MUSIC_DIALOG_Typedef;
 
 void GUI_MUSIC_DIALOGTest(void *param);
