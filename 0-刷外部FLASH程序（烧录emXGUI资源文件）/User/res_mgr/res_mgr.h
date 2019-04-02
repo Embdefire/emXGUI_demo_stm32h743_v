@@ -16,7 +16,7 @@ extern "C"{
 /* 资源在SD卡中的路径 */
 #define RESOURCE_DIR         "0:/srcdata"
 /* 资源烧录到的FLASH基地址（目录地址） */
-#define RESOURCE_BASE_ADDR    4096
+#define RESOURCE_BASE_ADDR    (8*1024)
 /* 存储在FLASH中的资源目录大小 */
 #define CATALOG_SIZE           (8*1024)
   
@@ -42,8 +42,9 @@ typedef struct
 /*=========================================================================================*/
 
 /*信息输出*/
-#define BURN_DEBUG_ON         0
-#define BURN_DEBUG_FUNC_ON    0
+#define BURN_DEBUG_ON         1
+#define BURN_DEBUG_FUNC_ON    1
+#define BURN_DEBUG_ARRAY_ON    1
 
 #define BURN_INFO(fmt,arg...)           printf("<<-BURN-INFO->> "fmt"\n",##arg)
 #define BURN_ERROR(fmt,arg...)          printf("<<-BURN-ERROR->> "fmt"\n",##arg)
@@ -51,6 +52,24 @@ typedef struct
                                           if(BURN_DEBUG_ON)\
                                           printf("<<-BURN-DEBUG->> [%d]"fmt"\n",__LINE__, ##arg);\
                                           }while(0)
+
+#define BURN_DEBUG_ARRAY(array, num)    do{\
+                                         int32_t i;\
+                                         uint8_t* a = array;\
+                                         if(BURN_DEBUG_ARRAY_ON)\
+                                         {\
+                                            printf("<<-BURN-DEBUG-ARRAY->>\n");\
+                                            for (i = 0; i < (num); i++)\
+                                            {\
+                                                printf("%02x   ", (a)[i]);\
+                                                if ((i + 1 ) %10 == 0)\
+                                                {\
+                                                    printf("\n");\
+                                                }\
+                                            }\
+                                            printf("\n");\
+                                        }\
+                                       }while(0)                                          
 
 #define BURN_DEBUG_FUNC()               do{\
                                          if(BURN_DEBUG_FUNC_ON)\

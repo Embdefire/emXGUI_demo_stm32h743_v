@@ -73,8 +73,9 @@ void QSPI_FLASH_Init(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_CS_GPIO_AF;
 	HAL_GPIO_Init(QSPI_FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
+    //QSPI freq = osc/PLL2M*PLL2N/PLL2R/£¨ClockPrescaler+1£©
   PeriphClkInitStruct.PLL2.PLL2M = 25;
-  PeriphClkInitStruct.PLL2.PLL2N = 266;
+  PeriphClkInitStruct.PLL2.PLL2N = 90;
   PeriphClkInitStruct.PLL2.PLL2P = 1;
   PeriphClkInitStruct.PLL2.PLL2Q = 1;
   PeriphClkInitStruct.PLL2.PLL2R = 1;

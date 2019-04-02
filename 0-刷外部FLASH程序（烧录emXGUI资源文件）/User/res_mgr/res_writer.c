@@ -23,6 +23,8 @@ char src_dir[512]= RESOURCE_DIR;
 static FIL file_temp;													/* file objects */
 static char full_file_name[512];
 static char line_temp[512];
+static uint8_t state = QSPI_ERROR;
+uint32_t loop = 0;
 
 
 
@@ -326,9 +328,15 @@ void Burn_Catalog(void)
     /* 已遍历完毕,跳出循环 */
     if(is_end !=0)   
       break;
-
+    loop = 0;
     /* 把dir信息烧录到FLASH中 */  
-    BSP_QSPI_Write((uint8_t*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+   state =  BSP_QSPI_Write((uint8_t*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    if(state != QSPI_OK)
+    {
+      BURN_ERROR("Burn_Catalog QSPI_Write ERROR");
+      BURN_ERROR("loop=%d",loop);
+
+    }
   }
 }
 
@@ -374,16 +382,24 @@ FRESULT Burn_Content(void)
       BURN_INFO("正在向FLASH写入内容...");
       
       write_addr = dir.offset + RESOURCE_BASE_ADDR;
+      loop = 0;
       while(result == FR_OK) 
       {
+        loop++;
         result = f_read( &file_temp, tempbuf, 256, &bw);//读取数据	 
         if(result!=FR_OK)			 //执行错误
         {
-          BURN_ERROR("读取文件失败！");
+          BURN_ERROR("读取文件失败！result = %d",result);
           LED_RED;
           return result;
         }      
-        BSP_QSPI_Write(tempbuf,write_addr,bw);  //拷贝数据到外部flash上    
+        state = BSP_QSPI_Write(tempbuf,write_addr,bw);  //拷贝数据到外部flash上   
+        if(state != QSPI_OK)
+        {
+          BURN_ERROR("Burn_Content QSPI_Write ERROR");
+          BURN_ERROR("loop=%d",loop);
+
+        } 
         write_addr+=bw;				
         if(bw !=256)break;
       }
@@ -455,9 +471,10 @@ FRESULT Check_Resource(void)
       read_addr = dir.offset;
      
       f_lseek(&file_temp,0);
-      
+      loop = 0;
       while(result == FR_OK) 
       {
+        loop++;
         result = f_read( &file_temp, tempbuf, 256, &bw);//读取数据	 
         if(result!=FR_OK)			 //执行错误
         {
@@ -465,7 +482,13 @@ FRESULT Check_Resource(void)
           LED_RED;
           return result;
         }      
-        BSP_QSPI_Read(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        state = BSP_QSPI_Read(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        if(state != QSPI_OK)
+        {
+          BURN_ERROR("Check_Resource BSP_QSPI_Read ERROR");
+          BURN_ERROR("loop=%d",loop);
+
+        }
         read_addr+=bw;		
         
         for(j=0;j<bw;j++)

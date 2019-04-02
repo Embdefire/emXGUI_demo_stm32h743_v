@@ -52,7 +52,7 @@
   * @retval 无
   * @note   使用延时函数前，必须调用本函数
   */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
+HAL_StatusTypeDef CPU_InitTick(uint32_t TickPriority)
 {
     /* 使能DWT外设 */
     DEM_CR |= (uint32_t)DEM_CR_TRCENA;                
@@ -81,7 +81,7 @@ uint32_t CPU_TS_TmrRd(void)
   * @param  无
   * @retval 当前时间戳，即DWT_CYCCNT寄存器的值
   */
-uint32_t HAL_GetTick(void)
+uint32_t CPU_GetTick(void)
 {        
   return ((uint32_t)DWT_CYCCNT/SysClockFreq*1000);
 }
@@ -103,7 +103,7 @@ void CPU_TS_Tmr_Delay_US(uint32_t us)
   /* 在函数内部初始化时间戳寄存器， */  
 #if (CPU_TS_INIT_IN_DELAY_FUNCTION)  
   /* 初始化时间戳并清零 */
-  HAL_InitTick(5);
+  CPU_InitTick(5);
 #endif
   
   ticks = us * (GET_CPU_ClkFreq() / 1000000);  /* 需要的节拍数 */      

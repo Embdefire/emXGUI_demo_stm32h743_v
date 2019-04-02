@@ -104,22 +104,23 @@ int main(void)
     while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0)==1); 
     printf("\r\n 正在进行整片擦除，时间很长，请耐心等候...\r\n"); 
     
-    for(int i = 0; i < 50; i++)
-    {
+    BSP_QSPI_Erase_Chip();
+    // for(int i = 0; i < 50; i++)
+    // {
       
-      state = BSP_QSPI_Erase_Block(i*4096);
-      if(state != QSPI_OK)
-        printf("擦除Block失败\n");
-      else
-        printf("OK\n");
-    }
+    //   state = BSP_QSPI_Erase_Block(i*4096);
+    //   if(state != QSPI_OK)
+    //     printf("擦除Block失败\n");
+    //   else
+    //     printf("OK\n");
+    // }
     
     /* 生成烧录目录信息文件 */
     Make_Catalog(src_dir,0);
 
     /* 烧录 目录信息至FLASH*/
     Burn_Catalog();
-    /* 根据 目录 烧录内容至FLASH*/
+     /* 根据 目录 烧录内容至FLASH*/
     Burn_Content();
     /* 校验烧录的内容 */
     Check_Resource();    
