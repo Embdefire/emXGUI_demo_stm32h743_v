@@ -68,8 +68,8 @@ void mp3PlayerDemo(const char *mp3file)
 	mp3player.ucFreq = SAI_AUDIOFREQ_DEFAULT;
 	mp3player.ucStatus = STA_IDLE;
 	mp3player.ucVolume = 45;
-	
-	result=f_open(&file,mp3file,FA_READ);
+	result = f_open(&file, "0:/mp3/张国荣-玻璃之情.mp3",FA_OPEN_EXISTING | FA_READ );
+	//result=f_open(&file,mp3file,FA_READ);
 	if(result!=FR_OK)
 	{
 		printf("Open mp3file :%s fail!!!->%d\r\n",mp3file,result);

@@ -418,6 +418,9 @@ static FRESULT scan_Musicfiles(char* path)
   } 
   return res; 
 }
+
+FIL file1;											/* file objects */
+
 static void Dialog_Init(HWND hwnd)
 {
   //Step1:初始化背景
@@ -469,7 +472,8 @@ static void Dialog_Init(HWND hwnd)
 		GUI_DEBUG("检测不到WM8978芯片!!!\n");
 		while (1);	/* 停机 */
 	}  
-  //mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
+  mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
+  
 }
 
 /**

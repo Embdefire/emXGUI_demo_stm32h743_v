@@ -1468,6 +1468,16 @@
               <FileType>5</FileType>
               <FilePath>..\..\User\bsp\FATFS\ffconf.h</FilePath>
             </File>
+            <File>
+              <FileName>ff_gen_drv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\ff_gen_drv.c</FilePath>
+            </File>
+            <File>
+              <FileName>sd_diskio_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\drivers\sd_diskio_dma.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
