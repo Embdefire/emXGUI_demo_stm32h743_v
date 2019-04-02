@@ -86,11 +86,11 @@ static void BSP_Init(void)
   /* Enable D-Cache */
   SCB_EnableDCache();
   
-  SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
+  //SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
 
   /* 系统时钟初始化成400MHz */
 	SystemClock_Config();
- 
+    
   MPU_Config();
   /*
 	 * STM32中断优先级分组为4，即4bit都用来表示抢占优先级，范围为：0~15
@@ -98,7 +98,7 @@ static void BSP_Init(void)
 	 * 都统一用这个优先级分组，千万不要再分组，切忌。
 	 */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-  
+
 	/* 硬件BSP初始化统统放在这里，比如LED，串口，LCD等 */
   SDRAM_Init();
 	/* LED 端口初始化 */
@@ -111,6 +111,8 @@ static void BSP_Init(void)
 	TIM_Basic_Init();  
   /*hardfault 跟踪器初始化*/ 
   cm_backtrace_init("Fire_emxgui", HARDWARE_VERSION, SOFTWARE_VERSION);
+  
+  
  
 }
 

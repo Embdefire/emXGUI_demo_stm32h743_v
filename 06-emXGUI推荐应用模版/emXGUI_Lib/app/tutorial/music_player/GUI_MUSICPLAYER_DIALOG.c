@@ -7,7 +7,8 @@
 #include <string.h>
 #include	"CListMenu.h"
 #include "x_libc.h"
-
+#include "./wm8978/bsp_wm8978.h" 
+#include "./mp3Player/mp3Player.h"
 SCROLLINFO g_sif_power;//音量滑动条
 SCROLLINFO g_sif_time;//歌曲进度
 //旋转图标
@@ -402,13 +403,16 @@ static void Dialog_Init(HWND hwnd)
   hdc_rotate =CreateDC(pSurf,&rc);
   DeleteDC(rotate_disk_hdc);
   //Step3：分配内存
-  
-  
-  
-  
-  
+    
   //Step4：读取音乐列表
   scan_Musicfiles(path);//出现hardfault时，注意线程栈的大小
+  //Step5:initialize Hardware
+	if (wm8978_Init()==0)
+	{
+		GUI_DEBUG("检测不到WM8978芯片!!!\n");
+		while (1);	/* 停机 */
+	}  
+  //mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
 }
 
 /**

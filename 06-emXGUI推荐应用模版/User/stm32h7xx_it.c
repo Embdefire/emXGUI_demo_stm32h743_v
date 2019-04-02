@@ -187,7 +187,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         CPU_RunTime++;
 }
 
-
+void DMA1_Stream2_IRQHandler(void)
+{
+  I2Sx_TX_DMA_STREAM_IRQFUN();
+}
 
 
 
