@@ -45,6 +45,7 @@ uint32_t led_delay=0;
 uint8_t inputbuf[INPUTBUF_SIZE]={0};        /* 解码输入缓冲区，1940字节为最大MP3帧大小  */
 __attribute__((at(0x30000000))) short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
 
+
 FIL file;											/* file objects */
 FRESULT result; 
 UINT bw;            					/* File R/W count */
@@ -66,7 +67,7 @@ void mp3PlayerDemo(const char *mp3file)
 	
 	mp3player.ucFreq = SAI_AUDIOFREQ_DEFAULT;
 	mp3player.ucStatus = STA_IDLE;
-	mp3player.ucVolume = 40;
+	mp3player.ucVolume = 45;
 	
 	result=f_open(&file,mp3file,FA_READ);
 	if(result!=FR_OK)

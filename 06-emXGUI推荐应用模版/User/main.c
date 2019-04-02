@@ -282,7 +282,7 @@ static void MPU_Config(void)
   MPU_Region_Init.Size=MPU_REGION_SIZE_512KB;				          //32MB¥Û–°
   MPU_Region_Init.IsShareable=MPU_ACCESS_NOT_SHAREABLE  ;     //
   MPU_Region_Init.IsCacheable=MPU_ACCESS_CACHEABLE;       //  
-	MPU_Region_Init.IsBufferable=MPU_ACCESS_BUFFERABLE;     //
+	MPU_Region_Init.IsBufferable=MPU_ACCESS_NOT_BUFFERABLE;     //
 	HAL_MPU_ConfigRegion(&MPU_Region_Init);                     //
 	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);			                //
   

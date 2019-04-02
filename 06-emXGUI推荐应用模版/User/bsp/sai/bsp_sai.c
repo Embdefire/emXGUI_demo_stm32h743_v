@@ -60,14 +60,14 @@ void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
 {
   RCC_PeriphCLKInitTypeDef RCC_ExCLKInitStruct; 
 	RCC_ExCLKInitStruct.PeriphClockSelection=RCC_PERIPHCLK_SAI1;
-	RCC_ExCLKInitStruct.Sai1ClockSelection=RCC_SAI1CLKSOURCE_PLL2;  
-  RCC_ExCLKInitStruct.PLL2.PLL2M=25;
+	RCC_ExCLKInitStruct.Sai1ClockSelection=RCC_SAI1CLKSOURCE_PLL3;  
+  RCC_ExCLKInitStruct.PLL3.PLL3M=25;
   switch(AudioFreq)
   {
     case SAI_AUDIO_FREQUENCY_44K :
     {
-      RCC_ExCLKInitStruct.PLL2.PLL2N=344;
-      RCC_ExCLKInitStruct.PLL2.PLL2P=2;      
+      RCC_ExCLKInitStruct.PLL3.PLL3N=344;
+      RCC_ExCLKInitStruct.PLL3.PLL3P=2;      
       break;
     }
     default:
@@ -122,7 +122,7 @@ void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num)
   __HAL_DMA_ENABLE_IT(&h_txdma,DMA_IT_TC);
   HAL_DMAEx_MultiBufferStart(&h_txdma,(uint32_t)buffer0,(uint32_t)&SAI1_Block_A->DR,(uint32_t)buffer1,num);//开启双缓冲
   
-  HAL_NVIC_SetPriority(DMA_IRQn,0,0);                    //DMA中断优先级
+  HAL_NVIC_SetPriority(DMA_IRQn,7,0);                    //DMA中断优先级
   HAL_NVIC_EnableIRQ(DMA_IRQn);
 
 }

@@ -329,7 +329,7 @@ void SDRAM_Init(void)
 	/* ≈‰÷√SDRAM ±÷”‘¥*/
   RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FMC;
   RCC_PeriphClkInit.PLL2.PLL2M = 5;
-  RCC_PeriphClkInit.PLL2.PLL2N = 144;
+  RCC_PeriphClkInit.PLL2.PLL2N = 120;
   RCC_PeriphClkInit.PLL2.PLL2P = 2;
   RCC_PeriphClkInit.PLL2.PLL2Q = 2;
   RCC_PeriphClkInit.PLL2.PLL2R = 3;

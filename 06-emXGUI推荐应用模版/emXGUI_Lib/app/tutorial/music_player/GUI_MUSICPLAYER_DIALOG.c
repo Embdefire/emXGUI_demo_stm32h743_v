@@ -250,56 +250,113 @@ static void _music_ExitButton_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 	SetFont(hdc, defaultFont);
 
 }
+/**
+  * @brief  播放音乐列表进程
+  * @param  hwnd：屏幕窗口的句柄
+  * @retval 无
+  * @notes  
+  */
 
-//static void _music_ReturnButton_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
-//{
-//  HWND hwnd;
-//  HDC hdc;
-//  RECT rc;
-//  WCHAR wbuf[128];
+int stop_flag = 0;
+static int thread=0;
+static void App_PlayMusic(HWND hwnd)
+{
+	int app=0;
+  HDC hdc;
+  SCROLLINFO sif;
+	if(thread==0)
+	{  
+      //h_music=rt_thread_create("App_PlayMusic",(void(*)(void*))App_PlayMusic,NULL,5*1024,5,1);
+    GUI_Thread_Create(App_PlayMusic,"MUSIC_DIALOG",5*1024,NULL,5,5);
+    thread =1;
+    return;
+	}
+	while(thread) //线程已创建了
+	{     
+		if(app==0)
+		{
+			app=1;
+//         hdc = GetDC(hwnd);   
+//         int i = 0;      
+//         //读取歌词文件
+//         while(music_playlist[play_index][i]!='\0')
+//         {
+//           music_name[i]=music_playlist[play_index][i];
+//           i++;
+//         }			         
+//         music_name[i]='\0';
+//         //为歌词文件添加.lrc后缀
+//         lrc_chg_suffix((uint8_t *)music_name,"lrc");
+//         i=0;
+//         //初始化数组内容
+//         while(i<LYRIC_MAX_SIZE)
+//         {
+//           lrc.addr_tbl[i]=0;
+//           lrc.length_tbl[i]=0;
+//           lrc.time_tbl[i]=0;
+//           i++;
+//         }
+//         lrc.indexsize=0;
+//         lrc.oldtime=0;
+//         lrc.curtime=0;
+//         //打开歌词文件
+//         f_result=f_open(&f_file, music_name,FA_OPEN_EXISTING | FA_READ);
+//         //打开成功，读取歌词文件，分析歌词文件，同时将flag置1，表示文件读取成功
+//         if((f_result==FR_OK)&&(f_file.fsize<COMDATA_SIZE))
+//         {					
+//           f_result=f_read(&f_file,ReadBuffer1, sizeof(ReadBuffer1),&f_num);		
+//           if(f_result==FR_OK) 
+//           {  
+//              lyric_analyze(&lrc,ReadBuffer1);
+//              lrc_sequence(&lrc);
+//              lrc.flag = 1;      
+//           }
+//         }
+//         //打开失败（未找到该歌词文件），则将flag清零，表示没有读取到该歌词文件
+//         else
+//         {
+//            lrc.flag = 0;
+//            printf("读取失败\n");
+//         }
+//         //关闭文件
+//        f_close(&f_file);	 
+//         
+//         i = 0;
+//         //得到播放曲目的文件名
+//         while(music_playlist[play_index][i]!='\0')
+//			{
+//				music_name[i]=music_playlist[play_index][i];
+//				i++;
+//			}
+//			music_name[i]='\0';
+//         
+//         //power = SendMessage(GetDlgItem(hwnd, ID_SCROLLBAR_POWER), SBM_GETVALUE, NULL, NULL);
+//         //SendMessage(GetDlgItem(hwnd, ID_SCROLLBAR_POWER),SBM_GETSCROLLINFO,0,(LPARAM)&sif);
+//         //power = sif.nValue;
+//         if(strstr(music_name,".wav")||strstr(music_name,".WAV"))
+//         {
+//            printf("wav\r");
+//           wavplayer(music_name, power,hdc);
+//         }
+//         else
+//         {
+           mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
+           app = 0;
+//         }
+//			 
+         printf("播放结束\n");
+//         
+//         app=0;
+//         //使用 GETDC之后需要释放掉HDC
+//         ReleaseDC(hwnd, hdc);
+//         //进行任务调度
+//         GUI_msleep(20);
+		}
+	   
+   }
+   
 
-//  hwnd = ds->hwnd; //button的窗口句柄.
-//  hdc = ds->hDC;   //button的绘图上下文句柄.
-//  rc = ds->rc;     //button的绘制矩形区.
-
-//  SetBrushColor(hdc, MapRGB(hdc, 0,0,0));
-
-//  FillCircle(hdc, rc.x, rc.y, rc.w);
-//  SetBrushColor(hdc, MapRGB(hdc, 0,0,0));
-//  FillRect(hdc, &rc); //用矩形填充背景
-
-//  if (IsWindowEnabled(hwnd) == FALSE)
-//  {
-//    SetTextColor(hdc, MapRGB(hdc, COLOR_INVALID));
-//  }
-//  else if (ds->State & BST_PUSHED)
-//  { //按钮是按下状态
-//  //    GUI_DEBUG("ds->ID=%d,BST_PUSHED",ds->ID);
-//  //		SetBrushColor(hdc,MapRGB(hdc,150,200,250)); //设置填充色(BrushColor用于所有Fill类型的绘图函数)
-//  //		SetPenColor(hdc,MapRGB(hdc,250,0,0));        //设置绘制色(PenColor用于所有Draw类型的绘图函数)
-//    SetTextColor(hdc, MapRGB(hdc, 105, 105, 105));      //设置文字色
-//  }
-//  else
-//  { //按钮是弹起状态
-//  //		SetBrushColor(hdc,MapRGB(hdc,255,255,255));
-//  //		SetPenColor(hdc,MapRGB(hdc,0,250,0));
-//    SetTextColor(hdc, MapRGB(hdc, 255, 255, 255));
-//  }
-
-
-//  /* 使用控制图标字体 */
-//  SetFont(hdc, ctrlFont48);
-
-
-//  GetWindowText(ds->hwnd, wbuf, 128); //获得按钮控件的文字
-
-//  DrawText(hdc, wbuf, -1, &rc, DT_VCENTER);//绘制文字(居中对齐方式)
-//  rc.x = 35; 
-//  //   rc.y = 20;
-//  /* 恢复默认字体 */
-//  SetFont(hdc, defaultFont);
-//  DrawText(hdc, L"返回", -1, &rc, DT_VCENTER);
-//}
+}
 /**
 * @brief  scan_files 递归扫描sd卡内的歌曲文件
   * @param  path:初始扫描路径
@@ -834,7 +891,8 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                    0,387-15,80,30,hwnd,eID_CUR_TIME,NULL,NULL);
                    
       CreateWindow(BUTTON, L"O", BS_FLAT | BS_NOTIFY |WS_OWNERDRAW|WS_VISIBLE,
-                   730, 0, 70, 70, hwnd, eID_MUSIC_EXIT, NULL, NULL);                   
+                   730, 0, 70, 70, hwnd, eID_MUSIC_EXIT, NULL, NULL);     
+      App_PlayMusic(hwnd);                   
       break;
     } 
     case WM_TIMER:
