@@ -57,7 +57,7 @@
 
 
 //SD卡源数据路径！！
-char src_dir[255]="0:/srcdata";
+char src_dir[255]="0:/srcdata_raw";
 
 //要拷贝到的FLASH路径
 char dst_dir[255]= FLASH_ROOT;
@@ -71,7 +71,7 @@ Aux_Data_Typedef  burn_data[] =
 {
   [AUX_XBF_XINSONGTI_25] =
   {
-    .filename           =   "0:/srcdata/新宋体25.xbf",
+    .filename           =   "0:/srcdata_raw/新宋体25.xbf",
     .description        =   "XBF字库文件（emWin使用,新宋体25.xbf）",
     .start_addr         =   60*4096 ,
     .length             =   649*4096, 
@@ -80,7 +80,7 @@ Aux_Data_Typedef  burn_data[] =
   
   [AUX_XBF_XINSONGTI_19] =
   {
-    .filename           =   "0:/srcdata/新宋体19.xbf",
+    .filename           =   "0:/srcdata_raw/新宋体19.xbf",
     .description        =   "XBF字库文件(emWin使用,新宋体19.xbf)",
     .start_addr         =   710*4096 ,
     .length             =   529*4096, 
@@ -89,7 +89,7 @@ Aux_Data_Typedef  burn_data[] =
   
   [AUX_UNIGBK] =
   {
-    .filename           =   "0:/srcdata/UNIGBK.BIN",
+    .filename           =   "0:/srcdata_raw/UNIGBK.BIN",
     .description        =   "文件系统中文支持字库(emWin使用,UNIGBK.BIN)",
     .start_addr         =   1240*4096 ,
     .length             =   43*4096,
@@ -98,7 +98,7 @@ Aux_Data_Typedef  burn_data[] =
   
   [AUX_WIFI_FW] =
   {
-    .filename           =   "0:/srcdata/BCM43362-5.90.230.12.bin",
+    .filename           =   "0:/srcdata_raw/BCM43362-5.90.230.12.bin",
     .description        =   "WIFI模块固件",
     .start_addr         =   1284*4096 ,
     .length             =   62*4096, 
