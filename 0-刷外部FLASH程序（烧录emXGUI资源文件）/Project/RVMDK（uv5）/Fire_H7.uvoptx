@@ -150,18 +150,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>2032</LineNumber>
+          <LineNumber>90</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134238168</Address>
+          <Address>134259404</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>H:\emXGUI寮€鍙?demo_code_stm32h743\0-鍒峰閮‵LASH绋嬪簭锛堢儳褰昬mXGUI璧勬簮鏂囦欢锛?Project\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_qspi.c</Filename>
+          <Filename>H:\emXGUI寮€鍙?demo_code_stm32h743\0-鍒峰閮‵LASH绋嬪簭锛堢儳褰昬mXGUI璧勬簮鏂囦欢锛?Project\User\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Fire_H7\../../Libraries/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c\2032</Expression>
+          <Expression>\\Fire_H7\../../User/main.c\90</Expression>
         </Bp>
       </Breakpoint>
       <Tracepoint>
@@ -169,7 +169,7 @@
       </Tracepoint>
       <DebugFlag>
         <trace>0</trace>
-        <periodic>0</periodic>
+        <periodic>1</periodic>
         <aLwin>1</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
@@ -202,6 +202,12 @@
       <pszMrule></pszMrule>
       <pSingCmds></pSingCmds>
       <pMultCmds></pMultCmds>
+      <SystemViewers>
+        <Entry>
+          <Name>System Viewer\QUADSPI</Name>
+          <WinId>35905</WinId>
+        </Entry>
+      </SystemViewers>
       <DebugDescription>
         <Enable>1</Enable>
         <EnableLog>0</EnableLog>

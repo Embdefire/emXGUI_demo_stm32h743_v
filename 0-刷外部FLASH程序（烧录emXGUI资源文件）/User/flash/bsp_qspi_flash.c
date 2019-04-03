@@ -76,7 +76,7 @@ void QSPI_FLASH_Init(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
     //QSPI freq = osc/PLL2M*PLL2N/PLL2R/（ClockPrescaler+1）
   PeriphClkInitStruct.PLL2.PLL2M = 5;
-  PeriphClkInitStruct.PLL2.PLL2N = 156;
+  PeriphClkInitStruct.PLL2.PLL2N = 144;
   PeriphClkInitStruct.PLL2.PLL2P = 2;
   PeriphClkInitStruct.PLL2.PLL2Q = 2;
   PeriphClkInitStruct.PLL2.PLL2R = 3;
@@ -90,7 +90,7 @@ void QSPI_FLASH_Init(void)
 	/*二分频，时钟为216/(1+1)=108MHz */
 	QSPIHandle.Init.ClockPrescaler = 1;
 	/*FIFO 阈值为 4 个字节*/
-	QSPIHandle.Init.FifoThreshold = 4;
+	QSPIHandle.Init.FifoThreshold = 24;
 	/*采样移位半个周期*/
 	QSPIHandle.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
 	/*Flash大小为16M字节，2^24，所以取权值24-1=23*/
@@ -98,9 +98,10 @@ void QSPI_FLASH_Init(void)
 	/*片选高电平保持时间，至少50ns，对应周期数6*9.2ns =55.2ns*/
 	QSPIHandle.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
 	/*时钟模式选择模式0，nCS为高电平（片选释放）时，CLK必须保持低电平*/
-	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_0;
+	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_3;
 	/*根据硬件连接选择第一片Flash*/
 	QSPIHandle.Init.FlashID = QSPI_FLASH_ID_1;
+//  QSPIHandle.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
 	HAL_QSPI_Init(&QSPIHandle);
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
@@ -211,6 +212,11 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
+    if(Size == 0)
+    {
+      BURN_DEBUG("Size = 0");
+       return QSPI_OK;
+    }
 	/* 初始化读命令 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INOUT_FAST_READ_CMD;
@@ -255,6 +261,12 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
 	uint32_t end_addr, current_size, current_addr;
+    if(Size == 0)
+    {
+      BURN_DEBUG("Size = 0");
+       return QSPI_OK;
+    }
+
 	/* 计算写入地址和页面末尾之间的大小 */
 	current_addr = 0;
 
