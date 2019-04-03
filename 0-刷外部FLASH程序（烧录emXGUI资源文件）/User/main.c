@@ -77,6 +77,7 @@ int main(void)
     QSPI_FLASH_Init();
     QSPI_Set_WP_High();
     /*写状态寄存器*/
+    /*对flash解锁，一般用不上*/
     QSPI_FLASH_WriteStatusReg(1,0X00);
     QSPI_FLASH_WriteStatusReg(2,0X00);
     QSPI_FLASH_WriteStatusReg(3,0X60);

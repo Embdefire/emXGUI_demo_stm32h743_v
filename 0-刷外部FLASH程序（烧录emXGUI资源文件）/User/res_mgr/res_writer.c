@@ -489,7 +489,7 @@ FRESULT Check_Resource(void)
           LED_RED;
           return result;
         }      
-        state = BSP_QSPI_Read(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        state = BSP_QSPI_FastRead(flash_buf,read_addr,bw);  //从FLASH中读取数据
         if(state != QSPI_OK)
         {
           BURN_ERROR("Check_Resource BSP_QSPI_Read ERROR");

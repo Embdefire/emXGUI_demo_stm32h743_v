@@ -76,7 +76,7 @@ void QSPI_FLASH_Init(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
     //QSPI freq = osc/PLL2M*PLL2N/PLL2R/£¨ClockPrescaler+1£©
   PeriphClkInitStruct.PLL2.PLL2M = 5;
-  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2N = 156;
   PeriphClkInitStruct.PLL2.PLL2P = 2;
   PeriphClkInitStruct.PLL2.PLL2Q = 2;
   PeriphClkInitStruct.PLL2.PLL2R = 3;
