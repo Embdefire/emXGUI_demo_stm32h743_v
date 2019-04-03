@@ -68,6 +68,7 @@ void QSPI_FLASH_Init(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO3_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO3_PORT, &GPIO_InitStruct);
 
+  HAL_QSPI_DeInit(&QSPIHandle);
 	/*!< 配置 SPI_FLASH_SPI 引脚: NCS */
 	GPIO_InitStruct.Pin = QSPI_FLASH_CS_PIN;
 	GPIO_InitStruct.Alternate = QSPI_FLASH_CS_GPIO_AF;
@@ -75,7 +76,7 @@ void QSPI_FLASH_Init(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
     //QSPI freq = osc/PLL2M*PLL2N/PLL2R/（ClockPrescaler+1）
   PeriphClkInitStruct.PLL2.PLL2M = 5;
-  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2N = 100;
   PeriphClkInitStruct.PLL2.PLL2P = 2;
   PeriphClkInitStruct.PLL2.PLL2Q = 2;
   PeriphClkInitStruct.PLL2.PLL2R = 3;
@@ -181,8 +182,10 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-	{
-          QSPI_FLASH_Init();
+	{      
+    BURN_ERROR("HAL_QSPI_Command");
+
+     QSPI_FLASH_Init();
 
 		return QSPI_ERROR;
 	}
@@ -190,7 +193,9 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-          QSPI_FLASH_Init();
+        BURN_ERROR("HAL_QSPI_Receive");
+
+     QSPI_FLASH_Init();
 
 		return QSPI_ERROR;
 	}
@@ -285,7 +290,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
       BURN_ERROR("QSPI_WriteEnable");
-      QSPI_FLASH_Init();
+     QSPI_FLASH_Init();
 			return QSPI_ERROR;
 		}
 
@@ -293,7 +298,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
       BURN_ERROR("HAL_QSPI_Command");
-            QSPI_FLASH_Init();
+     QSPI_FLASH_Init();
 
 			return QSPI_ERROR;
 		}
@@ -302,7 +307,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
       BURN_ERROR("HAL_QSPI_Transmit errorcode =%d",QSPIHandle.ErrorCode);
-      QSPI_FLASH_Init();
+     QSPI_FLASH_Init();
 
 			return QSPI_ERROR;
 		}
@@ -311,7 +316,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
        BURN_ERROR("QSPI_AutoPollingMemReady");
-             QSPI_FLASH_Init();
+     QSPI_FLASH_Init();
 
 			return QSPI_ERROR;
 		}

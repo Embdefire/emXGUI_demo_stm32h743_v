@@ -125,6 +125,7 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
    
   /* 记录地址偏移信息 */
   static uint32_t resource_addr = CATALOG_SIZE ;
+  uint32_t addr_temp = 0;
     
 #if _USE_LFN 
   /* 长文件名支持 */
@@ -227,6 +228,12 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
 
         f_close(&file_temp);
 
+        /* 进行地址对齐运算，偏移文件+4096对齐的大小 */
+//        addr_temp = (uint32_t)(file_size+4096)/4096;
+//        addr_temp = (uint32_t)addr_temp*4096;
+//        
+//        resource_addr += addr_temp; /* 偏移文件的大小 */
+        
         resource_addr += file_size; /* 偏移文件的大小 */
 
         /* 可以在这里提取特定格式的文件路径 */        
