@@ -49,7 +49,7 @@ const Diskio_drvTypeDef  QSPI_Driver =
 DSTATUS TM_FATFS_FLASH_SPI_disk_initialize(BYTE lun)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
-
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 	/* 使能 QSPI 及 GPIO 时钟 */
 	QSPI_FLASH_CLK_ENABLE();
 	QSPI_FLASH_CLK_GPIO_ENABLE();
@@ -95,17 +95,29 @@ DSTATUS TM_FATFS_FLASH_SPI_disk_initialize(BYTE lun)
 	HAL_GPIO_Init(QSPI_FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
 
 	/* QSPI_FLASH 模式配置 */
-
-	hqspi.Instance = QUADSPI;
-	hqspi.Init.ClockPrescaler = 1;
-	hqspi.Init.FifoThreshold = 4;
-	hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
-	hqspi.Init.FlashSize = 23;
-	hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
-	hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
-	HAL_QSPI_Init(&hqspi);
-
-	BSP_QSPI_Init();
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
+  PeriphClkInitStruct.PLL2.PLL2M = 5;
+  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 3;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_2;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+  PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL2;
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+  
+  QSPIHandle.Instance=QUADSPI;                          //QSPI
+  QSPIHandle.Init.ClockPrescaler=1;                     //QPSI分频比，W25Q256最大频率为104M，
+                                                          //所以此处应该为2，QSPI频率就为200/(1+1)=100MHZ
+  QSPIHandle.Init.FifoThreshold=4;                      //FIFO阈值为4个字节
+  QSPIHandle.Init.SampleShifting=QSPI_SAMPLE_SHIFTING_HALFCYCLE;//采样移位半个周期(DDR模式下,必须设置为0)
+  QSPIHandle.Init.FlashSize=POSITION_VAL(0X2000000)-1;  //SPI FLASH大小，W25Q256大小为32M字节
+  QSPIHandle.Init.ChipSelectHighTime=QSPI_CS_HIGH_TIME_5_CYCLE;//片选高电平时间为5个时钟(10*5=55ns),即手册里面的tSHSL参数
+  QSPIHandle.Init.ClockMode=QSPI_CLOCK_MODE_0;          //模式0
+  QSPIHandle.Init.FlashID=QSPI_FLASH_ID_1;              //第一片flash
+  QSPIHandle.Init.DualFlash=QSPI_DUALFLASH_DISABLE;     //禁止双闪存模式
+  HAL_QSPI_Init(&QSPIHandle);
 
 	return TM_FATFS_FLASH_SPI_disk_status(NULL);
 
@@ -132,11 +144,11 @@ uint8_t BSP_QSPI_Init(void)
 	}
 	
 	/* Set status register for Quad Enable,the Quad IO2 and IO3 pins are enable */
-	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+	s_command.InstructionMode   = QSPI_INSTRUCTION_4_LINES;
   s_command.Instruction       = WRITE_STATUS_REG2_CMD;
   s_command.AddressMode       = QSPI_ADDRESS_NONE;
   s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
-  s_command.DataMode          = QSPI_DATA_1_LINE;
+  s_command.DataMode          = QSPI_DATA_4_LINES;
   s_command.DummyCycles       = 0;
   s_command.NbData            = 1;
   s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
@@ -173,14 +185,14 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
   QSPI_CommandTypeDef s_command;
 	/* Initialize the read command */
-  s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+  s_command.InstructionMode   = QSPI_INSTRUCTION_4_LINES;
   s_command.Instruction       = READ_CMD;
-  s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-  s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+  s_command.AddressMode       = QSPI_ADDRESS_4_LINES;
+  s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
   s_command.Address           = ReadAddr;
   s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
-  s_command.DataMode          = QSPI_DATA_1_LINE;
-  s_command.DummyCycles       = 0;
+  s_command.DataMode          = QSPI_DATA_4_LINES;
+  s_command.DummyCycles       = 8;
   s_command.NbData            = Size;
   s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
   s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
@@ -231,10 +243,10 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
   end_addr = WriteAddr + Size;
 
   /* Initialize the program command */
-  s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+  s_command.InstructionMode   = QSPI_INSTRUCTION_4_LINES;
   s_command.Instruction       = QUAD_INPUT_PAGE_PROG_CMD;
-  s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-  s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+  s_command.AddressMode       = QSPI_ADDRESS_4_LINES;
+  s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
   s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
   s_command.DataMode          = QSPI_DATA_4_LINES;
   s_command.DummyCycles       = 0;
@@ -292,7 +304,7 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
   s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
   s_command.Instruction       = SECTOR_ERASE_CMD;
   s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-  s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+  s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
   s_command.Address           = BlockAddress;
   s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
   s_command.DataMode          = QSPI_DATA_NONE;
@@ -304,6 +316,7 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
   /* Enable write operations */
   if (QSPI_WriteEnable() != QSPI_OK)
   {
+    printf("WE Err\n");
 		return QSPI_ERROR;
   }
 
@@ -632,7 +645,7 @@ uint32_t QSPI_FLASH_ReadDeviceID(void)
   s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
   s_command.Instruction       = READ_ID_CMD;
   s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-  s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+  s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
   s_command.Address           = 0x000000;
   s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
   s_command.DataMode          = QSPI_DATA_1_LINE;

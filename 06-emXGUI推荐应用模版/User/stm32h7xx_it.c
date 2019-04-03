@@ -138,16 +138,7 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
-void SDMMC1_IRQHandler(void)
-{
-  uint32_t ulReturn;
-  /* 进入临界段，临界段可以嵌套 */
-  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
-  HAL_SD_IRQHandler(&uSdHandle);
-		
-  /* 退出临界段 */
-  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
-}
+
 
 /**
 * @brief This function handles System tick timer.
@@ -187,7 +178,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         CPU_RunTime++;
 }
 
-
+void DMA1_Stream2_IRQHandler(void)
+{
+  uint32_t ulReturn;
+  /* 进入临界段，临界段可以嵌套 */
+  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
+  I2Sx_TX_DMA_STREAM_IRQFUN();
+  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+}
 
 
 

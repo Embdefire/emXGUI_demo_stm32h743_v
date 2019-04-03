@@ -86,7 +86,7 @@ uint8_t QSPI_FLASH_Init(void)
 	/* QSPI_FLASH 模式配置 */
 	QSPIHandle.Instance = QUADSPI;
 	/*二分频，时钟为216/(1+1)=108MHz */
-	QSPIHandle.Init.ClockPrescaler = 2;
+	QSPIHandle.Init.ClockPrescaler = 3;
 	/*FIFO 阈值为 4 个字节*/
 	QSPIHandle.Init.FifoThreshold = 4;
 	/*采样移位半个周期*/

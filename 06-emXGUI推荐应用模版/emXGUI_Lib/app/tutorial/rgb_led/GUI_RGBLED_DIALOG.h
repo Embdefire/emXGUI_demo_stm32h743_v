@@ -65,7 +65,7 @@ typedef struct
    int col_G;       //绿色分量初始值
    int col_B;       //蓝色分量初始值
    void (* exit_bt_draw)(DRAWITEM_HDR*);//窗口退出按钮回调函数
-}RGBLED_DIALOG_s;
+}RGBLED_DIALOG_Typedef;
 
 
 #endif /* _GUI_RGBLED_DIALOG_H_ */
