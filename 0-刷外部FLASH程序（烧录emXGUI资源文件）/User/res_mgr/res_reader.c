@@ -40,7 +40,7 @@ int GetResOffset(const char *res_name)
 	len =strlen(res_name);
 	for(i=0;i<CATALOG_SIZE;i+=sizeof(CatalogTypeDef))
 	{
-		BSP_QSPI_Read((uint8_t*)&dir,RESOURCE_BASE_ADDR+i,sizeof(CatalogTypeDef));
+		BSP_QSPI_FastRead((uint8_t*)&dir,RESOURCE_BASE_ADDR+i,sizeof(CatalogTypeDef));
     
 		if(strncasecmp(dir.name,res_name,len)==0)
 		{
