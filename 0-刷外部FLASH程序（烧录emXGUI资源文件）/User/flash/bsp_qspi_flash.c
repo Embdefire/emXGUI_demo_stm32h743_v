@@ -167,6 +167,13 @@ uint8_t BSP_QSPI_Init(void)
 uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
+  
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_Read Size = 0");
+    return QSPI_OK;
+  }
+
 	/* 初始化读命令 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_CMD;
@@ -184,20 +191,12 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{      
-    BURN_ERROR("HAL_QSPI_Command");
-
-     QSPI_FLASH_Init();
-
 		return QSPI_ERROR;
 	}
 
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-        BURN_ERROR("HAL_QSPI_Receive");
-
-     QSPI_FLASH_Init();
-
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -212,11 +211,12 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
-    if(Size == 0)
-    {
-      BURN_DEBUG("Size = 0");
-       return QSPI_OK;
-    }
+
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_FastRead Size = 0");
+    return QSPI_OK;
+  }
 	/* 初始化读命令 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INOUT_FAST_READ_CMD;
@@ -234,18 +234,12 @@ uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-        BURN_ERROR("HAL_QSPI_Command");
-
-     QSPI_FLASH_Init();
 		return QSPI_ERROR;
 	}
 
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-            BURN_ERROR("HAL_QSPI_Receive");
-
-     QSPI_FLASH_Init();
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -261,11 +255,12 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
 	uint32_t end_addr, current_size, current_addr;
-    if(Size == 0)
-    {
-      BURN_DEBUG("Size = 0");
-       return QSPI_OK;
-    }
+  
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_Write Size = 0");
+    return QSPI_OK;
+  }
 
 	/* 计算写入地址和页面末尾之间的大小 */
 	current_addr = 0;
@@ -302,40 +297,35 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 	do
 	{
 		s_command.Address = current_addr;
+    if(current_size == 0)   
+    {
+      BURN_DEBUG("BSP_QSPI_Write current_size = 0");
+      return QSPI_OK;
+    }
+
 		s_command.NbData  = current_size;
 
 		/* 启用写操作 */
 		if (QSPI_WriteEnable() != QSPI_OK)
 		{
-      BURN_ERROR("QSPI_WriteEnable");
-     QSPI_FLASH_Init();
 			return QSPI_ERROR;
 		}
 
 		/* 配置命令 */
 		if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      BURN_ERROR("HAL_QSPI_Command");
-     QSPI_FLASH_Init();
-
 			return QSPI_ERROR;
 		}
 
 		/* 传输数据 */
 		if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 		{
-      BURN_ERROR("HAL_QSPI_Transmit errorcode =%d",QSPIHandle.ErrorCode);
-     QSPI_FLASH_Init();
-
 			return QSPI_ERROR;
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
 		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
 		{
-       BURN_ERROR("QSPI_AutoPollingMemReady");
-     QSPI_FLASH_Init();
-
 			return QSPI_ERROR;
 		}
 
@@ -371,7 +361,6 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	/* 启用写操作 */
 	if (QSPI_WriteEnable() != QSPI_OK)
 	{
-    printf("WE Err\n");
 		return QSPI_ERROR;
 	}
   //QSPI_FLASH_Wait_Busy();
