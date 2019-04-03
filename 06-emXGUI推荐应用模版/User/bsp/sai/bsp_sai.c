@@ -60,14 +60,14 @@ void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
 {
   RCC_PeriphCLKInitTypeDef RCC_ExCLKInitStruct; 
 	RCC_ExCLKInitStruct.PeriphClockSelection=RCC_PERIPHCLK_SAI1;
-	RCC_ExCLKInitStruct.Sai1ClockSelection=RCC_SAI1CLKSOURCE_PLL3;  
-  RCC_ExCLKInitStruct.PLL3.PLL3M=25;
+	RCC_ExCLKInitStruct.Sai1ClockSelection=RCC_SAI1CLKSOURCE_PLL2;  
+  RCC_ExCLKInitStruct.PLL2.PLL2M=25;
   switch(AudioFreq)
   {
     case SAI_AUDIO_FREQUENCY_44K :
     {
-      RCC_ExCLKInitStruct.PLL3.PLL3N=344;
-      RCC_ExCLKInitStruct.PLL3.PLL3P=2;      
+      RCC_ExCLKInitStruct.PLL2.PLL2N=344;
+      RCC_ExCLKInitStruct.PLL2.PLL2P=2;      
       break;
     }
     default:
@@ -85,19 +85,24 @@ void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
   */
 void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq)
 {
+//  BSP_AUDIO_OUT_ClockConfig(_usAudioFreq);
   SAI_CLK_ENABLE();
+  HAL_SAI_DeInit(&h_sai);
   h_sai.Instance = SAI1_Block_A;
-  
+  printf("%d",_usAudioFreq );
   h_sai.Init.AudioMode = SAI_MODEMASTER_TX;//配置为发送模式
   h_sai.Init.Synchro = SAI_ASYNCHRONOUS; //模块内部为异步
   h_sai.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;//立刻输出
   h_sai.Init.NoDivider=SAI_MASTERDIVIDER_ENABLE;//使能MCK输出NOACK
   h_sai.Init.FIFOThreshold=SAI_FIFOTHRESHOLD_1QF;//1/4FIFO
   h_sai.Init.MonoStereoMode=SAI_STEREOMODE;
+  h_sai.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
   h_sai.Init.AudioFrequency = _usAudioFreq;
-  
+  SAI1_Block_A->CR1 &= 0;
   HAL_SAI_InitProtocol(&h_sai, SAI_I2S_STANDARD, _usWordLen, 2);//2--left_channel and right_channel
+  
 }
+
 
 void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num)
 {

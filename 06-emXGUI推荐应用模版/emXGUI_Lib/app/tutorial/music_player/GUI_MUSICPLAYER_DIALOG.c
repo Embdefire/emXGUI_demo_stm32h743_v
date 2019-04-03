@@ -831,7 +831,7 @@ static LRESULT Dlg_List_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
           case eID_MUSICLIST:
           {
             MusicDialog.playindex = nm->idx;//切换至下一首
-            //mp3player.ucStatus = STA_SWITCH;	
+            mp3player.ucStatus = STA_SWITCH;	
             GUI_DEBUG("%d", MusicDialog.playindex);
           }
 
@@ -1170,6 +1170,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }//end of if(code == BN_CLICKED)   
       if(id==eID_BUTTON_List && code==BN_CLICKED)
       {
+        
         WNDCLASS wcex;
 
         MusicDialog.mList_State = 1;

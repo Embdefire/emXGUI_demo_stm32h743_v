@@ -78,7 +78,7 @@ HAL_StatusTypeDef BSP_SD_Init(void)
   uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
   uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-  uSdHandle.Init.ClockDiv            = 0;
+  uSdHandle.Init.ClockDiv            = 4;
   
   /* 初始化SD底层驱动 */
   BSP_SD_MspInit();
@@ -362,13 +362,16 @@ uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOf
   */
 uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint64_t WriteAddr, uint32_t NumOfBlocks)
 {  
+
   /* 以DMA方式从SD卡中的指定地址写入块 */
   if(HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t *)pData, WriteAddr, NumOfBlocks) == HAL_OK)
   {
+
     return MSD_OK;
   }
   else
   {
+
     return MSD_ERROR;
   }
 }
