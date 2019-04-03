@@ -21,7 +21,9 @@
 #include "ff.h" 
 #include "./mp3Player/mp3Player.h"
 #include "mp3dec.h"
+#include "GUI_MUSICPLAYER_DIALOG.h"
 #include "./sai/bsp_sai.h" 
+#include "x_libc.h"
 /* 推荐使用以下格式mp3文件：
  * 采样率：44100Hz
  * 声  道：2
@@ -36,7 +38,8 @@
 
 static HMP3Decoder		Mp3Decoder;			/* mp3解码器指针	*/
 static MP3FrameInfo		Mp3FrameInfo;		/* mP3帧信息  */
-static MP3_TYPE mp3player;         /* mp3播放设备 */
+
+MP3_TYPE mp3player;         /* mp3播放设备 */
 volatile uint8_t Isread=0;           /* DMA传输完成标志 */
 static uint8_t bufflag=0;          /* 数据缓存区选择标志 */
 
@@ -51,6 +54,29 @@ FRESULT result;
 UINT bw;            					/* File R/W count */
 
 
+
+
+
+
+/**
+  * @brief  获取MP3ID3V2文件头的大小
+  * @param  输入MP3文件开头的数据，至少10个字节
+  * @retval ID3V2的大小
+  */
+uint32_t mp3_GetID3V2_Size(unsigned char *buf)
+{
+ uint32_t ID3V2_size;
+	
+ if(buf[0] == 'I' && buf[1] == 'D' && buf[2] =='3')//存在ID3V2
+ {
+ 	 ID3V2_size = (buf[6]<<21) | (buf[7]<<14) | (buf[8]<<7) | buf[9];
+ }
+ else//不存在ID3V2
+	 ID3V2_size = 0;
+
+ return ID3V2_size;
+
+}
 /**
   * @brief   MP3格式音频播放主程序
   * @param  无
@@ -61,13 +87,19 @@ void mp3PlayerDemo(const char *mp3file)
 {
 	uint8_t *read_ptr=inputbuf;
 	uint32_t frames=0;
-	int err=0, i=0, outputSamps=0;	
+  DWORD pos;//记录文字变量
+  static uint8_t timecount = 0;
+	int err=0, i=0, outputSamps=0;
+  uint8_t lyriccount=0;//歌词index记录	
 	int	read_offset = 0;				/* 读偏移指针 */
 	int	bytes_left = 0;					/* 剩余字节数 */	
-	
+  uint32_t time_sum = 0; //计算当前已播放到的时间位置
+  uint16_t frame_size;//MP3帧的大小
+	uint32_t ID3V2_size;//MP3的ID3V2的大小
+	WCHAR wbuf[128];//保存文本数组
 	mp3player.ucFreq = SAI_AUDIOFREQ_DEFAULT;
 	mp3player.ucStatus = STA_IDLE;
-	mp3player.ucVolume = 45;
+	mp3player.ucVolume = MusicDialog.power;
 	
 	result=f_open(&file,mp3file,FA_READ);
 	if(result!=FR_OK)
@@ -115,6 +147,22 @@ void mp3PlayerDemo(const char *mp3file)
 		MP3FreeDecoder(Mp3Decoder);
 		return;
 	}
+
+  //获取ID3V2的大小，并偏移至该位置
+	ID3V2_size = mp3_GetID3V2_Size(inputbuf);
+//	f_lseek(&file,ID3V2_size);	
+//	result=f_read(&file,inputbuf,INPUTBUF_SIZE,&bw);
+//	if(result!=FR_OK)
+//	{
+//		printf("读取%s失败 -> %d\r\n",mp3file,result);
+//		MP3FreeDecoder(Mp3Decoder);
+//		return;
+//	}  
+  
+	x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
+  SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);    
+  
+  
 	read_ptr=inputbuf;
 	bytes_left=bw;
 	/* 进入主程序循环体 */
@@ -151,7 +199,8 @@ void mp3PlayerDemo(const char *mp3file)
 			bytes_left += bw;		//有效数据流大小
 		}
 		err = MP3Decode(Mp3Decoder, &read_ptr, &bytes_left, outbuffer[bufflag], 0);	//bufflag开始解码 参数：mp3解码结构体、输入流指针、输入流大小、输出流指针、数据格式
-		frames++;	
+    time_sum +=26;//每帧26ms      
+		frames++;		
 		if (err != ERR_MP3_NONE)	//错误处理
 		{
 			switch (err)
@@ -201,15 +250,10 @@ void mp3PlayerDemo(const char *mp3file)
 			if (Mp3FrameInfo.samprate != mp3player.ucFreq)	//采样率 
 			{
 				mp3player.ucFreq = Mp3FrameInfo.samprate;
-				
-				printf(" \r\n Bitrate       %dKbps", Mp3FrameInfo.bitrate/1000);
-				printf(" \r\n Samprate      %dHz", mp3player.ucFreq);
-				printf(" \r\n BitsPerSample %db", Mp3FrameInfo.bitsPerSample);
-				printf(" \r\n nChans        %d", Mp3FrameInfo.nChans);
-				printf(" \r\n Layer         %d", Mp3FrameInfo.layer);
-				printf(" \r\n Version       %d", Mp3FrameInfo.version);
-				printf(" \r\n OutputSamps   %d", Mp3FrameInfo.outputSamps);
-				printf("\r\n");
+        frame_size = (((Mp3FrameInfo.version == MPEG1)? 144:72)*Mp3FrameInfo.bitrate)/Mp3FrameInfo.samprate+Mp3FrameInfo.paddingBit;				
+        MusicDialog.alltime=(((file.fsize-ID3V2_size-128)/frame_size)*26+1000)/1000;
+        x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.alltime/60,MusicDialog.alltime%60);
+        SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_ALL_TIME), wbuf);         
 				if(mp3player.ucFreq >= SAI_AUDIOFREQ_DEFAULT)	//I2S_AudioFreq_Default = 2，正常的帧，每次都要改速率
 				{
           
@@ -223,23 +267,120 @@ void mp3PlayerDemo(const char *mp3file)
 		
 		if(file.fptr==file.fsize) 		//mp3文件读取完成，退出
 		{
+      MusicDialog.playindex++;
+      if(MusicDialog.playindex > MusicDialog.music_file_num)
+        MusicDialog.playindex = 0;      
 			printf("END\r\n");
 			break;
 		}	
 
 		while(Isread==0)
 		{
-			led_delay++;
-			if(led_delay==0xffffff)
-			{
-				led_delay=0;
-//				LED4_TOGGLE;
-			}
-			//Input_scan();		//等待DMA传输完成，此间可以运行按键扫描及处理事件
+      if(MusicDialog.chgsch == 0)
+      {
+        if(timecount>=10)
+        {
+          //当前值
+          MusicDialog.curtime = time_sum/1000; 
+          x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.curtime/60,MusicDialog.curtime%60);
+     
+          timecount=0;
+          
+          
+          
+          if(!MusicDialog.mList_State)//进入列表界面，不进行更新
+          {
+            SendMessage(MusicDialog.TIME_Hwnd, SBM_SETVALUE, TRUE, MusicDialog.curtime*255/MusicDialog.alltime);
+            InvalidateRect(MusicDialog.TIME_Hwnd, NULL, FALSE); 
+            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_CUR_TIME), wbuf);    
+          }            
+          lrc.curtime = MusicDialog.curtime;  
+          if(lrc.flag == 1)
+          {
+           //+100是提前显示，显示需要消耗一点时间
+            if((lrc.oldtime <= lrc.curtime*100+100)&&(lrc.indexsize>7))
+            {
+              //显示当前行的歌词
+              x_mbstowcs_cp936(wbuf, (const char *)&ReadBuffer1[lrc.addr_tbl[lyriccount]-1], LYRIC_MAX_SIZE);
+              SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC3),wbuf);
+              //显示第i-1行的歌词（前一行）
+              if(lyriccount>0)
+              {
+                x_mbstowcs_cp936(wbuf, (const char *)&ReadBuffer1[lrc.addr_tbl[lyriccount-1]-1], LYRIC_MAX_SIZE);
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC2),wbuf);
+              }
+              else
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC2),L" ");
+              //显示第i-2行的歌词（前两行）
+              if(lyriccount>0)
+              {
+                x_mbstowcs_cp936(wbuf, (const char *)&ReadBuffer1[lrc.addr_tbl[lyriccount-2]-1], LYRIC_MAX_SIZE);
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC1),wbuf);
+              }
+              else
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC1),L" ");
+              //显示第i+1行的歌词（后一行）   
+              if(lyriccount < lrc.indexsize-1)
+              {
+                x_mbstowcs_cp936(wbuf, (const char *)&ReadBuffer1[lrc.addr_tbl[lyriccount+1]-1], LYRIC_MAX_SIZE);
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC4),wbuf);                    
+              }
+              else
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC4),L" ");
+              //显示第i+2行的歌词（后二行）   
+              if(lyriccount < lrc.indexsize-2)
+              {
+                x_mbstowcs_cp936(wbuf, (const char *)&ReadBuffer1[lrc.addr_tbl[lyriccount+2]-1], LYRIC_MAX_SIZE);
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC5),wbuf);                    
+              }
+              else
+                SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC5),L" ");
+
+              do{
+                lyriccount++;					
+                if(lyriccount>=lrc.indexsize)
+                {
+                  lrc.oldtime=0xffffff;
+                  break;
+                }
+                lrc.oldtime=lrc.time_tbl[lyriccount];
+              }while(lrc.oldtime<=(lrc.curtime*100));
+            }
+          }
+          else
+          {
+             
+             SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC3),L"请在SDCard放入相应的歌词文件(*.lrc)");
+             SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC2),L" ");
+             SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC1),L" ");
+             SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC4),L" ");
+             SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC5),L" ");
+          }           
+          
+        }         
+      }
+      else
+      {
+        uint8_t temp=0;	
+
+        //根据进度条调整播放位置				
+        temp=SendMessage(MusicDialog.TIME_Hwnd, SBM_GETVALUE, NULL, NULL);        
+
+        //计算进度条表示的时间
+        time_sum = (float)MusicDialog.alltime/255*temp*1000;  	
+        //根据时间计算文件位置并跳转至该位置
+        pos = ID3V2_size + (time_sum/26)*frame_size;
+        result = f_lseek(&file,pos);
+//        lrc.oldtime=0;
+//        lyriccount=0;
+        MusicDialog.chgsch=0;         
+      }      
 		}
 		Isread=0;
+    timecount++;
 	}
 	SAI_Play_Stop();
+
 	mp3player.ucStatus=STA_IDLE;
 	MP3FreeDecoder(Mp3Decoder);
 	f_close(&file);	
