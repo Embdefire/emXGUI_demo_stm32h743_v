@@ -58,8 +58,33 @@ void SD_Test(void)
         SD_MultiBlockTest(); 
     } 
 } 
+void BSP_SD_MspDeInit(SD_HandleTypeDef *hsd, void *Params)
+{
+  /* 禁用SDIC中断*/
+  HAL_NVIC_DisableIRQ(SDMMC1_IRQn);
 
+  /* 禁用SDMMC1时钟 */
+  __HAL_RCC_SDMMC1_CLK_DISABLE();
 
+}
+uint8_t BSP_SD_DeInit(void)
+{ 
+  uint8_t sd_state = HAL_OK;
+ 
+  uSdHandle.Instance = SDMMC1;
+  
+  /* 取消初始化SD卡设备 */
+  if(HAL_SD_DeInit(&uSdHandle) != HAL_OK)
+  {
+    sd_state = MSD_ERROR;
+  }
+
+  /* 取消初始化SD底层驱动 */
+  uSdHandle.Instance = SDMMC1;
+  BSP_SD_MspDeInit(&uSdHandle, NULL);
+  
+  return  sd_state;
+}
 
 /**
   * @brief  初始化SDMMC1及SD卡
@@ -69,10 +94,10 @@ void SD_Test(void)
 HAL_StatusTypeDef BSP_SD_Init(void)
 { 
   uint8_t sd_state = HAL_OK;
-  
+  //BSP_SD_DeInit();
   /* 定义SDMMC句柄 */
   uSdHandle.Instance = SDMMC1;
-  HAL_SD_DeInit(&uSdHandle);
+  
 	/* SDMMC内核时钟200Mhz, SDCard时钟25Mhz  */
   uSdHandle.Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
   uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
@@ -301,6 +326,7 @@ void WIFI_PDN_INIT(void)
   */
 uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
 {
+  taskENTER_CRITICAL();
   if(HAL_SD_ReadBlocks(&uSdHandle,(uint8_t *)pData, ReadAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
     return HAL_OK;
@@ -322,6 +348,7 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr,uint32_t NumOfBlo
 {
   if(HAL_SD_WriteBlocks(&uSdHandle,(uint8_t *)pData, WriteAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
+    taskEXIT_CRITICAL();
     return MSD_OK;
   }
   else
