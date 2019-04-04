@@ -86,12 +86,12 @@ static void BSP_Init(void)
   SCB_EnableDCache();
   
   //SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
-
+#ifndef SDRAM_Debug
   /* 系统时钟初始化成400MHz */
 	SystemClock_Config();
-	
+#endif	
   /* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
-	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
+	Board_MPU_Config(0,MPU_Normal_WT,0x70400000,MPU_64MB);
 	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
 	Board_MPU_Config(1,MPU_Normal_WT,0x24000000,MPU_512KB);
   /*
@@ -100,9 +100,10 @@ static void BSP_Init(void)
 	 * 都统一用这个优先级分组，千万不要再分组，切忌。
 	 */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
+#ifndef SDRAM_Debug
 	/* 硬件BSP初始化统统放在这里，比如LED，串口，LCD等 */
   SDRAM_Init();
+#endif
 	/* LED 端口初始化 */
 	LED_GPIO_Config();	
 	

@@ -70,8 +70,11 @@ extern const LCD_PARAM_TypeDef lcd_param[];
 #define  LCD_MAX_PIXEL_WIDTH    ((uint16_t)800)  
 #define  LCD_MAX_PIXEL_HEIGHT   ((uint16_t)480)  
 
+#ifndef SDRAM_Debug
 #define  LCD_BUFFER         ((uint32_t)0xD0000000)
-
+#else
+#define  LCD_BUFFER         ((uint32_t)0x70400000)
+#endif
 
 
 //红色数据线
