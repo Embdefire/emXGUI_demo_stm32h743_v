@@ -534,7 +534,7 @@ HAL_StatusTypeDef HAL_SAI_Init(SAI_HandleTypeDef *hsai)
       /* NOMCK = 0 */
       uint32_t tmposr;
 
-      tmposr = (hsai->Init.MckOverSampling == SAI_MCK_OVERSAMPLING_ENABLE)? 2 : 1;
+     tmposr = (hsai->Init.MckOverSampling == SAI_MCK_OVERSAMPLING_ENABLE)? 2 : 1;
 
       /* (freq x 10) to keep Significant digits */
       tmpval = (freq * 10) / (hsai->Init.AudioFrequency * tmposr * 256);

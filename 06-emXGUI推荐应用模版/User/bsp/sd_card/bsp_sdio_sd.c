@@ -15,101 +15,58 @@
   ******************************************************************************
   */
 #include "./sd_card/bsp_sdio_sd.h"
-
+#include "./led/bsp_led.h"   
 
 #include "FreeRTOS.h"
 #include "task.h"
+
 SD_HandleTypeDef uSdHandle;
 
-#define SD_TIMEOUT 30 * 1000
-void WIFI_PDN_INIT(void)
-{
-	/*定义一个GPIO_InitTypeDef类型的结构体*/
-	GPIO_InitTypeDef GPIO_InitStruct;
-	/*使能引脚时钟*/	
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	/*选择要控制的GPIO引脚*/															   
-	GPIO_InitStruct.Pin = GPIO_PIN_2;	
-	/*设置引脚的输出类型为推挽输出*/
-	GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;      
-	/*设置引脚为上拉模式*/
-	GPIO_InitStruct.Pull  = GPIO_PULLUP;
-	/*设置引脚速率为高速 */   
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; 
-	/*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);	
-	/*禁用WiFi模块*/
-	HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_RESET);  
-}
+uint8_t Buffer_Block_Tx[MULTI_BUFFER_SIZE/4];
+uint8_t Buffer_Block_Rx[MULTI_BUFFER_SIZE/4];
+//发送标志位
+volatile uint8_t TX_Flag=0;
+//接受标志位
+volatile uint8_t RX_Flag=0; 
 /**
-  * @brief  配置MPU属性
-  * @note   如果这个存储器接口是AXI，那么基地址是0x30040000
-  *         配置区域大小为32KB，因为与D2SRAM3大小相同
-  * @note   SDIO内部DMA可访问的SRAM1，基地址为0x24000000。
-            配置区域大小为512KB
+  * @brief  SD_Card测试函数
   * @param  无
   * @retval 无
   */
-//void MPU_Config(void)
-//{
-//  MPU_Region_InitTypeDef MPU_InitStruct;
-//  
-//  /* 禁用MPU */
-//  HAL_MPU_Disable();
+void SD_Test(void)
+{
+    LED_BLUE;
+    /*------------------------------ SD 初始化 ------------------------------ */
+    if(BSP_SD_Init() != HAL_OK)
+    {    
+        LED_RED;
+        printf("SD卡初始化失败，请确保SD卡已正确接入开发板，或换一张SD卡测试！\n");
+    }
+    else
+    {
+        printf("SD卡初始化成功！\n");	     
+        LED_BLUE;
+        /*擦除测试*/
+        SD_EraseTest();
 
-//  /* 将MPU属性配置为SRAM1的WT */
-//  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-//  MPU_InitStruct.BaseAddress = 0x24000000;
-//  MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
-//  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-//  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
-//  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
-//  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-//  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-//  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-//  MPU_InitStruct.SubRegionDisable = 0x00;
-//  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+        LED_BLUE;
+        /*single block 读写测试*/
+        SD_SingleBlockTest();
 
-//  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+        LED_BLUE;
+        /*muti block 读写测试*/
+        SD_MultiBlockTest(); 
+    } 
+} 
+void BSP_SD_MspDeInit(SD_HandleTypeDef *hsd, void *Params)
+{
+  /* 禁用SDIC中断*/
+  HAL_NVIC_DisableIRQ(SDMMC1_IRQn);
 
-//  /* 使能MPU */
-//  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-//  
-//}
+  /* 禁用SDMMC1时钟 */
+  __HAL_RCC_SDMMC1_CLK_DISABLE();
 
-/**
-  * @brief  初始化SD卡设备
-  * @retval SD卡状态
-  */
-uint8_t BSP_SD_Init(void)
-{ 
-  uint8_t sd_state = HAL_OK;
-  
-  /* 定义SDMMC句柄 */
-  uSdHandle.Instance = SDMMC1;
-  HAL_SD_DeInit(&uSdHandle);
-	/* SDMMC内核时钟200Mhz, SDCard时钟25Mhz  */
-  uSdHandle.Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
-  uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-  uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
-  uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-  uSdHandle.Init.ClockDiv            = 4;
-  
-  /* 初始化SD底层驱动 */
-  BSP_SD_MspInit(&uSdHandle, NULL);
-
-  /* HAL SD 初始化 */
-  if(HAL_SD_Init(&uSdHandle) != HAL_OK)
-  {
-    sd_state = MSD_ERROR;
-  }
-  return  sd_state;
 }
-
-/**
-  * @brief  取消初始化SD卡设备
-  * @retval SD状态
-  */
 uint8_t BSP_SD_DeInit(void)
 { 
   uint8_t sd_state = HAL_OK;
@@ -130,6 +87,237 @@ uint8_t BSP_SD_DeInit(void)
 }
 
 /**
+  * @brief  初始化SDMMC1及SD卡
+  * @param  无
+  * @retval HAL_OK：初始化成功；HAL_ERROR：初始化失败
+  */
+HAL_StatusTypeDef BSP_SD_Init(void)
+{ 
+  uint8_t sd_state = HAL_OK;
+  //BSP_SD_DeInit();
+  /* 定义SDMMC句柄 */
+  uSdHandle.Instance = SDMMC1;
+  
+	/* SDMMC内核时钟200Mhz, SDCard时钟25Mhz  */
+  uSdHandle.Init.ClockEdge           = SDMMC_CLOCK_EDGE_RISING;
+  uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
+  uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+  uSdHandle.Init.ClockDiv            = 4;
+  
+  /* 初始化SD底层驱动 */
+  BSP_SD_MspInit();
+
+  /* HAL SD 初始化 */
+  if(HAL_SD_Init(&uSdHandle) != HAL_OK)
+  {
+    sd_state = MSD_ERROR;
+  }
+  return  sd_state;
+}
+/**
+  * @brief  SD卡擦除测试
+  * @param  无
+  * @retval 无
+  */
+static void SD_EraseTest(void)
+{
+    HAL_StatusTypeDef Status = HAL_OK;
+    HAL_StatusTypeDef EraseStatus = HAL_OK;
+    if (Status == HAL_OK)
+    {
+        Status = HAL_SD_Erase(&uSdHandle, 0x00, (BLOCK_SIZE * NUMBER_OF_BLOCKS));
+        if(Wait_SDCARD_Ready() != HAL_OK)
+        {
+            EraseStatus = HAL_ERROR;
+        }
+    }     
+    if(EraseStatus == HAL_OK)
+    {    
+      LED_GREEN;
+      printf("SD卡擦除测试成功！\n");
+    }
+    else
+    {
+      LED_RED;
+      printf("SD卡擦除测试失败！\n");
+      printf("温馨提示：部分SD卡不支持擦除测试，若SD卡能通过下面的single读写测试，即表示SD卡能够正常使用。\n");
+    }    
+}
+
+/**
+  * @brief  SD卡单块读写测试
+  * @param  无
+  * @retval 无
+  */
+void SD_SingleBlockTest(void)
+{
+    HAL_StatusTypeDef Status =  HAL_OK;
+    HAL_StatusTypeDef TransferStatus1 = HAL_ERROR;
+    /* Fill the buffer to send */
+    Fill_Buffer(Buffer_Block_Tx, BLOCK_SIZE/4, 0);    
+    SCB_CleanDCache_by_Addr((uint32_t*)Buffer_Block_Tx, BLOCK_SIZE/4);
+    if(Status == HAL_OK)
+    {
+        /* Write block of 512 bytes on address 0 */
+        Status = HAL_SD_WriteBlocks_DMA(&uSdHandle, Buffer_Block_Tx, 0x00, 1);
+        while(TX_Flag == 0);
+    } 
+    /* Fill the buffer to reception */
+    Fill_Buffer(Buffer_Block_Rx, BLOCK_SIZE/4, 0);   
+    SCB_CleanDCache_by_Addr((uint32_t*)Buffer_Block_Rx, BLOCK_SIZE/4); 
+    if(Status == HAL_OK)
+    {
+        /* Read block of 512 bytes from address 0 */
+        Status = HAL_SD_ReadBlocks_DMA(&uSdHandle, Buffer_Block_Rx,0, 1);
+        while(RX_Flag == 0);
+    }    
+    if (Status == HAL_OK)
+    {
+        TransferStatus1 = Buffercmp(Buffer_Block_Tx, Buffer_Block_Rx, BLOCK_SIZE/4);
+    }
+    if(TransferStatus1 == HAL_OK)
+    {
+        LED_GREEN;
+        printf("Single block 测试成功！\n");
+    }
+    else
+    {
+        LED_RED;
+        printf("Single block 测试失败，请确保SD卡正确接入开发板，或换一张SD卡测试！\n");
+    }
+}
+/**
+  * @brief  SD卡多块读写测试
+  * @param  无
+  * @retval 无
+  */
+void SD_MultiBlockTest(void)
+{ 
+    HAL_StatusTypeDef Status =  HAL_OK;
+    HAL_StatusTypeDef TransferStatus1 = HAL_ERROR;
+    TX_Flag = 0;
+    RX_Flag = 0; 
+    /* Fill the buffer to send */
+    Fill_Buffer(Buffer_Block_Tx, MULTI_BUFFER_SIZE/4, 0);    
+    SCB_CleanDCache_by_Addr((uint32_t*)Buffer_Block_Tx, MULTI_BUFFER_SIZE/4);
+    if(Status == HAL_OK)
+    {
+        /* Write block of 512 bytes on address 0 */
+        Status = HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t *)Buffer_Block_Tx, 0,  NUMBER_OF_BLOCKS);
+        while(TX_Flag == 0);
+    } 
+    /* Fill the buffer to reception */
+    Fill_Buffer(Buffer_Block_Rx, MULTI_BUFFER_SIZE/4, 0);   
+    SCB_CleanDCache_by_Addr((uint32_t*)Buffer_Block_Rx, MULTI_BUFFER_SIZE/4); 
+    if(Status == HAL_OK)
+    {
+        /* Read block of 512 bytes from address 0 */
+        Status = HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t *)Buffer_Block_Rx,0, NUMBER_OF_BLOCKS);
+        while(RX_Flag == 0);
+    }    
+    if (Status == HAL_OK)
+    {
+        TransferStatus1 = Buffercmp(Buffer_Block_Tx, Buffer_Block_Rx, MULTI_BUFFER_SIZE/4);
+    }
+    if(TransferStatus1 == HAL_OK)
+    {
+        LED_GREEN;
+        printf("Multi block 测试成功！\n");
+    }
+    else
+    {
+        LED_RED;
+        printf("Multi block 测试失败，请确保SD卡正确接入开发板，或换一张SD卡测试！\n");
+    }
+}
+
+/**
+  * @brief  SD卡等待擦除完成函数
+  * @param  无
+  * @retval HAL_OK：擦除成功；HAL_ERROR：擦除失败
+  */
+static HAL_StatusTypeDef Wait_SDCARD_Ready(void)
+{
+    uint32_t loop = SD_TIMEOUT;
+    
+    /* Wait for the Erasing process is completed */
+    /* Verify that SD card is ready to use after the Erase */
+    while(loop > 0)
+    {
+      loop--;
+      if(HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
+      {
+          return HAL_OK;
+      }
+    }
+    return HAL_ERROR;
+}
+/**
+  * @brief  数组匹配检测函数
+  * @param  pBuffer1：发送数组；pBuffer2：接受数组；BufferLength：数组长度
+  * @retval HAL_OK：匹配；HAL_ERROR：不匹配
+  */
+static HAL_StatusTypeDef Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength)
+{
+    while (BufferLength--)
+    {
+      if (*pBuffer1 != *pBuffer2)
+      {      
+        return HAL_ERROR;      
+      }
+      else{
+
+        pBuffer1++;
+        pBuffer2++;
+      }
+    }
+    return HAL_OK;
+}
+
+
+/**
+  * @brief  Fills buffer with user predefined data.
+  * @param  pBuffer: pointer on the Buffer to fill
+  * @param  BufferLength: size of the buffer to fill
+  * @param  Offset: first value to fill on the Buffer
+  * @retval None
+  */
+void Fill_Buffer(uint8_t *pBuffer, uint32_t BufferLength, uint32_t Offset)
+{
+  uint32_t index = 0;
+  /* Put in global buffer same values */
+  for (index = 0; index < BufferLength; index++)
+  {
+    pBuffer[index] = index + Offset;
+  }
+}
+/**
+  * @brief  禁用WIFI模块
+  * @param  无
+  * @param  无
+  * @retval 无
+  */
+void WIFI_PDN_INIT(void)
+{
+    /*定义一个GPIO_InitTypeDef类型的结构体*/
+    GPIO_InitTypeDef GPIO_InitStruct;
+    /*使能引脚时钟*/	
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    /*选择要控制的GPIO引脚*/															   
+    GPIO_InitStruct.Pin = GPIO_PIN_2;	
+    /*设置引脚的输出类型为推挽输出*/
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;      
+    /*设置引脚为上拉模式*/
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    /*设置引脚速率为高速 */   
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; 
+    /*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);	
+    /*禁用WiFi模块*/
+    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_RESET);  
+}
+/**
   * @brief  在轮询模式下从SD卡中的指定地址读取块
   * @param  pData: 指向将包含要传输的数据的缓冲区的指针
   * @param  ReadAddr: 从哪里读取数据的地址  
@@ -138,6 +326,7 @@ uint8_t BSP_SD_DeInit(void)
   */
 uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
 {
+  taskENTER_CRITICAL();
   if(HAL_SD_ReadBlocks(&uSdHandle,(uint8_t *)pData, ReadAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
     return HAL_OK;
@@ -159,6 +348,7 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr,uint32_t NumOfBlo
 {
   if(HAL_SD_WriteBlocks(&uSdHandle,(uint8_t *)pData, WriteAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
+    taskEXIT_CRITICAL();
     return MSD_OK;
   }
   else
@@ -176,13 +366,16 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr,uint32_t NumOfBlo
   */
 uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
 { 
+  taskENTER_CRITICAL();
   /* 以DMA方式从SD卡中的指定地址读取块 */
   if(HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t *)pData, ReadAddr,NumOfBlocks) == HAL_OK)
   {
+    taskEXIT_CRITICAL();	
     return MSD_OK;
   }
   else
   {
+    taskEXIT_CRITICAL();	
     return MSD_ERROR;
   }
 }
@@ -196,132 +389,69 @@ uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOf
   */
 uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint64_t WriteAddr, uint32_t NumOfBlocks)
 {  
+
   /* 以DMA方式从SD卡中的指定地址写入块 */
   if(HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t *)pData, WriteAddr, NumOfBlocks) == HAL_OK)
   {
+
     return MSD_OK;
   }
   else
   {
+
     return MSD_ERROR;
   }
 }
-
-/**
-  * @brief  擦除给定SD卡的指定存储区域 
-  * @param  StartAddr: 开始地址
-  * @param  EndAddr: 结束地址
-  * @retval SD 状态
-  */
-uint8_t BSP_SD_Erase(uint64_t StartAddr, uint64_t EndAddr)
-{
-  if(HAL_SD_Erase(&uSdHandle, StartAddr, EndAddr) == HAL_OK)
-  {
-    return MSD_OK;
-  }
-  else
-  {
-    return MSD_ERROR;
-  }
-}
-
 /**
   * @brief  初始化SD外设
-  * @param  hsd: SD 句柄
-  * @param  Params
+  * @param  无
+  * @param  无
   * @retval None
   */
-void BSP_SD_MspInit(SD_HandleTypeDef *hsd, void *Params)
+void BSP_SD_MspInit(void)
 {
-  GPIO_InitTypeDef gpio_init_structure;
+    GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* 使能 SDMMC 时钟 */
-  __HAL_RCC_SDMMC1_CLK_ENABLE();
-
-  /* 使能 GPIOs 时钟 */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
+    /* 使能 SDMMC 时钟 */
+    __HAL_RCC_SDMMC1_CLK_ENABLE();
   
-  /* 配置GPIO复用推挽、上拉、高速模式 */
-  gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
-  gpio_init_structure.Pull      = GPIO_NOPULL;
-  gpio_init_structure.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
-  gpio_init_structure.Alternate = GPIO_AF12_SDIO1;
+    /* 使能 GPIOs 时钟 */
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
   
-  /* GPIOC 配置 */
-  gpio_init_structure.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
-  HAL_GPIO_Init(GPIOC, &gpio_init_structure);
+    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
+                          |GPIO_PIN_12;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO1;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /* GPIOD 配置 */
-  gpio_init_structure.Pin = GPIO_PIN_2;
-  HAL_GPIO_Init(GPIOD, &gpio_init_structure);
-	
-  __HAL_RCC_SDMMC1_FORCE_RESET();
-  __HAL_RCC_SDMMC1_RELEASE_RESET();
-  /* SDIO 中断配置 */
-  HAL_NVIC_SetPriority(SDMMC1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(SDMMC1_IRQn);
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO1;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    //禁用WIFI模块
+    WIFI_PDN_INIT();
+        
+    HAL_NVIC_SetPriority(SDMMC1_IRQn,0x0,0);  //配置SDMMC1中断
+    HAL_NVIC_EnableIRQ(SDMMC1_IRQn);        //使能SDMMC1中断
     
+    HAL_NVIC_SetPriority(SysTick_IRQn, 0x0E ,0);
 }
 
-/**
-  * @brief  取消初始化SD底层驱动
-  * @param  hsd: SD handle
-  * @param  Params
-  * @retval None
-  */
-void BSP_SD_MspDeInit(SD_HandleTypeDef *hsd, void *Params)
+//SDMMC1发送完成回调函数
+void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
 {
-  /* 禁用SDIC中断*/
-  HAL_NVIC_DisableIRQ(SDMMC1_IRQn);
-
-  /* 禁用SDMMC1时钟 */
-  __HAL_RCC_SDMMC1_CLK_DISABLE();
-
+    TX_Flag=1; //标记写完成
 }
 
-///**
-//  * @brief  处理SD卡中断请求
-//  * @retval 无
-//  */
-//void BSP_SD_IRQHandler(void)
-//{
-//  HAL_SD_IRQHandler(&uSdHandle);
-//}
-
-void SDMMC1_IRQHandler(void)
+//SDMMC1接受完成回调函数
+void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
 {
-  uint32_t ulReturn;
-  /* 进入临界段，临界段可以嵌套 */
-  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
-  HAL_SD_IRQHandler(&uSdHandle);
-		
-  /* 退出临界段 */
-  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+    //SCB_InvalidateDCache_by_Addr((uint32_t*)Buffer_Block_Rx, MULTI_BUFFER_SIZE/4);
+    RX_Flag=1;
 }
-
-/**
-  * @brief  Gets the current SD card data status.
-  * @retval Data transfer state.
-  *          This value can be one of the following values:
-  *            @arg  SD_TRANSFER_OK: No data transfer is acting
-  *            @arg  SD_TRANSFER_BUSY: Data transfer is acting
-  */
-uint8_t BSP_SD_GetStatus(void)
-{
-  return((HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER ) ? SD_TRANSFER_OK : SD_TRANSFER_BUSY);
-}
-
-/**
-  * @brief  获取有关特定SD卡的SD信息
-  * @param  CardInfo: 指向HAL_SD_CardInfoTypedef结构体的指针
-  * @retval 无 
-  */
-void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
-{
-  /* 获取SD信息 */
-  HAL_SD_GetCardInfo(&uSdHandle, CardInfo);
-}
-
-
 /************************END OF FILE*******************/

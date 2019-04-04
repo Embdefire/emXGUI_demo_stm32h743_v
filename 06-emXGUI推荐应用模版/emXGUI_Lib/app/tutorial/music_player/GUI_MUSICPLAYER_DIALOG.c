@@ -9,6 +9,8 @@
 #include "x_libc.h"
 #include "./wm8978/bsp_wm8978.h" 
 #include "./mp3Player/mp3Player.h"
+//歌词结构体
+LYRIC lrc;
 SCROLLINFO g_sif_power;//音量滑动条
 SCROLLINFO g_sif_time;//歌曲进度
 //旋转图标
@@ -21,10 +23,13 @@ MUSIC_DIALOG_Typedef MusicDialog =
 {
   .filename = "bg.jpg",
   .power = 20,
+  .playindex = 0,
 };
 #if 1
 char music_playlist[MUSIC_MAX_NUM][100];//播放List
 char music_lcdlist[MUSIC_MAX_NUM][100];//显示list
+//歌词数组--存放歌词数据
+uint8_t ReadBuffer1[1024*5]={0};
 #else
 char **music_playlist;
 char **music_lcdlist;
@@ -250,6 +255,131 @@ static void _music_ExitButton_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 	SetFont(hdc, defaultFont);
 
 }
+
+
+static uint16_t getonelinelrc(uint8_t *buff,uint8_t *str,int16_t len)
+{
+	uint16_t i;
+	for(i=0;i<len;i++)
+	{
+		*(str+i)=*(buff+i);
+		if((*(buff+i)==0x0A)||(*(buff+i)==0x00))
+		{
+			*(buff+i)='\0';
+			*(str+i)='\0';
+			break;
+		}
+	}
+	return (i+1);
+}
+/**
+  * @brief  插入字符串
+  * @param  name：  数据数组
+  * @param  sfx：   带插入的数据字符串
+  * @retval 无
+  * @notes  本程序调用该函数为歌词文件插入.lrc后缀
+  */
+static void lrc_chg_suffix(uint8_t *name,const char *sfx)
+{		    	     
+	while(*name!='\0')name++;
+	while(*name!='.')name--;
+	*(++name)=sfx[0];
+	*(++name)=sfx[1];
+	*(++name)=sfx[2];
+	*(++name)='\0';
+}
+/**
+  * @brief  歌词文件排序
+  * @param  lyric：  歌词结构体
+  * @retval 无
+  * @notes  无
+  */
+static void lrc_sequence(LYRIC	*lyric)
+{
+	uint16_t i=0,j=0;
+	uint16_t temp=0;
+	if (lyric->indexsize == 0)return;
+	
+	for(i = 0; i < lyric->indexsize - 1; i++)
+	{
+		for(j = i+1; j < lyric->indexsize; j++)
+		{
+			if(lyric->time_tbl[i] > lyric->time_tbl[j])
+			{
+				temp = lyric->time_tbl[i];
+				lyric->time_tbl[i] = lyric->time_tbl[j];
+				lyric->time_tbl[j] = temp;
+
+				temp = lyric->addr_tbl[i];
+				lyric->addr_tbl[i] = lyric->addr_tbl[j];
+				lyric->addr_tbl[j] = temp;
+			}
+		}
+	}	
+}
+/**
+  * @brief  歌词文件解析
+  * @param  lyric：  歌词结构体
+  * @param  strbuf： 存放歌词的数组
+  * @retval 无
+  * @notes  
+  */
+static void lyric_analyze(LYRIC	*lyric,uint8_t *strbuf)
+{
+	uint8_t strtemp[MAX_LINE_LEN]={0};
+	uint8_t *pos=NULL;
+	uint8_t sta=0,strtemplen=0;
+	uint16_t lrcoffset=0;
+	uint16_t str_len=0,i=0;
+	
+	pos=strbuf;
+	str_len=strlen((const char *)strbuf);
+	if(str_len==0)return;
+	i=str_len;
+   //此处的while循环用于判断歌词文件的标准
+	while(--i)
+	{
+		if(*pos=='[')
+			sta=1;
+		else if((*pos==']')&&(sta==1))
+			sta=2;
+	  else if((sta==2)&&(*pos!=' '))
+		{
+			sta=3;
+			break;
+		}
+		pos++; 
+	}
+	if(sta!=3)return;	
+	lrcoffset=0;
+	lyric->indexsize=0;
+	while(lrcoffset<=str_len)
+	{
+		i=getonelinelrc(strbuf+lrcoffset,strtemp,MAX_LINE_LEN);
+		lrcoffset+=i;
+//		printf("lrcoffset:%d,i:%d\n",lrcoffset,i);
+		strtemplen=strlen((const char *)strtemp);
+		pos=strtemp;
+		while(*pos!='[')
+			pos++;
+		pos++;
+      
+		if((*pos<='9')&&(*pos>='0'))
+		{
+         //记录时间标签
+			lyric->time_tbl[lyric->indexsize]=(((*pos-'0')*10+(*(pos + 1)-'0'))*60+((*(pos+3)-'0')*10+(*(pos+4)-'0')))*100+((*(pos+6)-'0')*10+(*(pos+7)-'0'));
+			//记录歌词内容
+         lyric->addr_tbl[lyric->indexsize]=(uint16_t)(lrcoffset-strtemplen+10); 
+         //记录歌词长度
+			lyric->length_tbl[lyric->indexsize]=strtemplen-10;
+			lyric->indexsize++;
+		}		
+//		else
+//				continue;		
+	}
+}
+
+
 /**
   * @brief  播放音乐列表进程
   * @param  hwnd：屏幕窗口的句柄
@@ -259,6 +389,10 @@ static void _music_ExitButton_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 
 int stop_flag = 0;
 static int thread=0;
+char music_name[100]={0};//歌曲名数组
+FRESULT f_result; 
+FIL     f_file;
+UINT    f_num;
 static void App_PlayMusic(HWND hwnd)
 {
 	int app=0;
@@ -275,76 +409,55 @@ static void App_PlayMusic(HWND hwnd)
 	{     
 		if(app==0)
 		{
-			app=1;
-//         hdc = GetDC(hwnd);   
-//         int i = 0;      
-//         //读取歌词文件
-//         while(music_playlist[play_index][i]!='\0')
-//         {
-//           music_name[i]=music_playlist[play_index][i];
-//           i++;
-//         }			         
-//         music_name[i]='\0';
-//         //为歌词文件添加.lrc后缀
-//         lrc_chg_suffix((uint8_t *)music_name,"lrc");
-//         i=0;
-//         //初始化数组内容
-//         while(i<LYRIC_MAX_SIZE)
-//         {
-//           lrc.addr_tbl[i]=0;
-//           lrc.length_tbl[i]=0;
-//           lrc.time_tbl[i]=0;
-//           i++;
-//         }
-//         lrc.indexsize=0;
-//         lrc.oldtime=0;
-//         lrc.curtime=0;
-//         //打开歌词文件
-//         f_result=f_open(&f_file, music_name,FA_OPEN_EXISTING | FA_READ);
-//         //打开成功，读取歌词文件，分析歌词文件，同时将flag置1，表示文件读取成功
-//         if((f_result==FR_OK)&&(f_file.fsize<COMDATA_SIZE))
-//         {					
-//           f_result=f_read(&f_file,ReadBuffer1, sizeof(ReadBuffer1),&f_num);		
-//           if(f_result==FR_OK) 
-//           {  
-//              lyric_analyze(&lrc,ReadBuffer1);
-//              lrc_sequence(&lrc);
-//              lrc.flag = 1;      
-//           }
-//         }
-//         //打开失败（未找到该歌词文件），则将flag清零，表示没有读取到该歌词文件
-//         else
-//         {
-//            lrc.flag = 0;
-//            printf("读取失败\n");
-//         }
-//         //关闭文件
-//        f_close(&f_file);	 
-//         
-//         i = 0;
-//         //得到播放曲目的文件名
-//         while(music_playlist[play_index][i]!='\0')
-//			{
-//				music_name[i]=music_playlist[play_index][i];
-//				i++;
-//			}
-//			music_name[i]='\0';
-//         
-//         //power = SendMessage(GetDlgItem(hwnd, ID_SCROLLBAR_POWER), SBM_GETVALUE, NULL, NULL);
-//         //SendMessage(GetDlgItem(hwnd, ID_SCROLLBAR_POWER),SBM_GETSCROLLINFO,0,(LPARAM)&sif);
-//         //power = sif.nValue;
-//         if(strstr(music_name,".wav")||strstr(music_name,".WAV"))
-//         {
-//            printf("wav\r");
-//           wavplayer(music_name, power,hdc);
-//         }
-//         else
-//         {
-           mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
-           app = 0;
-//         }
-//			 
-         printf("播放结束\n");
+			app=1;   
+      int i = 0;      
+      //读取歌词文件
+      while(music_playlist[MusicDialog.playindex][i]!='\0')
+      {
+        music_name[i]=music_playlist[MusicDialog.playindex][i];
+        i++;
+      }			         
+      music_name[i]='\0';
+      //为歌词文件添加.lrc后缀
+      lrc_chg_suffix((uint8_t *)music_name,"lrc");
+      i=0;
+      //初始化数组内容
+      while(i<LYRIC_MAX_SIZE)
+      {
+        lrc.addr_tbl[i]=0;
+        lrc.length_tbl[i]=0;
+        lrc.time_tbl[i]=0;
+        i++;
+      }
+      lrc.indexsize=0;
+      lrc.oldtime=0;
+      lrc.curtime=0;
+      //打开歌词文件
+      f_result=f_open(&f_file, music_name,FA_OPEN_EXISTING | FA_READ);
+      //打开成功，读取歌词文件，分析歌词文件，同时将flag置1，表示文件读取成功
+      if((f_result==FR_OK)&&(f_file.fsize<COMDATA_SIZE))
+      {					
+        f_result=f_read(&f_file,ReadBuffer1, sizeof(ReadBuffer1),&f_num);		
+        if(f_result==FR_OK) 
+        {  
+          lyric_analyze(&lrc,ReadBuffer1);
+          lrc_sequence(&lrc);
+          lrc.flag = 1;      
+        }
+      }
+      //打开失败（未找到该歌词文件），则将flag清零，表示没有读取到该歌词文件
+      else
+      {
+        lrc.flag = 0;
+        printf("读取失败\n");
+      }
+      //关闭文件
+      f_close(&f_file);	 
+
+      mp3PlayerDemo(music_playlist[MusicDialog.playindex]);
+      app = 0;
+
+	 
 //         
 //         app=0;
 //         //使用 GETDC之后需要释放掉HDC
@@ -721,9 +834,9 @@ static LRESULT Dlg_List_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         {
           case eID_MUSICLIST:
           {
-            MusicDialog.play_index = nm->idx;//切换至下一首
-            //mp3player.ucStatus = STA_SWITCH;	
-            GUI_DEBUG("%d", MusicDialog.play_index);
+            MusicDialog.playindex = nm->idx;//切换至下一首
+            mp3player.ucStatus = STA_SWITCH;	
+            GUI_DEBUG("%d", MusicDialog.playindex);
           }
 
         break;
@@ -746,7 +859,12 @@ static LRESULT Dlg_List_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         PostCloseMessage(hwnd);
       }   
       break;
-    }      
+    }  
+    case WM_DESTROY:
+    {
+      MusicDialog.mList_State = 0;
+      return PostQuitMessage(hwnd);	
+    }
     default: 
       return DefWindowProc(hwnd, msg, wParam, lParam);
   }
@@ -863,7 +981,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       g_sif_time.nValue = 0;//初始值
       g_sif_time.TrackSize = 30;//滑块值
       g_sif_time.ArrowSize = 0;//两端宽度为0（水平滑动条）          
-      CreateWindow(SCROLLBAR, L"SCROLLBAR_Time",  WS_OWNERDRAW| WS_VISIBLE, 
+      MusicDialog.TIME_Hwnd = CreateWindow(SCROLLBAR, L"SCROLLBAR_Time",  WS_OWNERDRAW| WS_VISIBLE, 
                                     80, 370, 640, 35, 
                                     hwnd, eID_SCROLLBAR_TIMER, NULL, NULL);
       SendMessage(GetDlgItem(hwnd, eID_SCROLLBAR_TIMER), SBM_SETSCROLLINFO, TRUE, (LPARAM)&g_sif_time);         
@@ -877,7 +995,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       g_sif_power.TrackSize = 30;//滑块值
       g_sif_power.ArrowSize = 0;//两端宽度为0（水平滑动条）
 
-      CreateWindow(SCROLLBAR, L"SCROLLBAR_R", WS_OWNERDRAW|WS_TRANSPARENT, 
+      CreateWindow(SCROLLBAR, L"SCROLLBAR_R", WS_OWNERDRAW, 
                          70, 440-31/2, 150, 31, 
                          hwnd, eID_SCROLLBAR_POWER, NULL, NULL);
       SendMessage(GetDlgItem(hwnd, eID_SCROLLBAR_POWER), SBM_SETSCROLLINFO, TRUE, (LPARAM)&g_sif_power);
@@ -1009,15 +1127,57 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
           }
+          case eID_BUTTON_NEXT:
+          {     
+            WCHAR wbuf[128];
+            COLORREF color;
+            MusicDialog.playindex++;
+            if(MusicDialog.playindex >= MusicDialog.music_file_num) MusicDialog.playindex = 0;
+            if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
+            mp3player.ucStatus = STA_SWITCH;
+//            hdc = GetDC(hwnd);
+//                
+//            color = GetPixel(hdc, 385, 404);  
+//            x_mbstowcs_cp936(wbuf, music_lcdlist[play_index], FILE_NAME_LEN);
+//            SetWindowText(GetDlgItem(hwnd, ID_TB5), wbuf);
+//                 
+//            SendMessage(music_wnd_time, SBM_SETVALUE, TRUE, 0); //设置进度值
+//            SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB1), L"00:00"); 
+//            SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB2), L"00:00"); 
+//            //                  DrawText(hdc, wbuf, -1, &rc_musicname, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+//            //                  ClrDisplay(hdc, &rc_MusicTimes, color);
+//            //                  DrawText(hdc, L"00:00", -1, &rc_MusicTimes, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+//            ReleaseDC(hwnd, hdc);
+
+            break;
+          }
+          //上一首icon处理case
+          case eID_BUTTON_BACK:
+          {
+
+            COLORREF color;
+            MusicDialog.playindex--;
+            if(MusicDialog.playindex > MusicDialog.music_file_num) MusicDialog.playindex = 0;
+            if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
+            mp3player.ucStatus = STA_SWITCH;   
+//            hdc = GetDC(hwnd);
+//            color = GetPixel(hdc, 385, 404);
+//            //                  x_mbstowcs_cp936(wbuf, music_lcdlist[play_index], FILE_NAME_LEN);
+//            //                  SetWindowText(GetDlgItem(hwnd, ID_TB5), wbuf);
+//            //                  DrawText(hdc, wbuf, -1, &rc_musicname, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+//            ReleaseDC(hwnd, hdc);            
+            break;
+          }  
         
         }
 
       }//end of if(code == BN_CLICKED)   
       if(id==eID_BUTTON_List && code==BN_CLICKED)
       {
+        
         WNDCLASS wcex;
 
-
+        MusicDialog.mList_State = 1;
         wcex.Tag	 		= WNDCLASS_TAG;
         wcex.Style			= CS_HREDRAW | CS_VREDRAW;
         wcex.lpfnWndProc	= (WNDPROC)Dlg_List_WinProc;
@@ -1034,9 +1194,10 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
           MusicDialog.LIST_Hwnd = CreateWindowEx(NULL,
                                                     &wcex,L"MusicList",
-                                                    WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                                                    WS_OVERLAPPED|WS_VISIBLE,
                                                     0,0,800,480,
                                                     hwnd,0,NULL,NULL);
+          
         }
       }
       if(id==eID_BUTTON_LRC && code==BN_CLICKED)
@@ -1088,6 +1249,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           {
             i = sb_nr->nTrackValue; //获得滑块当前位置值                
             SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i); //设置进度值
+            MusicDialog.chgsch=1;
             break;
           }
             
@@ -1107,7 +1269,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             MusicDialog.power= sb_nr->nTrackValue; //得到当前的音量值
             if(MusicDialog.power == 0) 
             {
-              //wm8978_OutMute(1);//静音
+              wm8978_OutMute(1);//静音
               SetWindowText(GetDlgItem(hwnd, eID_BUTTON_Power), L"J");
               NoVol_flag = 1;
             }
@@ -1118,6 +1280,8 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 NoVol_flag = 0;
                 SetWindowText(GetDlgItem(hwnd, eID_BUTTON_Power), L"A");
               }
+              wm8978_OutMute(0);
+              wm8978_SetOUT1Volume(MusicDialog.power);//设置WM8978的音量值
             } 
             SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, MusicDialog.power); //发送SBM_SETVALUE，设置音量值
           }

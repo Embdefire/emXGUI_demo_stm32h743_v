@@ -31,7 +31,7 @@ extern HWND wnd_res_writer_progbar;
 //extern void SPI_FLASH_BulkErase_GUI(void);
 #if defined(STM32H743xx)
 #define SPI_FLASH_BufferWrite BSP_QSPI_Write
-#define SPI_FLASH_BufferRead  BSP_QSPI_Read 
+#define SPI_FLASH_BufferRead  BSP_QSPI_FastRead 
 #endif
 
 
