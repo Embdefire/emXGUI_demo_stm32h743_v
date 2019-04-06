@@ -79,12 +79,8 @@ static void BSP_Init(void);/* 用于初始化板载相关资源 */
   *********************************************************************/
 static void BSP_Init(void)
 {
-    /* Enable I-Cache */
-  SCB_EnableICache();
 
-  /* Enable D-Cache */
-  SCB_EnableDCache();
-  
+
   //SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
 
   /* 系统时钟初始化成400MHz */
@@ -93,7 +89,12 @@ static void BSP_Init(void)
   /* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
 	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
 	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
-	Board_MPU_Config(1,MPU_Normal_WT,0x24000000,MPU_512KB);
+	Board_MPU_Config(1,MPU_Normal_NonCache,0x24000000,MPU_512KB);
+
+  /* Enable I-Cache */
+  SCB_EnableICache(); 
+  /* Enable D-Cache */
+  SCB_EnableDCache();
   /*
 	 * STM32中断优先级分组为4，即4bit都用来表示抢占优先级，范围为：0~15
 	 * 优先级分组只需要分组一次即可，以后如果有其他的任务需要用到中断，

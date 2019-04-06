@@ -60,9 +60,10 @@ void BSP_MPU_ConfigRegion(	uint8_t		Region,
   MPU_InitStruct.DisableExec = DisableExec;							//指令访问禁用位。
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /* 启用MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+  
+  
 }
 
 void Board_MPU_Config(uint8_t	Region ,uint8_t Mode,uint32_t Address,uint32_t Size)

@@ -94,7 +94,7 @@ typedef struct {
 #define EXT_QUAD_IN_FAST_PROG_CMD            0x12
 
 /* ²Á³ý²Ù×÷ */
-#define SECTOR_ERASE_CMD                     0x20
+#define SECTOR_ERASE_CMD                     0xD8
 #define CHIP_ERASE_CMD                       0xC7
 
 #define PROG_ERASE_RESUME_CMD                0x7A

@@ -834,14 +834,14 @@ void	GUI_LED_DIALOG(void)
 
 }
 
-void GUI_PicViewer_DIALOGTest(void *param)
+void GUI_RGBLED_DIALOGTest(void *param)
 {
   static int thread = 0;
   int app = 0;
   
   if(thread == 0)
   {
-     GUI_Thread_Create(GUI_PicViewer_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
+     GUI_Thread_Create(GUI_RGBLED_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
      thread = 1;
      return;
   }

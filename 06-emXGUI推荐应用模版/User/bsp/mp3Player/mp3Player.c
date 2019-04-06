@@ -63,20 +63,21 @@ UINT bw;            					/* File R/W count */
   * @param  输入MP3文件开头的数据，至少10个字节
   * @retval ID3V2的大小
   */
-uint32_t mp3_GetID3V2_Size(unsigned char *buf)
-{
- uint32_t ID3V2_size;
-	
- if(buf[0] == 'I' && buf[1] == 'D' && buf[2] =='3')//存在ID3V2
- {
- 	 ID3V2_size = (buf[6]<<21) | (buf[7]<<14) | (buf[8]<<7) | buf[9];
- }
- else//不存在ID3V2
-	 ID3V2_size = 0;
+//uint32_t mp3_GetID3V2_Size(unsigned char *buf)
+//{
+// uint32_t ID3V2_size;
+//	
+// if(buf[0] == 'I' && buf[1] == 'D' && buf[2] =='3')//存在ID3V2
+// {
+// 	 ID3V2_size = (buf[6]<<21) | (buf[7]<<14) | (buf[8]<<7) | buf[9];
+//   ID3V2_size = (buf[6]&0x7F)*0x200000+ (buf[7]&0x7F)*0x400 + (buf[8]&0x7F)*0x80 +(buf[9]&0x7F);
+// }
+// else//不存在ID3V2
+//	 ID3V2_size = 0;
 
- return ID3V2_size;
+// return ID3V2_size;
 
-}
+//}
 /**
   * @brief   MP3格式音频播放主程序
   * @param  无
@@ -95,7 +96,7 @@ void mp3PlayerDemo(const char *mp3file)
 	int	bytes_left = 0;					/* 剩余字节数 */	
   uint32_t time_sum = 0; //计算当前已播放到的时间位置
   uint16_t frame_size;//MP3帧的大小
-	uint32_t ID3V2_size;//MP3的ID3V2的大小
+//	uint32_t ID3V2_size;//MP3的ID3V2的大小
 	WCHAR wbuf[128];//保存文本数组
 	mp3player.ucFreq = SAI_AUDIOFREQ_DEFAULT;
 	mp3player.ucStatus = STA_IDLE;
@@ -138,7 +139,11 @@ void mp3PlayerDemo(const char *mp3file)
 	
 	bufflag=0;
 	Isread=0;
-	
+
+	MusicDialog.chgsch=0;
+  lyriccount=0;
+  timecount=0;
+
 	mp3player.ucStatus = STA_PLAYING;		/* 放音状态 */
   result=f_read(&file,inputbuf,INPUTBUF_SIZE,&bw);
 	if(result!=FR_OK)
@@ -147,17 +152,6 @@ void mp3PlayerDemo(const char *mp3file)
 		MP3FreeDecoder(Mp3Decoder);
 		return;
 	}
-
-  //获取ID3V2的大小，并偏移至该位置
-	ID3V2_size = mp3_GetID3V2_Size(inputbuf);
-//	f_lseek(&file,ID3V2_size);	
-//	result=f_read(&file,inputbuf,INPUTBUF_SIZE,&bw);
-//	if(result!=FR_OK)
-//	{
-//		printf("读取%s失败 -> %d\r\n",mp3file,result);
-//		MP3FreeDecoder(Mp3Decoder);
-//		return;
-//	}  
 
   
 	read_ptr=inputbuf;
@@ -197,23 +191,25 @@ void mp3PlayerDemo(const char *mp3file)
 		}
 		err = MP3Decode(Mp3Decoder, &read_ptr, &bytes_left, outbuffer[bufflag], 0);	//bufflag开始解码 参数：mp3解码结构体、输入流指针、输入流大小、输出流指针、数据格式
     time_sum +=26;//每帧26ms      
-		frames++;		
+		frames++;	
+    if(file.fptr == 4846698)  
+        GUI_DEBUG("   ");
 		if (err != ERR_MP3_NONE)	//错误处理
 		{
 			switch (err)
 			{
 				case ERR_MP3_INDATA_UNDERFLOW:
-					//printf("ERR_MP3_INDATA_UNDERFLOW\r\n");
+					printf("ERR_MP3_INDATA_UNDERFLOW\r\n");
 					result = f_read(&file, inputbuf, INPUTBUF_SIZE, &bw);
 					read_ptr = inputbuf;
 					bytes_left = bw;
 					break;		
 				case ERR_MP3_MAINDATA_UNDERFLOW:
 					/* do nothing - next call to decode will provide more mainData */
-					//printf("ERR_MP3_MAINDATA_UNDERFLOW\r\n");
+					printf("ERR_MP3_MAINDATA_UNDERFLOW\r\n");
 					break;		
 				default:
-					//printf("UNKNOWN ERROR:%d\r\n", err);		
+					printf("UNKNOWN ERROR:%d\r\n", err);		
 					// 跳过此帧
 					if (bytes_left > 0)
 					{
@@ -224,6 +220,7 @@ void mp3PlayerDemo(const char *mp3file)
 			}
 			Isread=1;
 		}
+   
 		else		//解码无错误，准备把数据输出到PCM
 		{
 			MP3GetLastFrameInfo(Mp3Decoder, &Mp3FrameInfo);		//获取解码信息				
@@ -246,13 +243,15 @@ void mp3PlayerDemo(const char *mp3file)
 			/* 根据解码信息设置采样率 */
 			if (Mp3FrameInfo.samprate != mp3player.ucFreq)	//采样率 
 			{
+        printf("Mp3FrameInfo%d\n",Mp3FrameInfo.samprate);
 				mp3player.ucFreq = Mp3FrameInfo.samprate;
-        frame_size = (((Mp3FrameInfo.version == MPEG1)? 144:72)*Mp3FrameInfo.bitrate)/Mp3FrameInfo.samprate+Mp3FrameInfo.paddingBit;				
-        MusicDialog.alltime=(((file.fsize-ID3V2_size-128)/frame_size)*26+1000)/1000;
+        //frame_size = (((Mp3FrameInfo.version == MPEG1)? 144:72)*Mp3FrameInfo.bitrate)/Mp3FrameInfo.samprate+Mp3FrameInfo.paddingBit;				
+        MusicDialog.alltime=file.fsize*8/Mp3FrameInfo.bitrate;//(((file.fsize-ID3V2_size-128)/frame_size)*26+1000)/1000;
         
        
 				if(mp3player.ucFreq >= SAI_AUDIOFREQ_DEFAULT)	//I2S_AudioFreq_Default = 2，正常的帧，每次都要改速率
 				{
+
           
 					SAIxA_Tx_Config(SAI_I2S_STANDARD,SAI_PROTOCOL_DATASIZE_16BIT,mp3player.ucFreq);						//根据采样率修改iis速率
           SAIA_TX_DMA_Init((uint32_t)(&outbuffer[0]),(uint32_t)&outbuffer[1],outputSamps);
@@ -271,17 +270,19 @@ void mp3PlayerDemo(const char *mp3file)
 			break;
 		}	
     int update = 0;//记录只更新一次的参数
+    static int times= 0 ;
 		while(Isread==0)
 		{
       if(MusicDialog.chgsch == 0)
       {
+        //times = 0;
         if(timecount>=20)
         {
           //当前值
-          MusicDialog.curtime = time_sum/1000; 
+          MusicDialog.curtime = file.fptr*8/Mp3FrameInfo.bitrate;
           
      
-          timecount=0;
+          
           if(!MusicDialog.mList_State && update == 0)//进入列表界面，不进行更新
           {
             update = 1;
@@ -361,25 +362,35 @@ void mp3PlayerDemo(const char *mp3file)
              SetWindowText(GetDlgItem(MusicDialog.LRC_Hwnd,eID_TEXTBOX_LRC5),L" ");
           }           
           
+          timecount=0;
         }         
       }
       else
       {
+        static int i = 0;
+   
         uint8_t temp=0;	
 
-        //根据进度条调整播放位置				
+          
+          //根据进度条调整播放位置				
         temp=SendMessage(MusicDialog.TIME_Hwnd, SBM_GETVALUE, NULL, NULL);        
 
-//        //计算进度条表示的时间
-        time_sum = MusicDialog.alltime*temp*1000/255;  	
-//        //根据时间计算文件位置并跳转至该位置
-//        pos = ID3V2_size + (time_sum/26)*frame_size;
-        pos=file.fsize/255*temp;
-        GUI_DEBUG("%d", pos);
-        result = f_lseek(&file,pos);
+  //        //计算进度条表示的时间
+  //        time_sum = MusicDialog.alltime*temp*1000/255;  	
+          //time_sum = (float)MusicDialog.alltime/255*temp*1000;  
+  //        //根据时间计算文件位置并跳转至该位置
+
+        //pos = ID3V2_size + (time_sum/26)*frame_size;
+        pos=file.fsize*temp/255;
+        GUI_DEBUG("%d:%d,%d",temp, pos,file.fsize);
+        
+        
+        result = f_lseek(&file,4846698);
+        GUI_DEBUG("pos:%d",result);
         lrc.oldtime=0;
         lyriccount=0;
-        MusicDialog.chgsch=0;         
+         
+        MusicDialog.chgsch=0;     
       }  
            
 		}

@@ -110,7 +110,7 @@ BOOL RES_DevRead(u8 *buf,u32 addr,u32 size)
 #if defined(STM32F429_439xx)
 	SPI_FLASH_BufferRead(buf,addr,size);
 #elif defined(STM32H743xx)
-  BSP_QSPI_Read(buf,addr,size);
+  BSP_QSPI_FastRead(buf,addr,size);
 #endif      
 	GUI_MutexUnlock(mutex_lock);
 	return TRUE;
@@ -329,7 +329,7 @@ BOOL RES_Load_Content(char *file_name, char** buf, u32* size)
     return result;
 }
 
-#if(GUI_RES_FS_EN)
+#if 1
 /**
   * @brief  从文件系统加载内容
   * @param  file_name[in]: 文件路径

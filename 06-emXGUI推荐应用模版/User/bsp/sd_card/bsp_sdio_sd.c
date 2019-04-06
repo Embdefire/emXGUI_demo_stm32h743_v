@@ -113,6 +113,20 @@ HAL_StatusTypeDef BSP_SD_Init(void)
   {
     sd_state = MSD_ERROR;
   }
+    /* 配置SD总线位宽 */
+  if(sd_state == HAL_OK)
+  {
+    /* 配置为4bit模式 */
+    if(HAL_SD_ConfigWideBusOperation(&uSdHandle, uSdHandle.Init.BusWide) != HAL_OK)
+    {
+      sd_state = HAL_ERROR;
+    }
+    else
+    {
+      sd_state = HAL_OK;
+    }
+  }
+
   return  sd_state;
 }
 /**

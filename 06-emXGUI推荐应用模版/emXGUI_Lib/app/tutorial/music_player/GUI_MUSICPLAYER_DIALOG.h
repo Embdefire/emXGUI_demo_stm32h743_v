@@ -63,7 +63,7 @@ typedef struct
   BOOL Init_State;
   BOOL mList_State;
   BOOL mLRC_State;
-  BOOL chgsch;
+  uint8_t chgsch;
 }MUSIC_DIALOG_Typedef;
 extern MUSIC_DIALOG_Typedef MusicDialog;
 extern LYRIC lrc;

@@ -567,7 +567,7 @@ static void Dialog_Init(HWND hwnd)
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  SetTimer(hwnd, 1, 200, TMR_START,NULL);
+  //SetTimer(hwnd, 1, 200, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -585,7 +585,7 @@ static void Dialog_Init(HWND hwnd)
 		GUI_DEBUG("检测不到WM8978芯片!!!\n");
 		while (1);	/* 停机 */
 	}  
-  mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
+//  mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
   
 }
 

@@ -152,14 +152,14 @@
           <Type>0</Type>
           <LineNumber>90</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134259404</Address>
+          <Address>134259536</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>H:\emXGUI寮€鍙?demo_code_stm32h743\0-鍒峰閮‵LASH绋嬪簭锛堢儳褰昬mXGUI璧勬簮鏂囦欢锛?Project\User\main.c</Filename>
+          <Filename>H:\emXGUI\demo_code_stm32h743\0-鍒峰閮‵LASH绋嬪簭锛堢儳褰昬mXGUI璧勬簮鏂囦欢锛?Project\User\main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\Fire_H7\../../User/main.c\90</Expression>
         </Bp>

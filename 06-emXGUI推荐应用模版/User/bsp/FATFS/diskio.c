@@ -73,7 +73,7 @@ DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
   
   alignedAddr = (uint32_t)buff & ~0x1F;
   //更新相应的DCache
-  SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
+  //SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
   if(BSP_SD_ReadBlocks_DMA((uint32_t*)buff,
                            (uint32_t) (sector),
                            count) == HAL_OK)

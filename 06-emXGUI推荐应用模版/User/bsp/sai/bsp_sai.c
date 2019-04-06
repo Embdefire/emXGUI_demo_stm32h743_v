@@ -89,7 +89,7 @@ void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, cons
   SAI_CLK_ENABLE();
   HAL_SAI_DeInit(&h_sai);
   h_sai.Instance = SAI1_Block_A;
-  printf("%d",_usAudioFreq );
+  printf("%d\n",_usAudioFreq );
   h_sai.Init.AudioMode = SAI_MODEMASTER_TX;//配置为发送模式
   h_sai.Init.Synchro = SAI_ASYNCHRONOUS; //模块内部为异步
   h_sai.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;//立刻输出

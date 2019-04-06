@@ -31,7 +31,7 @@ FRESULT res_sd;                /* 文件操作结果 */
 
 
 
-extern Diskio_drvTypeDef  SD_Driver;
+//extern Diskio_drvTypeDef  SD_Driver;
 
 
 /**
@@ -62,9 +62,9 @@ BOOL FileSystem_Init(void)
 
 
 	//链接驱动器，创建盘符
-	FATFS_LinkDriver(&SD_Driver, SDPath);
+//	FATFS_LinkDriver(&SD_Driver, SDPath);
 	//f_mkfs(SDPath, FM_ANY, 0, SDworkBuffer, sizeof(SDworkBuffer));		
-	res_sd = f_mount(&fs,(TCHAR const*)SDPath,1);	
+	res_sd = f_mount(&fs,"0:",1);	
 	if(res_sd == FR_NO_FILESYSTEM)
 	{
 		printf("》SD卡还没有文件系统...\r\n");

@@ -5,49 +5,52 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <emXGUI.h>
-#include <x_libc.h>
 #include "backend_res_mgr.h"
-#include "gui_resource_port.h"
-#include "board.h"
+#include "ff.h"
+
+#include "./led/bsp_led.h"
+#include "./flash/bsp_qspi_flash.h"
 
 /*============================================================================*/
 
-/* 各个buff的大小（为简化直接用同一大小） */
-#define BUFFER_SIZE     1024
+/*flash及sd卡的文件系统句柄*/
+FATFS flash_fs;
+FATFS sd_fs;													/* Work area (file system object) for logical drives */
+
 //SD卡源数据路径！！
-static char *src_dir ;
-const char src_dir_const[] = RESOURCE_DIR;
+char src_dir[512]= RESOURCE_DIR;
 
-static FIL *fp;													/* file objects */
-static char *full_file_name;
-static char *line_temp ;
-static u32 file_num = 0;
-
-extern HWND wnd_res_writer_info_textbox ;
-extern HWND wnd_res_writer_progbar;
-
-//extern void SPI_FLASH_BulkErase_GUI(void);
-#if defined(STM32H743xx)
-#define SPI_FLASH_BufferWrite BSP_QSPI_Write
-#define SPI_FLASH_BufferRead  BSP_QSPI_FastRead 
-#endif
+static FIL file_temp;													/* file objects */
+static char full_file_name[512];
+static char line_temp[512];
+static uint8_t state = QSPI_ERROR;
+uint32_t loop = 0;
 
 
-int Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength)
+/**
+  * @brief  从FLASH中的目录查找相应的资源位置
+  * @param  res_base 目录在FLASH中的基地址
+  * @param  res_name[in] 要查找的资源名字
+  * @retval -1表示找不到，其余值表示资源在FLASH中的基地址
+  */
+int GetResOffset(const char *res_name)
 {
-  while(BufferLength--)
-  {
-    if(*pBuffer1 != *pBuffer2)
-    {
-      return 0;
-    }
+  
+	int i,len;
+	CatalogTypeDef dir;
 
-    pBuffer1++;
-    pBuffer2++;
-  }
-  return 1;
+	len =strlen(res_name);
+	for(i=0;i<CATALOG_SIZE;i+=sizeof(CatalogTypeDef))
+	{
+		BSP_QSPI_FastRead((uint8_t*)&dir,RESOURCE_BASE_ADDR+i,sizeof(CatalogTypeDef));
+    
+		if(strncasecmp(dir.name,res_name,len)==0)
+		{
+			return dir.offset;
+		}
+	}
+
+	return -1;
 }
 /**
   * @brief  检查是否要忽略文件夹或文件
@@ -64,7 +67,7 @@ uint8_t Is_Ignore(char *check_name, char *ignore_file)
   char *dir_ptr ;
   char *full_path;
   
-  result = f_open(fp, ignore_file, FA_OPEN_EXISTING | FA_READ);
+  result = f_open(&file_temp, ignore_file, FA_OPEN_EXISTING | FA_READ);
   
   if(result == FR_NO_FILE)
   {
@@ -72,8 +75,8 @@ uint8_t Is_Ignore(char *check_name, char *ignore_file)
       return 0;
   }   
   
-  ignore_file_dir = GUI_VMEM_Alloc(512);
-  full_path = GUI_VMEM_Alloc(512);
+  ignore_file_dir = malloc(512);
+  full_path = malloc(512);
   
   if(ignore_file_dir == NULL || full_path == NULL)
   {
@@ -90,7 +93,7 @@ uint8_t Is_Ignore(char *check_name, char *ignore_file)
   for(i=0;1;i++)
   {
      /* 读一行忽略的文件名 */
-    f_gets(line_temp, BUFFER_SIZE, fp);
+    f_gets(line_temp, sizeof(line_temp), &file_temp);
     /* 注释行，跳过*/
     if(line_temp[0] == '#')
       continue;
@@ -107,22 +110,22 @@ uint8_t Is_Ignore(char *check_name, char *ignore_file)
     /* 比较是否一致 */
     if(strcasecmp(check_name,full_path) == 0)
     {      
-      f_close(fp);
-      GUI_VMEM_Free(ignore_file_dir);
-      GUI_VMEM_Free(full_path);
+      f_close(&file_temp);
+      free(ignore_file_dir);
+      free(full_path);
       
       return 1;
     }
     /* 已到文件尾，遍历完毕,跳出循环 */
-    if(f_eof(fp) != 0 )   
+    if(f_eof(&file_temp) != 0 )   
     { 
-      f_close(fp);
+      f_close(&file_temp);
       break;
     }
   }  
   
-  GUI_VMEM_Free(ignore_file_dir);
-  GUI_VMEM_Free(full_path);
+  free(ignore_file_dir);
+  free(full_path);
   
   return 0;
 }
@@ -146,6 +149,7 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
    
   /* 记录地址偏移信息 */
   static uint32_t resource_addr = CATALOG_SIZE ;
+  uint32_t addr_temp = 0;
     
 #if _USE_LFN 
   /* 长文件名支持 */
@@ -158,16 +162,7 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
   if(clear == 0)
   {  
     BURN_INFO("正在生成烧录信息文件catalog.txt...\r\n"); 
-
-    /* 重置进度条 */
-    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-    SetWindowText(wnd_res_writer_progbar,L"Creating catalog...");
-    /* 设置进度条最大值为100 */
-    SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,100);
-
-    SetWindowText(wnd_res_writer_info_textbox,L"Creating catalog file...");
-    GUI_msleep(20);
-    
+   
     /* 第一次执行Make_Catalog函数时删除旧的烧录信息文件 */
     f_unlink(BURN_INFO_NAME_FULL);
   }
@@ -234,9 +229,9 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
           continue;
         }
         
-        f_open(fp, full_file_name, FA_OPEN_EXISTING | FA_READ);
-        file_size = f_size(fp);
-        f_close(fp);
+        f_open(&file_temp, full_file_name, FA_OPEN_EXISTING | FA_READ);
+        file_size = f_size(&file_temp);
+        f_close(&file_temp);
         
         BURN_INFO("-------------------------------------"); 
 				BURN_INFO("资源文件路径:%s", full_file_name);			//完整文件名	
@@ -246,36 +241,28 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
                           resource_addr, 
                           resource_addr + RESOURCE_BASE_ADDR  );	 //文件名要存储到的资源目录	
         
-        f_open(fp, BURN_INFO_NAME_FULL, FA_OPEN_ALWAYS |FA_WRITE | FA_READ);
+        f_open(&file_temp, BURN_INFO_NAME_FULL, FA_OPEN_ALWAYS |FA_WRITE | FA_READ);
         
-        f_lseek(fp, f_size(fp));
+        f_lseek(&file_temp, f_size(&file_temp));
         /* 每个文件记录占5行 */
-        f_printf(fp, "%s\n", full_file_name);			//完整文件名	
-        f_printf(fp, "%s\n", fn);						     //文件名         
-        f_printf(fp, "%d\n", file_size);				 //文件大小	
-        f_printf(fp, "%d\n\n", resource_addr);	 //文件名要存储到的资源目录(未加上基地址)	
+        f_printf(&file_temp, "%s\n", full_file_name);			//完整文件名	
+        f_printf(&file_temp, "%s\n", fn);						     //文件名         
+        f_printf(&file_temp, "%d\n", file_size);				 //文件大小	
+        f_printf(&file_temp, "%d\n\n", resource_addr);	 //文件名要存储到的资源目录(未加上基地址)	
 
-        /* 记录文件数 */
-        file_num++;
-        if(file_num < 100)
-        {
-          SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-        }
-        else
-        {
-          /* 超过进度条最大值时显示99 */
-          SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,99);
-        }
-        GUI_msleep(20);
+        f_close(&file_temp);
+
+        /* 进行地址对齐运算，偏移文件+4096对齐的大小 */
+//        addr_temp = (uint32_t)(file_size+4096)/4096;
+//        addr_temp = (uint32_t)addr_temp*4096;
+//        
+//        resource_addr += addr_temp; /* 偏移文件的大小 */
         
-        f_close(fp);
-
         resource_addr += file_size; /* 偏移文件的大小 */
 
         /* 可以在这里提取特定格式的文件路径 */        
       }//else
     } //for
-    f_closedir(&dir);
   }
   
   /* 输出烧录文件信息 */
@@ -288,11 +275,6 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
     BURN_INFO("烧录后占用的地址空间:%d - %d",
                                       RESOURCE_BASE_ADDR, 
                                       resource_addr + RESOURCE_BASE_ADDR );	 
-    
-    /* 显示完成 */
-    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,100);
-    GUI_msleep(20);
-
     }
       
   return res; 
@@ -313,38 +295,38 @@ uint8_t Read_CatalogInfo(uint32_t file_index,
                             char *full_name)
 {
   uint32_t i;
-
-  f_open(fp, BURN_INFO_NAME_FULL, FA_OPEN_EXISTING | FA_READ);
-
+  
+  f_open(&file_temp, BURN_INFO_NAME_FULL, FA_OPEN_EXISTING | FA_READ);
+  
   /* 跳过前N行,每个文件记录5行 */
   for(i=0;i<file_index*5;i++)
   {
-    f_gets(line_temp, BUFFER_SIZE, fp);
+    f_gets(line_temp, sizeof(line_temp), &file_temp);
   }
   /* 到达文件尾*/
-  if(f_eof(fp) != 0 )
+  if(f_eof(&file_temp) != 0 )
     return 1;
   
   /* 文件全路径 */
-  f_gets(line_temp, BUFFER_SIZE, fp);
+  f_gets(line_temp, sizeof(line_temp), &file_temp);
   memcpy(full_name, line_temp, strlen(line_temp)+1);
   /* 替换掉回车 */
   full_name[strlen(full_name)-1] = '\0';
   
   /* 文件名 */
-  f_gets(line_temp, BUFFER_SIZE, fp);
+  f_gets(line_temp, sizeof(line_temp), &file_temp);
   memcpy(dir->name, line_temp, strlen(line_temp)> (sizeof(CatalogTypeDef)-8) ? (sizeof(CatalogTypeDef)-8):strlen(line_temp)+1 );
   dir->name[strlen(dir->name)-1] = '\0';
   
   /* 文件大小 */
-  f_gets(line_temp, BUFFER_SIZE, fp);
+  f_gets(line_temp, sizeof(line_temp), &file_temp);
   dir->size = atoi(line_temp);
   
   /* 文件要烧录的位置 */
-  f_gets(line_temp, BUFFER_SIZE, fp);
+  f_gets(line_temp, sizeof(line_temp), &file_temp);
   dir->offset = atoi(line_temp);
   
-  f_close(fp);  
+  f_close(&file_temp);  
   
   BURN_DEBUG("ful name=%s,\r\nname=%s,\r\nsize=%d,\r\noffset=%d\r\n",
               full_name,
@@ -367,51 +349,28 @@ void Burn_Catalog(void)
   CatalogTypeDef dir;
   uint8_t i;
   uint8_t is_end;
-  uint8_t* rx_buff;
-  /* 重置进度条 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Writing catalog...");
-  /* 设置最大值 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"Writing catalog...");
-
-  GUI_msleep(20);
-
+  
   /* 遍历目录文件 */
   for(i=0;1;i++)
   {
-    uint8_t state = QSPI_ERROR;
     is_end = Read_CatalogInfo(i, 
                                 &dir,
                                 full_file_name);  
     /* 已遍历完毕,跳出循环 */
     if(is_end !=0)   
       break;
+    loop = 0;
     
-    /* 更新进度条 */
-    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
-    GUI_msleep(20);
-
+    if(sizeof(dir) == 0)break;//为0时不进行读写，跳出  
     /* 把dir信息烧录到FLASH中 */  
-    SPI_FLASH_BufferWrite((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
-    rx_buff = (uint8_t *)GUI_VMEM_Alloc(sizeof(dir));
-    SPI_FLASH_BufferRead(rx_buff,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
-    
-    if(0 == Buffercmp((u8*)&dir, rx_buff, sizeof(dir)))
+   state =  BSP_QSPI_Write((uint8_t*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    if(state != QSPI_OK)
     {
-      BURN_ERROR("Flash Write Error!");
-    }    
-    
-    
-    GUI_VMEM_Free(rx_buff);
-//    if(state != QSPI_OK)
-//      printf("Error Write\n");
-  }
-  
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"Writing catalog complete.");
-  GUI_msleep(200);
+      BURN_ERROR("Burn_Catalog QSPI_Write ERROR");
+      BURN_ERROR("loop=%d",loop);
 
+    }
+  }
 }
 
 /**
@@ -425,19 +384,11 @@ FRESULT Burn_Content(void)
   CatalogTypeDef dir;
   uint8_t i;
   uint8_t is_end;   
-  uint8_t* rx_buff;
+  
   FRESULT result;   
   UINT  bw;            					    /* File R/W count */
   uint32_t write_addr=0;
-  uint8_t tempbuf[4096];
-  
-  /* 重置进度条 */
-//  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-//  SetWindowText(wnd_res_writer_progbar,L"Writing file");
-//  /* 设置最大值*/
-//  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
-  GUI_msleep(20);
-
+  uint8_t tempbuf[256];
  
   /* 遍历目录文件 */
   for(i=0;1;i++)
@@ -451,16 +402,9 @@ FRESULT Burn_Content(void)
   
     BURN_INFO("-------------------------------------"); 
     BURN_INFO("准备烧录内容：%s",full_file_name);
-    
-//    x_wsprintf((WCHAR*)tempbuf,L"Writing file %d/%d.\r\nWriting big files will take a long time.\r\nPlease wait...",i,file_num);
-//    SetWindowText(wnd_res_writer_info_textbox,(WCHAR*)tempbuf);
-//    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
-
-//    GUI_msleep(20);
-
     LED_BLUE;
      
-     result = f_open(fp,full_file_name,FA_OPEN_EXISTING | FA_READ);
+     result = f_open(&file_temp,full_file_name,FA_OPEN_EXISTING | FA_READ);
       if(result != FR_OK)
       {
           BURN_ERROR("打开文件失败！");
@@ -471,45 +415,37 @@ FRESULT Burn_Content(void)
       BURN_INFO("正在向FLASH写入内容...");
       
       write_addr = dir.offset + RESOURCE_BASE_ADDR;
+      loop = 0;
       while(result == FR_OK) 
       {
-        result = f_read( fp, tempbuf, 4096, &bw);//读取数据	 
+        loop++;
+        result = f_read( &file_temp, tempbuf, 256, &bw);//读取数据	 
         if(result!=FR_OK)			 //执行错误
         {
-          BURN_ERROR("读取文件失败！");
+          BURN_ERROR("读取文件失败！result = %d",result);
           LED_RED;
           return result;
-        }      
-        SPI_FLASH_BufferWrite(tempbuf,write_addr,bw);  //拷贝数据到外部flash上    
-//        
-//        rx_buff = (uint8_t *)GUI_VMEM_Alloc(bw);
-//        
-//        SPI_FLASH_BufferRead(rx_buff,write_addr,bw);
+        }    
+        if(bw == 0)break;//为0时不进行读写，跳出  
 
-//        
-//        if(0 == Buffercmp(tempbuf, rx_buff, bw))
-//        {
-//          BURN_ERROR("Flash Write Error!");
-//        }
-//    
-//        GUI_VMEM_Free(rx_buff);
+        state = BSP_QSPI_Write(tempbuf,write_addr,bw);  //拷贝数据到外部flash上   
+        if(state != QSPI_OK)
+        {
+          BURN_ERROR("Burn_Content QSPI_Write ERROR");
+          BURN_ERROR("loop=%d bw =%d",loop,bw);
 
-        
+        } 
         write_addr+=bw;				
-        if(bw !=4096)break;
+        if(bw !=256)break;
       }
       BURN_INFO("内容写入完毕");          
            
-    f_close(fp);     
+    f_close(&file_temp);     
   }
   
   BURN_INFO("************************************");
   BURN_INFO("所有文件均已烧录完毕！（非文件系统部分）");
   
-//  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-//  SetWindowText(wnd_res_writer_info_textbox,L"All file have been complete.");
-//  GUI_msleep(20);
-
   return FR_OK;
 }
 
@@ -530,14 +466,6 @@ FRESULT Check_Resource(void)
   UINT  bw;            					    /* File R/W count */
   uint32_t read_addr=0,j=0;
   uint8_t tempbuf[256],flash_buf[256];
-  
-  /* 重置进度条 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Checking file");
-
-  /* 设置最大值 */
-  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
-  GUI_msleep(20);
  
   /* 遍历目录文件 */
   for(i=0;1;i++)
@@ -549,14 +477,8 @@ FRESULT Check_Resource(void)
     if(is_end !=0)   
       break;    
     
-    x_wsprintf((WCHAR *)tempbuf,L"Checking file %d/%d.\r\nChecking big files will take a long time.\r\nPlease wait...",i,file_num);
-    SetWindowText(wnd_res_writer_info_textbox,(WCHAR *)tempbuf);
-    SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
-
-    GUI_msleep(20);
-    
     /* 在FLASH的目录里查找对应的offset */
-    offset = RES_GetOffset(dir.name);
+    offset = GetResOffset(dir.name);
     if(offset == -1)
     {
       LED_RED;
@@ -564,7 +486,7 @@ FRESULT Check_Resource(void)
       return FR_NO_FILE;
     }
     else
-      dir.offset = offset;
+      dir.offset = offset + RESOURCE_BASE_ADDR;
        
     BURN_INFO("-------------------------------------"); 
     BURN_INFO("准备校验内容：%s",full_file_name);
@@ -572,7 +494,7 @@ FRESULT Check_Resource(void)
     BURN_INFO("内容绝对地址：%d ",dir.offset);
     BURN_INFO("内容大小：%d ",dir.size);
     
-      result = f_open(fp,full_file_name,FA_OPEN_EXISTING | FA_READ);
+      result = f_open(&file_temp,full_file_name,FA_OPEN_EXISTING | FA_READ);
       if(result != FR_OK)
       {
           BURN_ERROR("打开文件失败！");
@@ -583,25 +505,41 @@ FRESULT Check_Resource(void)
        //校验数据
       read_addr = dir.offset;
      
-      f_lseek(fp,0);
-      
+      f_lseek(&file_temp,0);
+      loop = 0;
       while(result == FR_OK) 
       {
-        result = f_read( fp, tempbuf, 256, &bw);//读取数据	 
+        loop++;
+        result = f_read( &file_temp, tempbuf, 256, &bw);//读取数据	 
         if(result!=FR_OK)			 //执行错误
         {
           BURN_ERROR("读取文件失败！");
           LED_RED;
           return result;
-        }      
-        SPI_FLASH_BufferRead(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        }    
+
+        if(bw == 0)break;//为0时不进行读写，跳出
+  
+        state = BSP_QSPI_FastRead(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        if(state != QSPI_OK)
+        {
+//          BURN_ERROR("Check_Resource BSP_QSPI_Read ERROR");
+//          BURN_ERROR("loop=%d bw =%d",loop,bw);
+
+
+        }
         read_addr+=bw;		
         
         for(j=0;j<bw;j++)
         {
-          if(tempbuf[i] != flash_buf[i])
+          if(tempbuf[j] != flash_buf[j])
           {
-            BURN_ERROR("数据校验失败！");
+//            BURN_ERROR("数据校验失败！");
+//            BURN_ERROR("j=%d ",j);
+//            BURN_ERROR("tempbuf");
+//            BURN_DEBUG_ARRAY(tempbuf,bw);
+//            BURN_ERROR("flash_buf");
+//            BURN_DEBUG_ARRAY(flash_buf,bw);
             LED_RED;
             return FR_INT_ERR;
           }
@@ -613,95 +551,37 @@ FRESULT Check_Resource(void)
       BURN_INFO("数据校验正常！");
       LED_BLUE;
                
-      f_close(fp);     
+      f_close(&file_temp);     
   }
   
   LED_GREEN;
   BURN_INFO("************************************");
   BURN_INFO("所有文件校验正常！（非文件系统部分）");
-  
-  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"All files check normal!");
-  GUI_msleep(20);
-
   return FR_OK;
 }
-
-
-/**
-  * @brief  所有烧录操作
-  * @param  无
-  * @retval 无
-  */
-FRESULT BurnFile(void)
+FRESULT BurnFile()
 {
-  FRESULT result;   
-  DIR dir; 
-
-  /* 初始化各种全局变量 */
-  {
-   src_dir =  (char *)GUI_VMEM_Alloc(BUFFER_SIZE);
-   full_file_name =  (char *)GUI_VMEM_Alloc(BUFFER_SIZE);
-   line_temp =  (char *)GUI_VMEM_Alloc(BUFFER_SIZE);
-   fp = (FIL *)GUI_VMEM_Alloc(sizeof(FIL));
-  }
-
-//  BURN_INFO("注意该操作会把FLASH的原内容会被删除！！");   
-  file_num = 0;
-  
-  /* 复制初始路径 */
-  strcpy(src_dir,src_dir_const);//字库资源文件存放位置
-  
-  /* 打开路径测试 */
-  result = f_opendir(&dir, src_dir); 
-
-  if(result != FR_OK)
-  {
-    GUI_ERROR("请插入带‘srcdata’烧录数据的SD卡,并重新复位开发板！ result = %d",result);
-    SetWindowText(wnd_res_writer_info_textbox,L"1.Please insert an SD card with [srcdata] resources.\r\n2.Powerup again the board.");
-    GUI_msleep(20);
-    
-    goto exit;
-  }
-  f_closedir(&dir);
-  
-  SetWindowText(wnd_res_writer_info_textbox,L"Erasing FLASH,it will take a long time,\r\nplease wait...");
-  GUI_msleep(20);
-  
-  BURN_INFO("正在进行整片擦除，时间很长，请耐心等候...");  
-
-  /* 整片FLASH擦除 */
-  //SPI_FLASH_BulkErase_GUI();
-  if(BSP_QSPI_Erase_Chip() != QSPI_OK)
-  {
-    printf("Erase Error\n");
-    while(1);
-  }
-  
-  
-
+  BSP_QSPI_Erase_Chip();
+//   for(int i = 0; i < 160; i++)
+//   {
+//    
+//     state = BSP_QSPI_Erase_Block(i);
+//     if(state != QSPI_OK)
+//       printf("擦除Block失败\n");
+//     else
+//       printf("OK，%d\n",i);
+//   }
   
   /* 生成烧录目录信息文件 */
   Make_Catalog(src_dir,0);
-  
+
   /* 烧录 目录信息至FLASH*/
-  Burn_Catalog();  
-  /* 根据 目录 烧录内容至FLASH*/
+  Burn_Catalog();
+   /* 根据 目录 烧录内容至FLASH*/
   Burn_Content();
   /* 校验烧录的内容 */
-  result =  Check_Resource();
-
-exit:
-  /* 释放申请的空间 */
-  {
-    GUI_VMEM_Free(src_dir);
-    GUI_VMEM_Free(full_file_name);
-    GUI_VMEM_Free(line_temp);
-    GUI_VMEM_Free(fp);
-  }
-    
-  return result;
+  Check_Resource();
+  return 0;
 }
-
 /*********************************************END OF FILE**********************/
 

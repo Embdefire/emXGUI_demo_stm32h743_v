@@ -156,14 +156,14 @@
 #define GUI_FS_EN         1
 
 /* 资源所在的基地址 */
-#define GUI_RES_BASE             4096
+#define GUI_RES_BASE             (8*1024)
 
 /* 存储在FLASH中的资源目录大小 */
 #define GUI_CATALOG_SIZE         (8*1024)
 
 /*===========图片接口配置===gui_picture_port.c===============================================*/
 /* 是否支持文件系统图片接口,需要移植fatfs文件系统 */
-#define GUI_PIC_FS_EN         0
+#define GUI_PIC_FS_EN         1
 
 /* 是否支持显示JPEG图片,需要添加jpeg解码库 */
 #define GUI_PIC_JPEG_EN       0

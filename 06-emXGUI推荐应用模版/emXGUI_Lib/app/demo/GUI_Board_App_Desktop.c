@@ -48,7 +48,7 @@ static void dummy(void *param)
 extern void	GUI_DEMO_Graphics_Accelerator(void*);
 extern void GUI_App_Desktop(void *param);
 extern void GUI_PicViewer_DIALOGTest(void *param);
-
+extern void GUI_RGBLED_DIALOGTest(void *);
 extern void	GUI_LED_DIALOG(void *param);
 extern void GUI_MUSIC_DIALOGTest(void *param);
 //extern void GUI_DEMO_DrawJPEG(void);
@@ -138,10 +138,10 @@ static const struct __obj_list menu_list_1[] = {
       L"MP3²¥·ÅÆ÷",		NULL,	  L"I", RGB_WHITE,				GUI_MUSIC_DIALOGTest,
       L"ÊÓÆµ²¥·ÅÆ÷",		NULL,	  L"D", RGB_WHITE,				dummy,
 
-      L"RGB²ÊµÆ",		NULL,	  L"L", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
+      L"RGB²ÊµÆ",		NULL,	  L"L", RGB_WHITE,				GUI_RGBLED_DIALOGTest,
       L"ÉãÏñÍ·",		NULL,	  L"M",RGB_WHITE, 				dummy,
 
-      L"Í¼Æ¬ä¯ÀÀÆ÷",	NULL, 	L"G", RGB_WHITE,				dummy,
+      L"Í¼Æ¬ä¯ÀÀÆ÷",	NULL, 	L"G", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
       L"ÎÂÊª¶È",	NULL,   L"O", RGB_WHITE,				dummy,
       L"µçÑ¹±í",		NULL,	  L"W", RGB_WHITE,				dummy,  
       L"Ä£ÄâUÅÌ",	NULL,	  L"N", RGB_WHITE,				dummy, 
