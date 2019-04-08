@@ -104,7 +104,7 @@ void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, cons
 }
 
 
-void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num)
+void SAIA_TX_DMA_Init(uint16_t* buffer0,uint16_t* buffer1,const uint32_t num)
 {
   DMA_CLK_ENABLE();
   
@@ -120,7 +120,7 @@ void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num)
   h_txdma.Init.Priority = DMA_PRIORITY_HIGH;
   h_txdma.Init.MemBurst=DMA_MBURST_SINGLE;             //存储器单次突发传输
   h_txdma.Init.PeriphBurst=DMA_PBURST_SINGLE;          //外设突发单次传输 
-  
+  h_txdma.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
   __HAL_LINKDMA(&h_sai,hdmatx,h_txdma);        //将DMA与SAI联系起来
   HAL_DMA_Init(&h_txdma);	                            //初始化DMA
   

@@ -56,7 +56,7 @@ typedef struct
   uint8_t  music_file_num;//歌曲数目
   uint16_t curtime;
   uint16_t alltime;
-  uint8_t  playindex;
+  int8_t  playindex;
   char* filename;
   uint16_t power;                  //音量值       
   BOOL Load_File;

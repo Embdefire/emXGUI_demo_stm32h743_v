@@ -89,7 +89,7 @@ static void BSP_Init(void)
   /* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
 	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
 	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
-	Board_MPU_Config(1,MPU_Normal_NonCache,0x24000000,MPU_512KB);
+	Board_MPU_Config(1,MPU_Normal_WT,0x24000000,MPU_512KB);
 
   /* Enable I-Cache */
   SCB_EnableICache(); 

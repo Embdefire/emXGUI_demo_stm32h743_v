@@ -8,7 +8,7 @@
 #include	"CListMenu.h"
 #include "x_libc.h"
 #include "./wm8978/bsp_wm8978.h" 
-#include "./mp3Player/mp3Player.h"
+#include "MP3_Player.h"
 //歌词结构体
 LYRIC lrc;
 SCROLLINFO g_sif_power;//音量滑动条
@@ -401,7 +401,7 @@ static void App_PlayMusic(HWND hwnd)
 	if(thread==0)
 	{  
       //h_music=rt_thread_create("App_PlayMusic",(void(*)(void*))App_PlayMusic,NULL,5*1024,5,1);
-    GUI_Thread_Create(App_PlayMusic,"MUSIC_DIALOG",5*1024,NULL,5,5);
+    GUI_Thread_Create(App_PlayMusic,"MUSIC_DIALOG",20*1024,NULL,5,5);
     thread =1;
     return;
 	}

@@ -42,7 +42,7 @@ void SAI_GPIO_Config(void);
 void SAI_Play_Stop(void);
 void SAI_Play_Start(void);
 void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq);
-void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num);
+void SAIA_TX_DMA_Init(uint16_t* buffer0,uint16_t *buffer1,const uint32_t num);
 #endif /* _BSP_SAI_H */
 
 
