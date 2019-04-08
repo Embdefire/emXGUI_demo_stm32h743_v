@@ -2,7 +2,7 @@
 #define _GUI_RGBLED_DIALOG_H_
 
 #include "emXGUI.h"
-
+#include "Widget.h"
 
 #define LYRIC_MAX_SIZE          200		
 #define MUSIC_MAX_NUM           50
@@ -17,10 +17,13 @@ typedef enum
   eID_BUTTON_LRC,
   eID_BUTTON_BACK,
   eID_BUTTON_NEXT,
+  eID_MUSIC_TRUM, //¿Æ∞»
+  
   eID_BUTTON_START,
   eID_SCROLLBAR_TIMER,
   eID_SCROLLBAR_POWER,
   eID_MUSIC_ITEM,
+                
   eID_CUR_TIME,
   eID_ALL_TIME,
   eID_MUSIC_EXIT,
@@ -63,6 +66,7 @@ typedef struct
   BOOL Init_State;
   BOOL mList_State;
   BOOL mLRC_State;
+  BOOL Update_Content;
   uint8_t chgsch;
 }MUSIC_DIALOG_Typedef;
 extern MUSIC_DIALOG_Typedef MusicDialog;
@@ -70,6 +74,7 @@ extern LYRIC lrc;
 extern char music_playlist[MUSIC_MAX_NUM][100];//≤•∑≈List
 extern char music_lcdlist[MUSIC_MAX_NUM][100];//œ‘ ælist
 extern uint8_t ReadBuffer1[1024*5];
+extern ICON_Typedef music_icon[12];
 void GUI_MUSIC_DIALOGTest(void *param);
 
 #endif

@@ -55,7 +55,7 @@ extern void GUI_MUSIC_DIALOGTest(void *param);
 //extern void App_LED_DIALOG(void);
 //extern void	GUI_App_Desktop(void);
 //extern void App_GUI_Tutorial_DEMO(void);
-//extern void	GUI_MUSICPLAYER_DIALOG(void);
+extern void	GUI_MUSIC_DIALOG(void*);
 //extern void	GUI_VideoPlayer_DIALOG(void);
 //extern void GUI_AVIList_DIALOG(void);
 //extern void	GUI_LED_DIALOG(void);

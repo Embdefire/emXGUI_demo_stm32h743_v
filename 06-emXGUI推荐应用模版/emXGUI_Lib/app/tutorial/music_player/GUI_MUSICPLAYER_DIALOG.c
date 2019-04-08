@@ -1,6 +1,6 @@
 #include "emXGUI.h"
 #include "GUI_MUSICPLAYER_DIALOG.h"
-#include "Widget.h"
+
 #include "./OwnerDraw/Widget.h"
 #include "GUI_AppDef.h"
 #include "emXGUI_JPEG.h"
@@ -9,6 +9,8 @@
 #include "x_libc.h"
 #include "./wm8978/bsp_wm8978.h" 
 #include "MP3_Player.h"
+#include "./sai/bsp_sai.h" 
+
 //歌词结构体
 LYRIC lrc;
 SCROLLINFO g_sif_power;//音量滑动条
@@ -36,7 +38,7 @@ char **music_lcdlist;
 #endif
 //图标管理数组
 ICON_Typedef music_icon[12] = {
-   {"yinliang",         {20,400,48,48},       FALSE},//音量
+   {"yinliang",         {20,400,48,48},       FALSE},//音量   
    {"yinyueliebiao",    {668,404,48,48},      FALSE},//音乐列表
    {"geci",             {728,404,72,72},      FALSE},//歌词栏
    {"NULL",             {0,0,0,0},            FALSE},//无
@@ -44,6 +46,7 @@ ICON_Typedef music_icon[12] = {
    {"shangyishou",      {294, 404, 72, 72},   FALSE},//上一首
    {"zanting/bofang",   {364, 406, 72, 72},   FALSE},//播放
    {"xiayishou",        {448, 404, 72, 72},   FALSE},//下一首
+   {"waifanglaba",      {620,404,48,48},      FALSE},//喇叭开关
   
 };
 /*
@@ -179,6 +182,10 @@ static void button_owner_draw(DRAWITEM_HDR *ds)
 	{ //按钮是按下状态
 		SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
 	}
+	if((ds->State & BST_CHECKED) )
+	{ //按钮是按下状态
+		SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
+	}  
  
    DrawText(hdc, wbuf,-1,&rc_cli,DT_VCENTER);//绘制文字(居中对齐方式)
    
@@ -388,24 +395,23 @@ static void lyric_analyze(LYRIC	*lyric,uint8_t *strbuf)
   */
 
 int stop_flag = 0;
-static int thread=0;
+static int thread_PlayMusic=0;
 char music_name[100]={0};//歌曲名数组
 FRESULT f_result; 
 FIL     f_file;
 UINT    f_num;
-static void App_PlayMusic(HWND hwnd)
+static void App_PlayMusic(void *param)
 {
 	int app=0;
-  HDC hdc;
-  SCROLLINFO sif;
-	if(thread==0)
+
+	if(thread_PlayMusic==0)
 	{  
       //h_music=rt_thread_create("App_PlayMusic",(void(*)(void*))App_PlayMusic,NULL,5*1024,5,1);
-    GUI_Thread_Create(App_PlayMusic,"MUSIC_DIALOG",20*1024,NULL,5,5);
-    thread =1;
+    GUI_Thread_Create(App_PlayMusic,"App_PlayMusic",20*1024,NULL,5,5);
+    thread_PlayMusic =1;
     return;
 	}
-	while(thread) //线程已创建了
+	while(thread_PlayMusic) //线程已创建了
 	{     
 		if(app==0)
 		{
@@ -465,9 +471,10 @@ static void App_PlayMusic(HWND hwnd)
 //         //进行任务调度
 //         GUI_msleep(20);
 		}
-	   
+	  //
    }
-   
+   GUI_DEBUG("Delete");
+   GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
 
 }
 /**
@@ -567,7 +574,7 @@ static void Dialog_Init(HWND hwnd)
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  //SetTimer(hwnd, 1, 200, TMR_START,NULL);
+  SetTimer(hwnd, 1, 100, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -585,7 +592,6 @@ static void Dialog_Init(HWND hwnd)
 		GUI_DEBUG("检测不到WM8978芯片!!!\n");
 		while (1);	/* 停机 */
 	}  
-//  mp3PlayerDemo("0:/mp3/张国荣-玻璃之情.mp3");
   
 }
 
@@ -877,19 +883,19 @@ static LRESULT Dlg_LRC_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     case WM_CREATE:
     {
       //以下控件为TEXTBOX的创建
-      CreateWindow(TEXTBOX, L"1", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
                       0, 0, 800, 60, hwnd, eID_TEXTBOX_LRC1, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC1),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);                                
-      CreateWindow(TEXTBOX, L"2", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
                       0, 60, 800, 60, hwnd, eID_TEXTBOX_LRC2, NULL, NULL); 
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC2),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);
-      CreateWindow(TEXTBOX, L"3", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
                       0, 120, 800, 60, hwnd, eID_TEXTBOX_LRC3, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC3),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);     
-      CreateWindow(TEXTBOX, L"4", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
                       0, 180, 800, 60, hwnd, eID_TEXTBOX_LRC4, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC4),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND); 
-      CreateWindow(TEXTBOX, L"5", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
                       0, 240, 800, 50, hwnd, eID_TEXTBOX_LRC5, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC5),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);      
       break;
@@ -948,11 +954,12 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                    music_icon[1].rc.x,music_icon[1].rc.y,//位置坐标
                    music_icon[1].rc.w,music_icon[1].rc.h,//控件大小
                    hwnd,eID_BUTTON_List,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_List，附加参数为： NULL
-      music_icon[2].rc.y = 440-music_icon[2].rc.h/2;//以纵坐标440居中对齐
+      music_icon[8].rc.y = 440-music_icon[8].rc.h/2;//以纵坐标440居中对齐
+    
       //歌词icon
       CreateWindow(BUTTON,L"W",WS_OWNERDRAW |WS_VISIBLE,
-                   music_icon[2].rc.x,music_icon[2].rc.y,
-                   music_icon[2].rc.w,music_icon[2].rc.h,
+                   music_icon[8].rc.x,music_icon[8].rc.y,
+                   music_icon[8].rc.w,music_icon[8].rc.h,
                    hwnd,eID_BUTTON_LRC,NULL,NULL);
       //music_icon[5].rc.y = 440-music_icon[5].rc.h/2;//以纵坐标440居中对齐
       //上一首
@@ -972,7 +979,17 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       CreateWindow(BUTTON,L"U",WS_OWNERDRAW |WS_VISIBLE,
                    music_icon[6].rc.x,music_icon[6].rc.y,
                    music_icon[6].rc.w,music_icon[6].rc.h,
-                   hwnd,eID_BUTTON_START,NULL,NULL);       
+                   hwnd,eID_BUTTON_START,NULL,NULL); 
+                   
+      music_icon[2].rc.y = 440-music_icon[2].rc.h/2;//以纵坐标440居中对齐
+    
+      //喇叭icon
+      CreateWindow(BUTTON,L"P",BS_NOTIFY|BS_CHECKBOX|WS_OWNERDRAW |WS_VISIBLE,
+                   music_icon[2].rc.x,music_icon[2].rc.y,
+                   music_icon[2].rc.w,music_icon[2].rc.h,
+                   hwnd,eID_MUSIC_TRUM,NULL,NULL);
+ 
+
       /*********************歌曲进度条******************/
       g_sif_time.cbSize = sizeof(g_sif_time);
       g_sif_time.fMask = SIF_ALL;
@@ -1024,12 +1041,16 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       {
         if(1)
         {
-
           angle+=5;
           angle%=360;
           //ClrDisplay(hdc_mem11,NULL,MapRGB(hdc_mem11,0,0,0));
           BitBlt(hdc_rotate, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
+          
+          EnableAntiAlias(hdc_rotate, TRUE);
           RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
+          EnableAntiAlias(hdc_rotate, FALSE);
+          
+          
         }
         rc.x=280;
         rc.y=120;
@@ -1106,11 +1127,35 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       id  =LOWORD(wParam);//获取消息的ID码
       code=HIWORD(wParam);//获取消息的类型
       ctr_id = LOWORD(wParam); //wParam低16位是发送该消息的控件ID.  
+      if(code == BN_CLICKED && id == eID_MUSIC_TRUM)
+      {
+        music_icon[2].state = ~music_icon[2].state;
+        if(music_icon[2].state == FALSE)
+        {
+          wm8978_CfgAudioPath(DAC_ON,  EAR_LEFT_ON|EAR_RIGHT_ON);
+        }
+        //当音量icon被按下时，设置为静音模式
+        else
+        {                
+          wm8978_CfgAudioPath(DAC_ON,  SPK_ON|EAR_LEFT_ON|EAR_RIGHT_ON);
+        }         
+      }
 
+      if(id == eID_SCROLLBAR_TIMER && code == SBN_CLICKED)
+      {
+        MusicDialog.Update_Content = 1;
+        MusicDialog.chgsch=1;
+      }
       if(code == BN_CLICKED)
       { 
         switch(id)
         {
+          //音乐ICON处理case
+          case eID_MUSIC_EXIT:
+          {
+            PostCloseMessage(hwnd);
+            break;
+          }
           case eID_BUTTON_Power:
           {
             music_icon[0].state = ~music_icon[0].state;
@@ -1129,8 +1174,6 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           case eID_BUTTON_NEXT:
           {     
-            WCHAR wbuf[128];
-            COLORREF color;
             MusicDialog.playindex++;
             if(MusicDialog.playindex >= MusicDialog.music_file_num) MusicDialog.playindex = 0;
             if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
@@ -1155,7 +1198,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           case eID_BUTTON_BACK:
           {
 
-            COLORREF color;
+           
             MusicDialog.playindex--;
             if(MusicDialog.playindex > MusicDialog.music_file_num) MusicDialog.playindex = 0;
             if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
@@ -1168,7 +1211,29 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //            ReleaseDC(hwnd, hdc);            
             break;
           }  
-        
+          case eID_BUTTON_START:
+          {
+            music_icon[6].state = ~music_icon[6].state;
+            //InvalidateRect(hwnd, &music_icon[9].rc, TRUE);
+            //ShowWindow(sub11_wnd, SW_HIDE);
+            //RedrawWindow(hwnd, NULL, RDW_ALLCHILDREN|RDW_INVALIDATE);
+            if(music_icon[6].state == FALSE)
+            {
+              SAI_Play_Start();                    
+              SetWindowText(GetDlgItem(hwnd, eID_BUTTON_START), L"U");
+
+            }
+            else if(music_icon[6].state != FALSE)
+            {             
+              SAI_Play_Stop();
+              SetWindowText(GetDlgItem(hwnd, eID_BUTTON_START), L"T");
+
+            }
+
+
+            //ShowWindow(sub11_wnd, SW_HIDE);                  
+            break;                  
+          }        
         }
 
       }//end of if(code == BN_CLICKED)   
@@ -1247,9 +1312,11 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
           case SBN_THUMBTRACK: //R滑块移动
           {
+
             i = sb_nr->nTrackValue; //获得滑块当前位置值                
             SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i); //设置进度值
-            MusicDialog.chgsch=1;
+            
+          
             break;
           }
             
@@ -1300,7 +1367,26 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         BitBlt(hdc, rc.x, rc.y, rc.w, rc.h, MusicDialog.hdc_bk, rc.x, rc.y, SRCCOPY);         
 
       return TRUE;
-    }       
+    }      
+    case WM_DESTROY:
+    {      
+      mp3player.ucStatus = STA_IDLE;		/* 待机状态 */      
+      thread_PlayMusic = 0;
+      //rt_thread_delete(h1);
+//      DeleteSurface(pSurf);
+//      DeleteDC(hdc_mem11);
+      music_icon[2].state = FALSE;
+      DeleteDC(MusicDialog.hdc_bk);
+      DeleteDC(rotate_disk_hdc);
+      MusicDialog.playindex = 0;
+      MusicDialog.music_file_num = 0;
+      MusicDialog.power = 20;
+      angle = 0;
+      
+      SAI_Play_Stop();		/* 停止I2S录音和放音 */
+      wm8978_Reset();	/* 复位WM8978到复位状态 */        
+      return PostQuitMessage(hwnd);	
+    }     
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
@@ -1309,7 +1395,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
 
-void	GUI_MUSIC_DIALOG(void)
+void	GUI_MUSIC_DIALOG(void *param)
 {
   
 	WNDCLASS	wcex;
@@ -1354,7 +1440,7 @@ void GUI_MUSIC_DIALOGTest(void *param)
   
   if(thread == 0)
   {
-     GUI_Thread_Create(GUI_MUSIC_DIALOGTest,"MUSIC_DIALOG",12*1024,NULL,5,5);
+     GUI_Thread_Create(GUI_MUSIC_DIALOGTest,"MUSIC_DIALOG",12*1024,NULL,5,3);
      thread = 1;
      return;
   }
@@ -1363,7 +1449,7 @@ void GUI_MUSIC_DIALOGTest(void *param)
 		if(app==0)
 		{
 			app=1;
-			GUI_MUSIC_DIALOG();
+			GUI_MUSIC_DIALOG(NULL);
       
       
 			app=0;

@@ -51,6 +51,8 @@ typedef	void		FN_GL_HLine(const SURFACE *pSurf,int x0,int y0,int x1,COLORREF col
 typedef	void		FN_GL_VLine(const SURFACE *pSurf,int x0,int y0,int y1,COLORREF color);
 typedef	void		FN_GL_Line(const SURFACE *pSurf,int x0,int y0,int x1,int y1,COLORREF color);
 typedef	void		FN_GL_FillArea(const SURFACE *pSurf,int x,int y,int w,int h,COLORREF color);
+typedef	void		FN_GL_FillRect(const SURFACE *pSurf,int x,int y,int w,int h,COLORREF color);
+typedef	void		FN_GL_FillRectARGB(const SURFACE *pSurf,int x,int y,int w,int h,U8 a,U8 r,U8 g,U8 b);
 typedef	int 		FN_GL_CopyBits(const SURFACE *pSurf,int x,int y,int w,int h,int width_bytes,U8 *buf);
 
 typedef	void		FN_GL_DrawBitmap_LUT1(const SURFACE *pSurf,int x,int y,int w,int h,int width_bytes,const U8 *bits,int bit_offset,const COLORREF *color_tbl);
@@ -68,8 +70,8 @@ typedef	BOOL	FN_GL_StretchBlt(const SURFACE *dstSurf,int dst_x,int dst_y,int dst
 typedef	BOOL	FN_GL_TransparentBlt(const SURFACE *dstSurf,int dst_x,int dst_y,int dst_w,int dst_h,const SURFACE *srcSurf,int src_x,int src_y,int src_w,int src_h,COLORREF key_color);
 typedef	BOOL	FN_GL_AlphaBlend(const SURFACE *dstSurf,int dst_x,int dst_y,int dst_w,int dst_h,const SURFACE *srcSurf,int src_x,int src_y,int src_w,int src_h,BLENDFUNCTION *op);
 
-typedef	BOOL	FN_GL_ScaleBitmap(const SURFACE *pSurf,int x,int y,int w,int h,const BITMAP *bm);
-typedef	BOOL	FN_GL_RotateBitmap(const SURFACE *pSurf,int cx,int cy,const BITMAP *bm,int angle);
+typedef	BOOL	FN_GL_ScaleBitmap(const SURFACE *pSurf,int x,int y,int w,int h,const BITMAP *bm,BOOL bSmooth);
+typedef	BOOL	FN_GL_RotateBitmap(const SURFACE *pSurf,int cx,int cy,const BITMAP *bm,int angle,BOOL bSmooth);
 
 /*============================================================================*/
 
@@ -83,7 +85,9 @@ typedef	struct	tagGL_OP{
 	FN_GL_HLine			*HLine;
 	FN_GL_VLine			*VLine;
 	FN_GL_Line			*Line;
-	FN_GL_FillArea		*FillArea;
+	FN_GL_FillRect		*FillArea;
+	FN_GL_FillRectARGB	*FillRectARGB;
+
 	FN_GL_CopyBits		*CopyBits;
 	
 	FN_GL_DrawBitmap_LUT1	*DrawBitmap_LUT1;
@@ -154,6 +158,8 @@ void GUI_SetScreenSurface(const SURFACE *pSurf);
 void GUI_SetFrameBufferSurface(const SURFACE *pSurf);
 void GUI_CursorInit(const SURFACE *pSurf,int x,int y);
 
+SURFACE* EXT_LCD_CreateSurface_RGB565(int Width,int Height);
+
 /*===================================================================================*/
 
 void	GUI_Printf(const char *fmt,...);
@@ -196,6 +202,22 @@ BOOL	GPU_FillRect(const SURFACE *pSurf,int x,int y,int w,int h,COLORREF c);
 BOOL	GPU_FillRectARGB(const SURFACE *pSurf,int x,int y,int w,int h,U8 a,U8 r,U8 g,U8 b);
 BOOL	GPU_DrawBitmap(const SURFACE *pSurf,int x,int y,int w,int h,const U8 *bits,int width_bytes,int format);
 BOOL 	GPU_ScaleBitmap(const SURFACE *pSurf,int x,int y,int w,int h,const BITMAP *bm);
+
+
+////For EXT_LCD Only
+void 	EXT_LCD_WriteStart(U16 sx,U16 sy,U16 ex,U16 ey);
+void 	EXT_LCD_ReadStart(U16 sx,U16 sy,U16 ex,U16 ey);
+
+void	EXT_LCD_WritePixel(U16 c);
+void	EXT_LCD_WriteRGB(U8 r,U8 g,U8 b);
+void	EXT_LCD_WriteBits(U16 x,U16 y,U16 w,U16 h,const U8 *bits,int width_bytes);
+void	EXT_LCD_FillRect(U16 x,U16 y,U16 w,U16 h,U16 c);
+
+U16		EXT_LCD_ReadPixel(void);
+void	EXT_LCD_ReadRGB(U8 *r,U8 *g,U8 *b);
+
+void	EXT_LCD_ReadBits(U16 x,U16 y,U16 w,U16 h,U8 *out,int width_bytes);
+
 
 /*===================================================================================*/
 

@@ -37,7 +37,7 @@ const LCD_PARAM_TypeDef lcd_param[LCD_TYPE_NUM]={
     .hfp = 22,  	//HSYNC前的无效像素
     .vfp = 22,  	//VSYNC前的无效行数
     
-    .comment_clock_2byte = 33, //rgb565/argb4444等双字节像素时推荐使用的液晶时钟频率
+    .comment_clock_2byte = 20, //rgb565/argb4444等双字节像素时推荐使用的液晶时钟频率
     .comment_clock_4byte = 21, //Argb8888等四字节像素时推荐使用的液晶时钟频率
 
     

@@ -1052,9 +1052,9 @@ typedef struct tagNMHDR
 
 typedef	struct __MSGBOXOPTIONS
 {
-	const WCHAR **pButtonText;
-	int ButtonCount;
-	u32 Flag;
+	const WCHAR **pButtonText; //按钮字符组.
+	int ButtonCount;           //按钮数量.
+	u32 Flag;                  //标记.
 }MSGBOX_OPTIONS;
 
 
@@ -1315,16 +1315,16 @@ typedef struct tagCOPYDATASTRUCT {
 
 #define WM_MOUSEFIRST                   0x0200  /* First Mouse Message */
 
-#define WM_MOUSEMOVE                    0x0200	/* wParam:HI16,MouseID,LO16:Mouse Key State; lParam:HIWORD:ypos(cli),LOWORD:xpos(cli),*/
-#define WM_LBUTTONDOWN                  0x0201	/* wParam:HI16,MouseID,LO16:Mouse Key State; lParam:HIWORD:ypos(cli),LOWORD:xpos(cli),*/
-#define WM_LBUTTONUP                    0x0202	/* wParam:HI16,MouseID,LO16:Mouse Key State; lParam:HIWORD:ypos(cli),LOWORD:xpos(cli),*/
-#define WM_LBUTTONDBLCLK                0x0203
-#define WM_RBUTTONDOWN                  0x0204	/* wParam:HI16,MouseID,LO16:Mouse Key State; lParam:HIWORD:ypos(cli),LOWORD:xpos(cli),*/
-#define WM_RBUTTONUP                    0x0205	/* wParam:HI16,MouseID,LO16:Mouse Key State; lParam:HIWORD:ypos(cli),LOWORD:xpos(cli),*/
-#define WM_RBUTTONDBLCLK                0x0206
-#define WM_MBUTTONDOWN                  0x0207
-#define WM_MBUTTONUP                    0x0208
-#define WM_MBUTTONDBLCLK                0x0209
+#define WM_MOUSEMOVE                    0x0200	// [客户区鼠标移动]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_LBUTTONDOWN                  0x0201	// [客户区鼠标左键按下]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_LBUTTONUP                    0x0202	// [客户区鼠标左键抬起]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_LBUTTONDBLCLK                0x0203  // [客户区鼠标左键双击]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_RBUTTONDOWN                  0x0204	// [客户区鼠标右键按下]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_RBUTTONUP                    0x0205	// [客户区鼠标右键抬起]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_RBUTTONDBLCLK                0x0206  // [客户区鼠标右键双击]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_MBUTTONDOWN                  0x0207  // [客户区鼠标中键按下]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_MBUTTONUP                    0x0208  // [客户区鼠标中键抬起]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
+#define WM_MBUTTONDBLCLK                0x0209  // [客户区鼠标中键双击]: <wParam>LO16:鼠标键状态; <lParam>位置(客户区坐标),H16:Y,LO16:X; <返回>忽略.
 #define WM_MOUSEWHEEL                   0x020A
 #define WM_MOUSEHOVER                   0x020B
 #define WM_MOUSELEAVE                   0x020C
@@ -2055,7 +2055,7 @@ int		GetTextAlign(HDC hdc);
 COLORREF	SetTextColor(HDC hdc,COLORREF color);
 COLORREF	GetTextColor(HDC hdc);
 BOOL	GetDrawRect(HDC hdc,RECT *lprc);
-BOOL	SetDrawRect(HDC hdc,const RECT *lprc);
+BOOL	SetDrawRect(HDC hdc,const RECT *rc_new,RECT *rc_old);
 
 SURFACE*	CreateSurface(SURF_FORMAT Format,U32 nWidth,U32 nHeight,int LineBytes,void *Bits);
 void		DeleteSurface(const SURFACE *pSurf);
@@ -2158,8 +2158,8 @@ void 	AA_DrawLine(HDC hdc, int x0, int y0, int x1, int y1);
 void 	AA_DrawBoldLine(HDC hdc, int x0, int y0, int x1, int y1);
 //void	AA_DrawPolygon(HDC hdc,int xOff,int yOff,const POINT *ps,int count);
 //void	AA_FillPolygon(HDC hdc,int xOff,int yOff,const POINT *ps,int count);
-void	AA_DrawCircle(HDC hdc,int cx,int cy,int r);
-void	AA_FillCircle(HDC hdc,int cx,int cy,int r);
+//void	AA_DrawCircle(HDC hdc,int cx,int cy,int r);
+//void	AA_FillCircle(HDC hdc,int cx,int cy,int r);
 
 //BITMAP*	LoadBitmap(rwctx_t *rwctx,CONST LPRECT lprc);
 BOOL	DrawBitmap(HDC hdc,int x,int y,const BITMAP *bitmap,const RECT *lpRect);
@@ -2316,6 +2316,7 @@ int	DestroyWindow(HWND hwnd);
 #define	TMR_START   (1<<1) //如果指定该标记,则启动定时器.
 
 HTMR 	SetTimer(HWND hwnd,UINT TMR_Id,U32 IntervalMS,U32 Flags,TIMERPROC Proc);
+BOOL	StartTimer(HWND hwnd,UINT TMR_Id,BOOL bStart);
 BOOL	ResetTimer(HWND hwnd,UINT TMR_Id,U32 IntervalMS,U32 Flags,TIMERPROC Proc);
 BOOL 	KillTimer(HWND hwnd,UINT TMR_Id);
 

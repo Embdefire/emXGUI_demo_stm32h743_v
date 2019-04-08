@@ -24,6 +24,7 @@
 #include "GUI_MUSICPLAYER_DIALOG.h"
 #include "./sai/bsp_sai.h" 
 #include "x_libc.h"
+#include "GUI_MUSICPLAYER_DIALOG.h"
 /* 推荐使用以下格式mp3文件：
  * 采样率：44100Hz
  * 声  道：2
@@ -91,7 +92,7 @@ void mp3PlayerDemo(const char *mp3file)
   DWORD pos;//记录文字变量
   static uint8_t timecount = 0;
 	int err=0, i=0, outputSamps=0;
-  uint8_t lyriccount=0;//歌词index记录	
+  static uint8_t lyriccount=0;//歌词index记录	
 	int	read_offset = 0;				/* 读偏移指针 */
 	int	bytes_left = 0;					/* 剩余字节数 */	
   uint32_t time_sum = 0; //计算当前已播放到的时间位置
@@ -123,7 +124,15 @@ void mp3PlayerDemo(const char *mp3file)
 	Delay_ms(10);	/* 延迟一段时间，等待I2S中断结束 */
 	wm8978_Reset();		/* 复位WM8978到复位状态 */
 	/* 配置WM8978芯片，输入为DAC，输出为耳机 */
-	wm8978_CfgAudioPath(DAC_ON, SPK_ON | EAR_LEFT_ON|EAR_RIGHT_ON);
+  if(music_icon[2].state == FALSE)
+  {
+    wm8978_CfgAudioPath(DAC_ON,  EAR_LEFT_ON|EAR_RIGHT_ON);
+  }
+  //当音量icon被按下时，设置为静音模式
+  else
+  {                
+    wm8978_CfgAudioPath(DAC_ON,  SPK_ON|EAR_LEFT_ON|EAR_RIGHT_ON);
+  } 
 
 	/* 调节音量，左右相同音量 */
 	wm8978_SetOUT1Volume(mp3player.ucVolume);
@@ -159,6 +168,11 @@ void mp3PlayerDemo(const char *mp3file)
 	/* 进入主程序循环体 */
 	while(mp3player.ucStatus == STA_PLAYING)
 	{
+    if(!(music_icon[6].state == FALSE))
+    {
+      GUI_msleep(10);
+      continue;
+    }
 		read_offset = MP3FindSyncWord(read_ptr, bytes_left);	//寻找帧同步，返回第一个同步字的位置
 		if(read_offset < 0)										//没有找到同步字
 		{
@@ -261,6 +275,7 @@ void mp3PlayerDemo(const char *mp3file)
 		
 		if(file.fptr==file.fsize) 		//mp3文件读取完成，退出
 		{
+      mp3player.ucStatus=STA_SWITCH;
       MusicDialog.playindex++;
       if(MusicDialog.playindex > MusicDialog.music_file_num)
         MusicDialog.playindex = 0;      
@@ -291,7 +306,7 @@ void mp3PlayerDemo(const char *mp3file)
           }          
                       
           x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.curtime/60,MusicDialog.curtime%60);
-          if(!MusicDialog.mList_State)//进入列表界面，不进行更新
+          if(!MusicDialog.mList_State && !(SendMessage(MusicDialog.TIME_Hwnd, SBM_GETSTATE,0,0)&SST_THUMBTRACK))//进入列表界面，不进行更新
           {
             SendMessage(MusicDialog.TIME_Hwnd, SBM_SETVALUE, TRUE, MusicDialog.curtime*255/MusicDialog.alltime);
             InvalidateRect(MusicDialog.TIME_Hwnd, NULL, FALSE); 
@@ -375,16 +390,19 @@ void mp3PlayerDemo(const char *mp3file)
         //根据时间计算文件位置并跳转至该位置
         pos = ID3V2_size + (time_sum/26)*frame_size;
 
-        if(pos%4==0)
-          GUI_DEBUG("ZERO");
-        else
+        if(pos%4!=0)          //对齐
         {
          uint8_t num_left = 0;
          num_left = pos % 4;
          pos += (4-num_left);
-         GUI_DEBUG("N");         
-        }        
-        result = f_lseek(&file,pos);
+     
+        } 
+        if(MusicDialog.Update_Content == 1)
+        {
+          
+          MusicDialog.Update_Content = 0;
+          result = f_lseek(&file,pos);
+        }
         lrc.oldtime=0;
         lyriccount=0;
          
