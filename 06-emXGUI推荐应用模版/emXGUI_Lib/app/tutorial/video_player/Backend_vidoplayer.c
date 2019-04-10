@@ -14,9 +14,10 @@
 //#include "./mjpegplayer/GUI_AVIPLAYER_DIALOG.h"
 FIL       fileR ;
 UINT      BytesRD;
+#if 1
 #define   Frame_Buf_Size    (1024*30)
 uint8_t   *Frame_buf;
-
+#endif 
 static volatile uint8_t audiobufflag=0;
 __align(8) uint8_t   Sound_buf[4][1024*5];
 
@@ -62,7 +63,7 @@ void AVI_play(char *filename)
   uint8_t audiosavebuf;
 
   Frame_buf = (uint8_t *)GUI_VMEM_Alloc(Frame_Buf_Size);
-  
+//  GUI_DEBUG("%x", Frame_buf);
   pbuffer=Frame_buf;
   res=f_open(&fileR,filename,FA_READ);
   if(res!=FR_OK)
@@ -103,6 +104,26 @@ void AVI_play(char *filename)
     return;    
   }
 //  
+
+#if 0
+  f_lseek(&fileR,443142);
+  f_read(&fileR,Frame_buf,13554+8,&BytesRD);
+  int count = 0;
+  for(int i = 0; i < BytesRD; i++)
+  {
+    count++;
+    printf("%02x ", Frame_buf[i]);
+    if(count%10 ==0)printf("\n");
+  }
+  
+  
+  Strtype=MAKEWORD(Frame_buf+13554+2);
+  Strsize=MAKEDWORD(pbuffer+13554+4);
+  
+#endif
+
+
+  
   Strtype=MAKEWORD(pbuffer+mid+6);//流类型（movi后面有两个字符）
   Strsize=MAKEDWORD(pbuffer+mid+8);//流大小
   if(Strsize%2)Strsize++;//奇数加1
@@ -128,14 +149,14 @@ void AVI_play(char *filename)
   SAI_Play_Stop();			/* 停止I2S录音和放音 */
 	wm8978_Reset();		/* 复位WM8978到复位状态 */	
   	/* 配置WM8978芯片，输入为DAC，输出为耳机 */
-	wm8978_CfgAudioPath(DAC_ON, EAR_LEFT_ON | EAR_RIGHT_ON);
+	wm8978_CfgAudioPath(DAC_ON, SPK_ON|EAR_LEFT_ON | EAR_RIGHT_ON);
 
 	/* 调节音量，左右相同音量 */
-	wm8978_SetOUT1Volume(VideoDialog.power);
+	wm8978_SetOUT1Volume(35);
 //   if(vol == 0)
 //      wm8978_OutMute(1);//静音
 //   else
-//      wm8978_OutMute(0);
+  wm8978_OutMute(0);
 //	/* 配置WM8978音频接口为飞利浦标准I2S接口，16bit */
 	wm8978_CfgAudioIF(SAI_I2S_STANDARD, 16);
   SAI_GPIO_Config();
@@ -181,8 +202,13 @@ void AVI_play(char *filename)
      if(1)
     {
 
-        
-        
+       
+//     if(f_tell(&fileR) % 4 == 0)
+//     {}
+//     else
+//     {
+//       GUI_DEBUG("%d", f_tell(&fileR));
+//     }
    //fptr存放着文件指针的位置，fsize是文件的总大小，两者之间的比例和当前时间与总时长的比例相同（fptr/fsize = cur/all）     
 //   cur_time=((double)fileR.fptr/fileR.fsize)*alltime;
 //   //更新进度条
@@ -202,10 +228,11 @@ void AVI_play(char *filename)
 				frame =0;
 			}
 
-      //HDC hdc_mem,hdc;
-      pbuffer=Frame_buf;
-      AVI_DEBUG("S\n"); 
-      res = f_read(&fileR,Frame_buf,Strsize+8,&BytesRD);//读入整帧+下一数据流ID信息
+//      //HDC hdc_mem,hdc;
+//      
+       pbuffer=Frame_buf;
+      res = f_read(&fileR,Frame_buf,Strsize,&BytesRD);//读入整帧+下一数据流ID信息
+     
       if(res != FR_OK)
       {
         GUI_DEBUG("E\n");
@@ -263,7 +290,7 @@ void AVI_play(char *filename)
 
       }while(audiobufflag==i);
       AVI_DEBUG("S\n");
-      res = f_read(&fileR,Sound_buf[audiosavebuf],Strsize+8,&BytesRD);//读入整帧+下一数据流ID信息
+      res = f_read(&fileR,Sound_buf[audiosavebuf],Strsize,&BytesRD);//读入整帧+下一数据流ID信息
       if(res != FR_OK)
       {
         GUI_DEBUG("E\n");
@@ -350,11 +377,22 @@ void AVI_play(char *filename)
 //         avi_chl = 0;    
 //     }
 //     
-//    
+//        
+//          int count = 0;
+//          for(int i = 0; i < Strsize+8; i++)
+//          {
+//            count++;
+//            printf("%02x ", pbuffer[i]);
+//            if(count%16 == 0)printf("\n");
+//          }
+         char p[8];
+         f_read(&fileR,p,8,&BytesRD);
          //判断下一帧的帧内容 
-         Strtype=MAKEWORD(pbuffer+Strsize+2);//流类型
-         Strsize=MAKEDWORD(pbuffer+Strsize+4);//流大小									
-         if(Strsize%2)Strsize++;//奇数加1		  
+         Strtype=MAKEWORD(p+2);//流类型
+//         GUI_DEBUG("%x, %x = %x", *(pbuffer+Strsize+1),*(pbuffer+Strsize+2),Strtype);
+         Strsize=MAKEDWORD(p+4);//流大小									
+         if(Strsize%2)
+           Strsize++;//奇数加1		  
 //        
      }
 //  
@@ -374,8 +412,7 @@ void MUSIC_SAI_DMA_TX_Callback(void)
   if(audiobufflag>3)
 	{
 		audiobufflag=0;
-	}
-	
+	}	
 	if(DMA1_Stream2->CR&(1<<19)) //当前读取Memory1数据
 	{
 		//DMA_MemoryTargetConfig(DMA1_Stream2,(uint32_t)Sound_buf[audiobufflag], DMA_Memory_0);

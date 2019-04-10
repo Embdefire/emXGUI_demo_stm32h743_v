@@ -17,6 +17,7 @@
 #include "./sai/bsp_sai.h" 
 
 #include "./mp3Player/mp3Player.h"
+
 SAI_HandleTypeDef h_sai;
 DMA_HandleTypeDef h_txdma;   //DMA发送句柄
 void (*SAI_DMA_TX_Callback)(void);
@@ -97,7 +98,7 @@ void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, cons
   h_sai.Init.MonoStereoMode=SAI_STEREOMODE;
   h_sai.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
   h_sai.Init.AudioFrequency = _usAudioFreq;
-  SAI1_Block_A->CR1 &= 0;
+  //SAI1_Block_A->CR1 &= 0;
   HAL_SAI_InitProtocol(&h_sai, SAI_I2S_STANDARD, _usWordLen, 2);//2--left_channel and right_channel
   
 }
@@ -154,7 +155,7 @@ void SAI_Play_Start(void)
 void SAI_DMAConvCplt(DMA_HandleTypeDef *hdma)
 {
   SAI_DMA_TX_Callback();
-    //MusicPlayer_SAI_DMA_TX_Callback();
+  //MUSIC_SAI_DMA_TX_Callback();
 }
 /**
 	* @brief  SPIx_TX_DMA_STREAM中断服务函数

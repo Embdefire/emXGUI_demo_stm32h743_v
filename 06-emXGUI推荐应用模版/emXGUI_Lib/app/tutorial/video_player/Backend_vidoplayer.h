@@ -45,15 +45,15 @@
                                          printf("<<-AVI-FUNC->> Func:%s@Line:%d\n",__func__,__LINE__);\
                                        }while(0)
 
-
+void MUSIC_SAI_DMA_TX_Callback(void);
 #if 0
 void AVI_play(void);
 void Prog_ctl(void);
 #else
 void TIM3_Config(uint16_t period,uint16_t prescaler);
 void AVI_play(char *filename);
-extern u32 alltime;		//总时长 
-extern u32 cur_time; 		//当前播放时间 
+extern uint32_t alltime;		//总时长 
+extern uint32_t cur_time; 		//当前播放时间 
 #endif
 #endif
 

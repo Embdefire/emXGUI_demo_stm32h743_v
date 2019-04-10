@@ -31,6 +31,12 @@ static ICON_Typedef avi_icon[13] = {
    {"下边栏",           {0 ,400, 800, 80},     FALSE},   
 };
 
+
+VIDEO_DIALOG_Typedef VideoDialog=
+{
+  .power = 20,
+};
+
 /*
  * @brief  绘制滚动条
  * @param  hwnd:   滚动条的句柄值

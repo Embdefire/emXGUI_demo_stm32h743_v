@@ -23,7 +23,7 @@ static BITMAP bm_rotate;
 static char path[100]="0:";//文件根目录
 MUSIC_DIALOG_Typedef MusicDialog = 
 {
-  .filename = "bg.jpg",
+  .filename = "avi_desktop.jpg",
   .power = 20,
   .playindex = 0,
 };
@@ -566,6 +566,7 @@ static void Dialog_Init(HWND hwnd)
   rotate_disk_hdc = CreateMemoryDC(SURF_ARGB8888,240,240);
   /* 清空背景为透明 */
   ClrDisplay(rotate_disk_hdc,NULL,0);
+  //BitBlt(rotate_disk_hdc, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
   /* 绘制bmp到hdc */
   RECT rc = {0,0,240,240};
   SetTextColor(rotate_disk_hdc, MapARGB(rotate_disk_hdc, 255, 50, 205, 50));
@@ -574,7 +575,7 @@ static void Dialog_Init(HWND hwnd)
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  //SetTimer(hwnd, 1, 100, TMR_START,NULL);
+  SetTimer(hwnd, 1, 100, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -1047,11 +1048,11 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
           angle+=5;
           angle%=360;
-          //ClrDisplay(hdc_mem11,NULL,MapRGB(hdc_mem11,0,0,0));
+          //ClrDisplay(hdc_rotate,NULL,MapRGB(hdc_rotate,250,0,0));
           BitBlt(hdc_rotate, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
           
           EnableAntiAlias(hdc_rotate, TRUE);
-          //RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
+          RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
           EnableAntiAlias(hdc_rotate, FALSE);
           
           
@@ -1061,7 +1062,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         rc.w=240;
         rc.h=240;
 
-        //InvalidateRect(hwnd,&rc,FALSE);
+        InvalidateRect(hwnd,&rc,FALSE);
       }
         break;
     } 

@@ -365,10 +365,12 @@ void SDRAM_Init(void)
   SdramTiming.WriteRecoveryTime = 2;//写入命令到预充电命令之间的延迟
   SdramTiming.RPDelay = 2;//预充电与行有效命令之间的延迟
   SdramTiming.RCDDelay = 2;//行有效与列读写命令之间的延迟
-
+  
   HAL_SDRAM_Init(&hsdram1, &SdramTiming);  
+  MODIFY_REG(FMC_Bank1->BTCR[0], FMC_BCR1_MBKEN, 0);
   /* FMC SDRAM 设备时序初始化 */
   SDRAM_InitSequence(); 
+  
   
 }
 
