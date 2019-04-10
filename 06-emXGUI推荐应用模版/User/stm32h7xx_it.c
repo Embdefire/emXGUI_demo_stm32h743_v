@@ -171,7 +171,7 @@ void SysTick_Handler(void)
 
 volatile uint32_t CPU_RunTime = 0UL;
 extern TIM_HandleTypeDef TIM_Base;
-
+extern volatile uint8_t timeout;
 void BASIC_TIM_IRQHandler(void)
 {
     HAL_TIM_IRQHandler(&TIM_Base);
@@ -184,7 +184,10 @@ void BASIC_TIM_IRQHandler(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if(htim->Instance == TIM6)
-        CPU_RunTime++;
+      xPortGetFreeHeapSize(); 
+    //CPU_RunTime++;
+    if(htim->Instance == TIM3)
+      timeout = 1;
 }
 
 void DMA1_Stream2_IRQHandler(void)

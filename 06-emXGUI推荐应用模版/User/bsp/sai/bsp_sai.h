@@ -36,6 +36,9 @@
 #define DMA_Instance                  DMA1_Stream2
 #define DMA_IRQn                      DMA1_Stream2_IRQn
 #define DMA_CLK_ENABLE()              __HAL_RCC_DMA1_CLK_ENABLE(); 
+
+extern DMA_HandleTypeDef h_txdma;   //DMA发送句柄
+
 extern void (*SAI_DMA_TX_Callback)(void);		//I2S DMA TX回调函数指针  
 void I2Sx_TX_DMA_STREAM_IRQFUN(void);
 void SAI_GPIO_Config(void);

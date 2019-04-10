@@ -574,7 +574,7 @@ static void Dialog_Init(HWND hwnd)
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  SetTimer(hwnd, 1, 100, TMR_START,NULL);
+  //SetTimer(hwnd, 1, 100, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -869,6 +869,10 @@ static LRESULT Dlg_List_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     case WM_DESTROY:
     {
       MusicDialog.mList_State = 0;
+      GUI_VMEM_Free(menu_list);
+      GUI_VMEM_Free(wbuf);
+      SetForegroundWindow(MusicDialog.MUSIC_Hwnd);      
+      
       return PostQuitMessage(hwnd);	
     }
     default: 
@@ -1047,7 +1051,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           BitBlt(hdc_rotate, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
           
           EnableAntiAlias(hdc_rotate, TRUE);
-          RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
+          //RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
           EnableAntiAlias(hdc_rotate, FALSE);
           
           
@@ -1057,7 +1061,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         rc.w=240;
         rc.h=240;
 
-        InvalidateRect(hwnd,&rc,FALSE);
+        //InvalidateRect(hwnd,&rc,FALSE);
       }
         break;
     } 
@@ -1067,9 +1071,10 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       PAINTSTRUCT ps;
       HDC hdc;//屏幕hdc
       RECT rc;
-
+//      GUI_DEBUG("WM_PAINT");
       //开始绘制
       hdc = BeginPaint(hwnd, &ps); 
+//      GUI_DEBUG("WM_PAINT");
       //初始化旋转图标
       if(MusicDialog.Init_State == 0)
       {
@@ -1372,12 +1377,10 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {      
       mp3player.ucStatus = STA_IDLE;		/* 待机状态 */      
       thread_PlayMusic = 0;
-      //rt_thread_delete(h1);
-//      DeleteSurface(pSurf);
-//      DeleteDC(hdc_mem11);
       music_icon[2].state = FALSE;
       DeleteDC(MusicDialog.hdc_bk);
       DeleteDC(rotate_disk_hdc);
+      MusicDialog.Init_State = 0;
       MusicDialog.playindex = 0;
       MusicDialog.music_file_num = 0;
       MusicDialog.power = 20;

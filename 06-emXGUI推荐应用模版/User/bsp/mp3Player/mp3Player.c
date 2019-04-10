@@ -143,6 +143,7 @@ void mp3PlayerDemo(const char *mp3file)
 	/*  初始化并配置I2S  */
   SAI_Play_Stop();
 	SAI_GPIO_Config();
+  SAI_DMA_TX_Callback = MusicPlayer_SAI_DMA_TX_Callback;
 //	SAIxA_Tx_Config(SAI_I2S_STANDARD,SAI_PROTOCOL_DATASIZE_16BIT,mp3player.ucFreq);	
 //	SAIA_TX_DMA_Init();	
 	
@@ -283,7 +284,7 @@ void mp3PlayerDemo(const char *mp3file)
 			break;
 		}	
     int update = 0;//记录只更新一次的参数
-    static int times= 0 ;
+//    static int times= 0 ;
 		while(Isread==0)
 		{
       if(MusicDialog.chgsch == 0)
@@ -309,7 +310,7 @@ void mp3PlayerDemo(const char *mp3file)
           if(!MusicDialog.mList_State && !(SendMessage(MusicDialog.TIME_Hwnd, SBM_GETSTATE,0,0)&SST_THUMBTRACK))//进入列表界面，不进行更新
           {
             SendMessage(MusicDialog.TIME_Hwnd, SBM_SETVALUE, TRUE, MusicDialog.curtime*255/MusicDialog.alltime);
-            InvalidateRect(MusicDialog.TIME_Hwnd, NULL, FALSE); 
+            //InvalidateRect(MusicDialog.TIME_Hwnd, NULL, FALSE); 
             SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_CUR_TIME), wbuf);    
           }            
           lrc.curtime = MusicDialog.curtime;  

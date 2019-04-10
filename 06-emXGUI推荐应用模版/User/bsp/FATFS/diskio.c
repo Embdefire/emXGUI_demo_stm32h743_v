@@ -123,10 +123,10 @@ DRESULT disk_write(BYTE lun,//物理扇区，多个设备时用到(0...)
 {
     DRESULT res = RES_ERROR;
     uint32_t timeout;
-    uint32_t alignedAddr;
+//    uint32_t alignedAddr;
   
     TX_Flag = 0;
-    alignedAddr = (uint32_t)buff & ~0x1F;
+//    alignedAddr = (uint32_t)buff & ~0x1F;
     //更新相应的DCache
     //SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
     if(BSP_SD_WriteBlocks_DMA((uint32_t*)buff,

@@ -89,7 +89,6 @@ void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, cons
   SAI_CLK_ENABLE();
   HAL_SAI_DeInit(&h_sai);
   h_sai.Instance = SAI1_Block_A;
-  printf("%d\n",_usAudioFreq );
   h_sai.Init.AudioMode = SAI_MODEMASTER_TX;//配置为发送模式
   h_sai.Init.Synchro = SAI_ASYNCHRONOUS; //模块内部为异步
   h_sai.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;//立刻输出
@@ -154,7 +153,8 @@ void SAI_Play_Start(void)
 */
 void SAI_DMAConvCplt(DMA_HandleTypeDef *hdma)
 {
-    MusicPlayer_SAI_DMA_TX_Callback();
+  SAI_DMA_TX_Callback();
+    //MusicPlayer_SAI_DMA_TX_Callback();
 }
 /**
 	* @brief  SPIx_TX_DMA_STREAM中断服务函数

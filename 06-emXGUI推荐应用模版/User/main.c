@@ -109,7 +109,6 @@ static void BSP_Init(void)
 	
 	/* usart 端口初始化 */
   UARTx_Config();
-  
   /* 基本定时器初始化	*/
 	TIM_Basic_Init();  
   /*hardfault 跟踪器初始化*/ 

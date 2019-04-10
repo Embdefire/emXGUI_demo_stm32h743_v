@@ -49,83 +49,20 @@ extern void	GUI_DEMO_Graphics_Accelerator(void*);
 extern void GUI_App_Desktop(void *param);
 extern void GUI_PicViewer_DIALOGTest(void *param);
 extern void GUI_RGBLED_DIALOGTest(void *);
-extern void	GUI_LED_DIALOG(void *param);
 extern void GUI_MUSIC_DIALOGTest(void *param);
 //extern void GUI_DEMO_DrawJPEG(void);
 //extern void App_LED_DIALOG(void);
 //extern void	GUI_App_Desktop(void);
 //extern void App_GUI_Tutorial_DEMO(void);
-extern void	GUI_MUSIC_DIALOG(void*);
-//extern void	GUI_VideoPlayer_DIALOG(void);
-//extern void GUI_AVIList_DIALOG(void);
+extern void GUI_VIDEO_DIALOGTest(void *param);
 //extern void	GUI_LED_DIALOG(void);
 //extern void	GUI_Camera_DIALOG(void);
 extern void	GUI_RES_Writer_Dialog(void *param);
 //extern void GUI_Boot_Interface_DIALOG(void);
 //extern void	GUI_PicViewer_DIALOG(void);
-//extern BOOL player_state;
-//int thread_ctrl = 1;
 
-///* 视频播放器的应用 */
-//void GUI_VideoPlayerTest(void)
-//{
-//  while(thread_ctrl)
-//  {
-//      GUI_AVIList_DIALOG();
-//      if(player_state != FALSE)
-//        GUI_VideoPlayer_DIALOG();
-//      else
-//        thread_ctrl = 0;
-//  }
-//  thread_ctrl = 1;
-//  player_state = TRUE;
-//}
-//void GUI_Camera_DIALOGTest(void)
-//{
-//   static int thread = 0;
-//   int app = 0;
-//   static rt_thread_t h1;
-//	if(thread==0)
-//	{  
-//      h1=rt_thread_create("GUI_Camera_DIALOGTest",(void(*)(void*))GUI_Camera_DIALOGTest,NULL,4*1024,0,1);
-//      rt_thread_startup(h1);				
-//      thread =1;
-//      return;
-//	}
-//	if(thread==1) //线程已创建了
-//	{
-//		if(app==0)
-//		{
-//			app=1;
-//			GUI_Camera_DIALOG();
-//			app=0;
-//			thread=0;
-//		}
-//	}   
-//}
-//void GUI_PicViewer_DIALOGTest(void)
-//{
-//   static int thread = 0;
-//   int app = 0;
-//   static rt_thread_t h1;
-//	if(thread==0)
-//	{  
-//      h1=rt_thread_create("GUI_PicViewer_DIALOGTest",(void(*)(void*))GUI_PicViewer_DIALOGTest,NULL,4*1024,0,1);
-//      rt_thread_startup(h1);				
-//      thread =1;
-//      return;
-//	}
-//	if(thread==1) //线程已创建了
-//	{
-  //		if(app==0)
-  //		{
-  //			app=1;
-  //			GUI_PicViewer_DIALOG();
-  //			app=0;
-  //			thread=0;
-  //		}
-//	}   
-//}
+
+
 static const struct __obj_list menu_list_1[] = {
     //	L"Speed",		app_1, 		NULL,	 	RGB_WHITE,			dummy,
     //L"Hello",		app_1,		NULL, 	 	RGB_WHITE,			dummy,
@@ -136,7 +73,7 @@ static const struct __obj_list menu_list_1[] = {
 
       L"GUI应用",		NULL, 	L"J", 	RGB_WHITE,			GUI_App_Desktop,
       L"MP3播放器",		NULL,	  L"I", RGB_WHITE,				GUI_MUSIC_DIALOGTest,
-      L"视频播放器",		NULL,	  L"D", RGB_WHITE,				dummy,
+      L"视频播放器",		NULL,	  L"D", RGB_WHITE,				GUI_VIDEO_DIALOGTest,
 
       L"RGB彩灯",		NULL,	  L"L", RGB_WHITE,				GUI_RGBLED_DIALOGTest,
       L"摄像头",		NULL,	  L"M",RGB_WHITE, 				dummy,

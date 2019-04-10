@@ -1565,6 +1565,26 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>tutorial/video_player</GroupName>
+          <Files>
+            <File>
+              <FileName>Backend_avifile.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\video_player\Backend_avifile.c</FilePath>
+            </File>
+            <File>
+              <FileName>Backend_vidoplayer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\video_player\Backend_vidoplayer.c</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_VEDIOPLAYER_DIALOG.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\video_player\GUI_VEDIOPLAYER_DIALOG.c</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>
