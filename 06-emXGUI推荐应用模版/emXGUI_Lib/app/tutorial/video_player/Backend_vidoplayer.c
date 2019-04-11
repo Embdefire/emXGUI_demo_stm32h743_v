@@ -270,6 +270,7 @@ void AVI_play(char *filename)
       }
       
       pbuffer=Sound_buf[audiosavebuf];      
+      
     }
     else break;
 					   	
@@ -351,6 +352,8 @@ void AVI_play(char *filename)
 //     }
 //     
 //    
+//         char p[8];
+//         f_read(&fileR,p,8,&BytesRD);
          //判断下一帧的帧内容 
          Strtype=MAKEWORD(pbuffer+Strsize+2);//流类型
          Strsize=MAKEDWORD(pbuffer+Strsize+4);//流大小									
@@ -359,7 +362,6 @@ void AVI_play(char *filename)
      }
 //  
 // 
-  GUI_DEBUG("End %d", f_tell(&fileR));
   GUI_VMEM_Free(Frame_buf);
 //  sw_flag = 0;
   SAI_Play_Stop();

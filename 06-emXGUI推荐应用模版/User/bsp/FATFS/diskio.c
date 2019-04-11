@@ -20,6 +20,9 @@
 #include "./sd_card/bsp_sdio_sd.h"
 #include "diskio.h"	
 #include "./led/bsp_led.h" 
+
+#include "FreeRTOS.h"
+#include "task.h"
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
 
@@ -60,24 +63,21 @@ DSTATUS disk_status(BYTE lun){
     }
     return Stat;
 }
-DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
-                BYTE *buff,//数据缓存区 
-                DWORD sector, //扇区首地址
-                UINT count)//扇区个数(1..128)
+
+static DRESULT SD_ReadBlock(BYTE *buff,//数据缓存区 
+                  DWORD sector, //扇区首地址
+                  UINT count)//扇区个数(1..128)
 {
   DRESULT res = RES_ERROR;
   uint32_t timeout;
-  uint32_t alignedAddr;
-
-  RX_Flag = 0;
-  
-  alignedAddr = (uint32_t)buff & ~0x1F;
-  //更新相应的DCache
-  //SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-  if(BSP_SD_ReadBlocks_DMA((uint32_t*)buff,
+  uint32_t alignedAddr; 
+  RX_Flag = 0;  
+  taskENTER_CRITICAL();
+  if(HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t*)buff,
                            (uint32_t) (sector),
                            count) == HAL_OK)
   {
+    taskEXIT_CRITICAL();
     /* Wait that the reading process is completed or a timeout occurs */
     timeout = HAL_GetTick();
     while((RX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
@@ -112,56 +112,96 @@ DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
       }
     }
   }
+  return res;
+}
+
+DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
+                BYTE *buff,//数据缓存区 
+                DWORD sector, //扇区首地址
+                UINT count)//扇区个数(1..128)
+{
+  DRESULT res = RES_ERROR;
+  uint32_t i;
+  DWORD pbuff[512/4];	
+	if((DWORD)buff&3)
+	{
+	 	for(i=0;i<count;i++)
+		{
+		 	res = SD_ReadBlock((BYTE *)pbuff,sector+i,1);//单个sector的读操作
+      taskENTER_CRITICAL();
+			memcpy(buff,pbuff,512);
+      taskEXIT_CRITICAL();
+			buff+=512;
+		} 
+	}
+  else 
+    res = SD_ReadBlock(buff,sector,count);	//单个/多个sector     
+
 
   return res;
 }
+
+DRESULT SD_WriteBlock (const BYTE *buff,//数据缓存区 
+                 DWORD sector, //扇区首地址
+                 UINT count)//扇区个数(1..128)
+{
+  DRESULT res = RES_ERROR;
+  uint32_t timeout;
+  TX_Flag = 0;
+  if(HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t*)buff,
+                           (uint32_t) (sector),
+                           count) == HAL_OK)
+  {
+    /* Wait that the reading process is completed or a timeout occurs */
+    timeout = HAL_GetTick();
+    while((TX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
+    {
+    }
+    /* incase of a timeout return error */
+    if (TX_Flag == 0)
+    {
+      res = RES_ERROR;
+    }
+    else
+    {
+      TX_Flag = 0;
+      timeout = HAL_GetTick();
+
+      while((HAL_GetTick() - timeout) < SD_TIMEOUT)
+      {
+        if (HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
+        {
+          res = RES_OK;
+          break;
+        }
+      }
+    }
+  }  
   
+  return res;
+}
+
 DRESULT disk_write(BYTE lun,//物理扇区，多个设备时用到(0...)
                  const BYTE *buff,//数据缓存区 
                  DWORD sector, //扇区首地址
                  UINT count)//扇区个数(1..128)
 {
-    DRESULT res = RES_ERROR;
-    uint32_t timeout;
-//    uint32_t alignedAddr;
+  DRESULT res = RES_OK;
+  uint32_t i;
+  DWORD pbuff[512/4];	    
   
-    TX_Flag = 0;
-//    alignedAddr = (uint32_t)buff & ~0x1F;
-    //更新相应的DCache
-    //SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-    if(BSP_SD_WriteBlocks_DMA((uint32_t*)buff,
-                             (uint32_t) (sector),
-                             count) == HAL_OK)
-    {
-      /* Wait that the reading process is completed or a timeout occurs */
-      timeout = HAL_GetTick();
-      while((TX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
-      {
-      }
-      /* incase of a timeout return error */
-      if (TX_Flag == 0)
-      {
-        res = RES_ERROR;
-      }
-      else
-      {
-        TX_Flag = 0;
-        timeout = HAL_GetTick();
-
-        while((HAL_GetTick() - timeout) < SD_TIMEOUT)
-        {
-          if (HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
-          {
-            res = RES_OK;
-            //使相应的DCache无效
-//            SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-
-             break;
-          }
-        }
-      }
-    }
-    return res;
+	if((DWORD)buff&3)
+	{
+	 	for(i=0;i<count;i++)
+		{
+      memcpy(pbuff,buff,512);
+		 	res = SD_WriteBlock((BYTE *)pbuff,sector+i,1);//单个sector的读操作			
+			buff+=512;
+		} 
+	}
+  else 
+    res = SD_WriteBlock(buff,sector,count);	//单个/多个sector   
+  return res;
 }
 DRESULT disk_ioctl(BYTE lun,BYTE cmd, void *buff){
     DRESULT res = RES_ERROR;

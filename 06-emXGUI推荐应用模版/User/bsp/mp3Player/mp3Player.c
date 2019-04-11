@@ -391,13 +391,13 @@ void mp3PlayerDemo(const char *mp3file)
         //根据时间计算文件位置并跳转至该位置
         pos = ID3V2_size + (time_sum/26)*frame_size;
 
-        if(pos%4!=0)          //对齐
-        {
-         uint8_t num_left = 0;
-         num_left = pos % 4;
-         pos += (4-num_left);
-     
-        } 
+//        if(pos%4!=0)          //对齐
+//        {
+//         uint8_t num_left = 0;
+//         num_left = pos % 4;
+//         pos += (4-num_left);
+//     
+//        } 
         if(MusicDialog.Update_Content == 1)
         {
           

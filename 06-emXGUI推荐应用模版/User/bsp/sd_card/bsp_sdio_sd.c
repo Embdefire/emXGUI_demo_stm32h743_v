@@ -340,7 +340,7 @@ void WIFI_PDN_INIT(void)
   */
 uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint64_t ReadAddr, uint32_t NumOfBlocks)
 {
-  taskENTER_CRITICAL();
+  
   if(HAL_SD_ReadBlocks(&uSdHandle,(uint8_t *)pData, ReadAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
     return HAL_OK;
@@ -362,7 +362,7 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint64_t WriteAddr,uint32_t NumOfBlo
 {
   if(HAL_SD_WriteBlocks(&uSdHandle,(uint8_t *)pData, WriteAddr,NumOfBlocks,SD_TIMEOUT) == HAL_OK)
   {
-    taskEXIT_CRITICAL();
+    
     return MSD_OK;
   }
   else

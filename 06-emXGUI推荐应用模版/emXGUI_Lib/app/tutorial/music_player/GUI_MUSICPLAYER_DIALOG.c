@@ -23,7 +23,7 @@ static BITMAP bm_rotate;
 static char path[100]="0:";//文件根目录
 MUSIC_DIALOG_Typedef MusicDialog = 
 {
-  .filename = "bg.jpg",
+  .filename = "desktop.jpg",
   .power = 20,
   .playindex = 0,
 };
@@ -212,7 +212,8 @@ static void _music_textbox_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 
 
   GetWindowText(hwnd, wbuf, 128); //获得按钮控件的文字
-
+  if(ds->ID == eID_TEXTBOX_LRC3)
+    SetTextColor(hdc, MapRGB(hdc, 255, 0, 0));
   DrawText(hdc, wbuf, -1, &rc, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
 
 }
@@ -563,18 +564,22 @@ static void Dialog_Init(HWND hwnd)
   /* 释放图片内容空间 */
   RES_Release_Content((char **)&jpeg_buf);   
   //Step2:旋转图标
-  rotate_disk_hdc = CreateMemoryDC(SURF_ARGB8888,240,240);
+  RECT rc = {0,0,320,320};
+  rotate_disk_hdc = CreateMemoryDC(SURF_ARGB8888,320,320);
   /* 清空背景为透明 */
   ClrDisplay(rotate_disk_hdc,NULL,0);
+//  SetBrushColor(rotate_disk_hdc, MapARGB(rotate_disk_hdc, 0,50, 205, 50));
+//  FillRect(rotate_disk_hdc, &rc);
+  //BitBlt(rotate_disk_hdc, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
   /* 绘制bmp到hdc */
-  RECT rc = {0,0,240,240};
-  SetTextColor(rotate_disk_hdc, MapARGB(rotate_disk_hdc, 255, 50, 205, 50));
+  
+  SetTextColor(rotate_disk_hdc, MapARGB(rotate_disk_hdc, 255,50, 205, 50));
   SetFont(rotate_disk_hdc, logoFont252);
   DrawTextEx(rotate_disk_hdc,L"a",-1,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER,NULL);
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  //SetTimer(hwnd, 1, 100, TMR_START,NULL);
+  SetTimer(hwnd, 1, 100, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -887,50 +892,60 @@ static LRESULT Dlg_LRC_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     case WM_CREATE:
     {
       //以下控件为TEXTBOX的创建
-      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_OWNERDRAW|WS_VISIBLE, 
                       0, 0, 800, 60, hwnd, eID_TEXTBOX_LRC1, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC1),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);                                
-      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_OWNERDRAW|WS_VISIBLE, 
                       0, 60, 800, 60, hwnd, eID_TEXTBOX_LRC2, NULL, NULL); 
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC2),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);
-      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_OWNERDRAW|WS_VISIBLE, 
                       0, 120, 800, 60, hwnd, eID_TEXTBOX_LRC3, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC3),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);     
-      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_OWNERDRAW|WS_VISIBLE, 
                       0, 180, 800, 60, hwnd, eID_TEXTBOX_LRC4, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC4),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND); 
-      CreateWindow(TEXTBOX, L" ", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L" ", WS_OWNERDRAW|WS_VISIBLE, 
                       0, 240, 800, 50, hwnd, eID_TEXTBOX_LRC5, NULL, NULL);  
       SendMessage(GetDlgItem(hwnd, eID_TEXTBOX_LRC5),TBM_SET_TEXTFLAG,0,DT_VCENTER|DT_CENTER|DT_BKGND);      
       break;
     }
     //设置TEXTBOX的背景颜色以及文字颜色
-    case	WM_CTLCOLOR:
+//    case	WM_CTLCOLOR:
+//    {
+//      u16 id;
+//      id =LOWORD(wParam);
+//         //第三个TEXTBOX为当前的歌词行
+//      if(id== eID_TEXTBOX_LRC3)
+//      {
+//        CTLCOLOR *cr;
+//        cr =(CTLCOLOR*)lParam;
+//        cr->TextColor =RGB888(255,255,255);//文字颜色（RGB888颜色格式)
+//        cr->BackColor =RGB888(0,0,0);//背景颜色（RGB888颜色格式)
+//        //cr->BorderColor =RGB888(255,10,10);//边框颜色（RGB888颜色格式)
+//        return TRUE;
+//      }
+//      else if(id == eID_TEXTBOX_LRC1||id == eID_TEXTBOX_LRC2||
+//              id == eID_TEXTBOX_LRC5||id == eID_TEXTBOX_LRC4)
+//      {
+//        CTLCOLOR *cr;
+//        cr =(CTLCOLOR*)lParam;
+//        cr->TextColor =RGB888(250,0,0);//文字颜色（RGB888颜色格式)
+//        cr->BackColor =RGB888(0,0,0);//背景颜色（RGB888颜色格式)
+//        //cr->BorderColor =RGB888(255,10,10);//边框颜色（RGB888颜色格式)
+//        return TRUE;				
+//      }
+//      return FALSE;
+//    }
+    case WM_DRAWITEM:
     {
-      u16 id;
-      id =LOWORD(wParam);
-         //第三个TEXTBOX为当前的歌词行
-      if(id== eID_TEXTBOX_LRC3)
+      DRAWITEM_HDR *ds;
+      ds = (DRAWITEM_HDR*)lParam;  
+      if(ds->ID >= eID_TEXTBOX_LRC1 && ds->ID <= eID_TEXTBOX_LRC5)
       {
-        CTLCOLOR *cr;
-        cr =(CTLCOLOR*)lParam;
-        cr->TextColor =RGB888(255,255,255);//文字颜色（RGB888颜色格式)
-        cr->BackColor =RGB888(0,0,0);//背景颜色（RGB888颜色格式)
-        //cr->BorderColor =RGB888(255,10,10);//边框颜色（RGB888颜色格式)
+        _music_textbox_OwnerDraw(ds);
         return TRUE;
-      }
-      else if(id == eID_TEXTBOX_LRC1||id == eID_TEXTBOX_LRC2||
-              id == eID_TEXTBOX_LRC5||id == eID_TEXTBOX_LRC4)
-      {
-        CTLCOLOR *cr;
-        cr =(CTLCOLOR*)lParam;
-        cr->TextColor =RGB888(250,0,0);//文字颜色（RGB888颜色格式)
-        cr->BackColor =RGB888(0,0,0);//背景颜色（RGB888颜色格式)
-        //cr->BorderColor =RGB888(255,10,10);//边框颜色（RGB888颜色格式)
-        return TRUE;				
-      }
-      return FALSE;
-    }    
+      } 
+    }
     default:
       return DefWindowProc(hwnd, msg, wParam, lParam);  
   }
@@ -961,7 +976,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       music_icon[8].rc.y = 440-music_icon[8].rc.h/2;//以纵坐标440居中对齐
     
       //歌词icon
-      CreateWindow(BUTTON,L"W",WS_OWNERDRAW |WS_VISIBLE,
+      CreateWindow(BUTTON,L"W",BS_NOTIFY|BS_CHECKBOX|WS_OWNERDRAW |WS_VISIBLE,
                    music_icon[8].rc.x,music_icon[8].rc.y,
                    music_icon[8].rc.w,music_icon[8].rc.h,
                    hwnd,eID_BUTTON_LRC,NULL,NULL);
@@ -1043,15 +1058,15 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       
       RECT rc;
       {
-        if(1)
+        if(!MusicDialog.mList_State)
         {
           angle+=5;
           angle%=360;
-          //ClrDisplay(hdc_mem11,NULL,MapRGB(hdc_mem11,0,0,0));
+          //ClrDisplay(hdc_rotate,NULL,MapRGB(hdc_rotate,0,0,0));
           BitBlt(hdc_rotate, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
           
           EnableAntiAlias(hdc_rotate, TRUE);
-          //RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
+          RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
           EnableAntiAlias(hdc_rotate, FALSE);
           
           
@@ -1061,7 +1076,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         rc.w=240;
         rc.h=240;
 
-        //InvalidateRect(hwnd,&rc,FALSE);
+        InvalidateRect(hwnd,&rc,FALSE);
       }
         break;
     } 
