@@ -68,6 +68,7 @@ uint8_t QSPI_FLASH_Init(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO3_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO3_PORT, &GPIO_InitStruct);
 
+  HAL_QSPI_DeInit(&QSPIHandle);
 	/*!< 配置 SPI_FLASH_SPI 引脚: NCS */
 	GPIO_InitStruct.Pin = QSPI_FLASH_CS_PIN;
 	GPIO_InitStruct.Alternate = QSPI_FLASH_CS_GPIO_AF;
@@ -97,9 +98,10 @@ uint8_t QSPI_FLASH_Init(void)
 	/*片选高电平保持时间，至少50ns，对应周期数6*9.2ns =55.2ns*/
 	QSPIHandle.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
 	/*时钟模式选择模式0，nCS为高电平（片选释放）时，CLK必须保持低电平*/
-	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_0;
+	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_3;
 	/*根据硬件连接选择第一片Flash*/
 	QSPIHandle.Init.FlashID = QSPI_FLASH_ID_1;
+//  QSPIHandle.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
 	HAL_QSPI_Init(&QSPIHandle);
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
@@ -362,7 +364,7 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	{
 		return QSPI_ERROR;
 	}
-
+  //QSPI_FLASH_Wait_Busy();
 	/* 发送命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
@@ -483,8 +485,8 @@ static uint8_t QSPI_ResetMemory()
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = RESET_ENABLE_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_NONE;
-	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;//跳过交替字节阶段
-	s_command.DataMode          = QSPI_DATA_NONE;//跳过数据阶段
+	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	s_command.DataMode          = QSPI_DATA_NONE;
 	s_command.DummyCycles       = 0;
 	s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
 	s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
@@ -556,7 +558,7 @@ static uint8_t QSPI_WriteEnable()
 }
 
 /**
-  * @brief  读取存储器的SR
+  * @brief  读取存储器的SR并等待EOP
   * @param  QSPIHandle: QSPI句柄
   * @param  Timeout 超时
   * @retval 无
@@ -578,14 +580,9 @@ static uint8_t QSPI_AutoPollingMemReady(uint32_t Timeout)
 
 	s_config.Match           = 0x00;
 	s_config.Mask            = W25Q256JV_FSR_BUSY;
-  
-  //此处只需要匹配一位，所以AND或者OR模式均可；
-  //若有多个标志位需要配置时，AND模式：必须全部满足；OR模式：只满足其中一个即可
 	s_config.MatchMode       = QSPI_MATCH_MODE_AND;
-  //SPI_FLASH有三个状态寄存器，返回值为1个字节
 	s_config.StatusBytesSize = 1;
 	s_config.Interval        = 0x10;
-  //发生匹配时，自动轮询模式停止。
 	s_config.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
 	if (HAL_QSPI_AutoPolling(&QSPIHandle, &s_command, &s_config, Timeout) != HAL_OK)
@@ -828,7 +825,7 @@ void QSPI_Set_WP_High(void)
 	/*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
 	HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);	
 	
-	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,1);
 }
 void QSPI_Set_WP_TO_QSPI_IO(void)
 {

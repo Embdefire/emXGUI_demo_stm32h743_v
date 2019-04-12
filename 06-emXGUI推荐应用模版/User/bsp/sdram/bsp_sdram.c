@@ -368,6 +368,7 @@ void SDRAM_Init(void)
 
   HAL_SDRAM_Init(&hsdram1, &SdramTiming);  
   /* FMC SDRAM 设备时序初始化 */
+  MODIFY_REG(FMC_Bank1->BTCR[0], FMC_BCR1_MBKEN, 0);
   SDRAM_InitSequence(); 
   
 }

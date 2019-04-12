@@ -138,7 +138,7 @@ typedef struct {
 #define QSPI_FLASH_BK1_IO3_AF              GPIO_AF9_QUADSPI
 
 #define QSPI_FLASH_CS_PIN                 GPIO_PIN_6              
-#define QSPI_FLASH_CS_GPIO_PORT           GPIOG                    
+#define QSPI_FLASH_CS_GPIO_PORT           GPIOG                   
 #define QSPI_FLASH_CS_GPIO_CLK_ENABLE()   __GPIOG_CLK_ENABLE()
 #define QSPI_FLASH_CS_GPIO_AF             GPIO_AF10_QUADSPI
 
@@ -151,7 +151,7 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
 uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
 uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
 
-uint8_t BSP_QSPI_Erase_Chip(void);
+
 static uint8_t QSPI_ResetMemory          (void);
 static uint8_t QSPI_WriteEnable          (void);
 static uint8_t QSPI_AutoPollingMemReady  (uint32_t Timeout);

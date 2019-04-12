@@ -187,7 +187,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       xPortGetFreeHeapSize(); 
     //CPU_RunTime++;
     if(htim->Instance == TIM3)
+    {
       timeout = 1;
+    }
 }
 
 void DMA1_Stream2_IRQHandler(void)

@@ -45,15 +45,18 @@ typedef struct
   HDC hdc_bk;
   
   int power;  
-  uint16_t curtime;
-  uint16_t alltime;
+  int curtime;
+  int alltime;
   
   uint8_t avi_file_num;
   int8_t  playindex;
   BOOL LOAD_STATE;
-  
+  BOOL SWITCH_STATE;
+  BOOL LIST_STATE;
 }VIDEO_DIALOG_Typedef;
 extern VIDEO_DIALOG_Typedef VideoDialog;
+extern char lcdlist[20][100];//œ‘ ælis
+extern SURFACE *pSurf1;
 #endif
 
 

@@ -20,7 +20,7 @@
 #include "./sd_card/bsp_sdio_sd.h"
 #include "diskio.h"	
 #include "./led/bsp_led.h" 
-
+#include "emXGUI.h"
 #include "FreeRTOS.h"
 #include "task.h"
 /* Disk status */
@@ -106,12 +106,14 @@ static DRESULT SD_ReadBlock(BYTE *buff,//数据缓存区
           alignedAddr = (uint32_t)buff & ~0x1F;
           //使相应的DCache无效
           SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-
+          GUI_msleep(2);
            break;
         }
       }
     }
   }
+  if(res != RES_OK)
+    GUI_DEBUG("%d", res);
   return res;
 }
 
@@ -125,8 +127,10 @@ DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
   DWORD pbuff[512/4];	
 	if((DWORD)buff&3)
 	{
+  
 	 	for(i=0;i<count;i++)
 		{
+      //GUI_DEBUG("1");
 		 	res = SD_ReadBlock((BYTE *)pbuff,sector+i,1);//单个sector的读操作
       taskENTER_CRITICAL();
 			memcpy(buff,pbuff,512);
@@ -135,8 +139,11 @@ DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
 		} 
 	}
   else 
+  {
+//    GUI_msleep(2);
     res = SD_ReadBlock(buff,sector,count);	//单个/多个sector     
 
+  }
 
   return res;
 }

@@ -32,7 +32,9 @@ void SAI_GPIO_Config(void)
   SAI_LRC_GPIO_CLK_ENABLE();
   SAI_BCLK_GPIO_CLK_ENABLE();
   SAI_SDA_GPIO_CLK_ENABLE();
-  SAI_MCLK_GPIO_CLK_ENABLE();  
+  SAI_MCLK_GPIO_CLK_ENABLE(); 
+  SAI_CLK_ENABLE();
+  DMA_CLK_ENABLE();
   
   //SAI1_blockA
   GPIO_InitStruct.Pin = SAI_LRC_PIN;
@@ -58,18 +60,48 @@ void SAI_GPIO_Config(void)
 
 void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
 {
-  RCC_PeriphCLKInitTypeDef RCC_ExCLKInitStruct; 
+  RCC_PeriphCLKInitTypeDef RCC_ExCLKInitStruct;
+  
+  __HAL_RCC_PLL2_DISABLE();                                           //禁止PLL2ON以及PLL2——RDY
+  __HAL_RCC_PLL2CLKOUT_ENABLE(RCC_PLL2_DIVP);
+   
 	RCC_ExCLKInitStruct.PeriphClockSelection=RCC_PERIPHCLK_SAI1;
 	RCC_ExCLKInitStruct.Sai1ClockSelection=RCC_SAI1CLKSOURCE_PLL2;  
-  RCC_ExCLKInitStruct.PLL2.PLL2M=25;
+  RCC_ExCLKInitStruct.PLL2.PLL2M=5;
+  RCC_ExCLKInitStruct.PLL2.PLL2R=3;
   switch(AudioFreq)
   {
     case SAI_AUDIO_FREQUENCY_44K :
     {
-      RCC_ExCLKInitStruct.PLL2.PLL2N=344;
+      RCC_ExCLKInitStruct.PLL2.PLL2N=120;
       RCC_ExCLKInitStruct.PLL2.PLL2P=2;      
       break;
     }
+    case SAI_AUDIO_FREQUENCY_32K :
+    {
+      RCC_ExCLKInitStruct.PLL2.PLL2N=120;
+      RCC_ExCLKInitStruct.PLL2.PLL2P=2;      
+      break;
+    }    
+    case SAI_AUDIO_FREQUENCY_22K :
+    {
+      RCC_ExCLKInitStruct.PLL2.PLL2N=120;
+      RCC_ExCLKInitStruct.PLL2.PLL2P=4;      
+      break;
+    }     
+    case SAI_AUDIO_FREQUENCY_11K :
+    {
+      RCC_ExCLKInitStruct.PLL2.PLL2N=120;
+      RCC_ExCLKInitStruct.PLL2.PLL2P=4;      
+      break;
+    }      
+    case SAI_AUDIO_FREQUENCY_8K :
+    {
+      RCC_ExCLKInitStruct.PLL2.PLL2N=120;
+      RCC_ExCLKInitStruct.PLL2.PLL2P=5;      
+      break;
+    }         
+    
     default:
       while(1);
   }
@@ -85,9 +117,10 @@ void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
   */
 void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq)
 {
-//  BSP_AUDIO_OUT_ClockConfig(_usAudioFreq);
-  SAI_CLK_ENABLE();
-  HAL_SAI_DeInit(&h_sai);
+  __HAL_SAI_DISABLE(&h_sai);
+  BSP_AUDIO_OUT_ClockConfig(_usAudioFreq);
+  
+  //HAL_SAI_DeInit(&h_sai);
   h_sai.Instance = SAI1_Block_A;
   h_sai.Init.AudioMode = SAI_MODEMASTER_TX;//配置为发送模式
   h_sai.Init.Synchro = SAI_ASYNCHRONOUS; //模块内部为异步
@@ -97,15 +130,16 @@ void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, cons
   h_sai.Init.MonoStereoMode=SAI_STEREOMODE;
   h_sai.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
   h_sai.Init.AudioFrequency = _usAudioFreq;
+  //printf("%d", _usAudioFreq);
   SAI1_Block_A->CR1 &= 0;
   HAL_SAI_InitProtocol(&h_sai, SAI_I2S_STANDARD, _usWordLen, 2);//2--left_channel and right_channel
-  
+  __HAL_SAI_ENABLE(&h_sai);
 }
 
 
 void SAIA_TX_DMA_Init(uint16_t* buffer0,uint16_t* buffer1,const uint32_t num)
 {
-  DMA_CLK_ENABLE();
+  
   
   h_txdma.Instance = DMA_Instance;
   h_txdma.Init.Request = DMA_REQUEST_SAI1_A;
