@@ -98,7 +98,7 @@ BOOL FileSystem_Init(void)
   {
     printf("》文件系统挂载成功\r\n");
     
-#if 0
+#if 1
     /* 文件系统测试 */
     FileSystem_Test();
 #endif 
@@ -115,7 +115,7 @@ BOOL FileSystem_Init(void)
 //		rt_hw_interrupt_disable();
 }
 
-#if 0
+#if 1
 FIL fnew;													/* 文件对象 */
 UINT fnum;            					  /* 文件成功读写数量 */
 BYTE ReadBuffer[1024]={0};        /* 读缓冲区 */

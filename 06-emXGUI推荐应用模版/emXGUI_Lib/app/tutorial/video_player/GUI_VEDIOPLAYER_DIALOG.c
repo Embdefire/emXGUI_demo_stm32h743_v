@@ -425,7 +425,7 @@ static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
       list_menu_cfg_t cfg;
 	   	RECT rc;
       GetClientRect(hwnd, &rc);
-      CreateWindow(BUTTON, L"F", BS_FLAT | BS_NOTIFY|WS_OWNERDRAW |WS_VISIBLE,
+      CreateWindow(BUTTON, L"F", BS_FLAT | BS_NOTIFY|WS_OWNERDRAW |WS_TRANSPARENT|WS_VISIBLE,
                    0, 0, 240, 80, hwnd, eID_VIDEO_RETURN, NULL, NULL);  
       /* 需要分配N+1项，最后一项为空 */
       menu_list = (struct __obj_list *)GUI_VMEM_Alloc(sizeof(struct __obj_list)*(VideoDialog.avi_file_num+1));
@@ -467,7 +467,7 @@ static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
       cfg.bg_color = 0x363636;
       wnd = CreateWindow(&wcex_ListMenu,
                   L"ListMenu1",
-                  WS_VISIBLE | LMS_ICONFRAME|LMS_PAGEMOVE,
+                  WS_VISIBLE | LMS_ICONFRAME|LMS_PAGEMOVE|WS_TRANSPARENT,
                   rc.x + 100, rc.y + 80, rc.w - 200, rc.h-80,
                   hwnd,
                   eID_FileList,
