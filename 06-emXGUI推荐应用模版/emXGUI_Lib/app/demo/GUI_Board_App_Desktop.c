@@ -50,7 +50,8 @@ extern void GUI_App_Desktop(void *param);
 extern void GUI_PicViewer_DIALOGTest(void *param);
 extern void GUI_RGBLED_DIALOGTest(void *);
 extern void GUI_MUSIC_DIALOGTest(void *param);
-//extern void GUI_DEMO_DrawJPEG(void);
+extern void	GUI_Video_DIALOG(void* param);
+extern void GUI_Camera_DIALOGTest(void*param);
 //extern void App_LED_DIALOG(void);
 //extern void	GUI_App_Desktop(void);
 //extern void App_GUI_Tutorial_DEMO(void);
@@ -76,7 +77,7 @@ static const struct __obj_list menu_list_1[] = {
       L"ÊÓÆµ²¥·ÅÆ÷",		NULL,	  L"D", RGB_WHITE,				GUI_VIDEO_DIALOGTest,
 
       L"RGB²ÊµÆ",		NULL,	  L"L", RGB_WHITE,				GUI_RGBLED_DIALOGTest,
-      L"ÉãÏñÍ·",		NULL,	  L"M",RGB_WHITE, 				dummy,
+      L"ÉãÏñÍ·",		NULL,	  L"M",RGB_WHITE, 				GUI_Camera_DIALOGTest,
 
       L"Í¼Æ¬ä¯ÀÀÆ÷",	NULL, 	L"G", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
       L"ÎÂÊª¶È",	NULL,   L"O", RGB_WHITE,				dummy,

@@ -8,6 +8,7 @@
 #include <string.h>
 #include "Backend_vidoplayer.h"
 #include "Backend_avifile.h"
+#include "./sai/bsp_sai.h" 
 VIDEO_DIALOG_Typedef VideoDialog;
 static SCROLLINFO video_sif_time;/*设置进度条的参数*/
 char avi_playlist[20][100];//播放List
@@ -16,20 +17,22 @@ char lcdlist[20][100];//显示list
 static SCROLLINFO video_sif_power;/*设置进度条的参数*/
 static char path[100]="0:";//文件根目??
 //图标管理数组
-static ICON_Typedef avi_icon[13] = {
+ICON_Typedef avi_icon[13] = {
    {"yinliang",         {20, 400,48,48},      FALSE},
-   {"bofangliebiao",    {732,400,48,48},      FALSE},
+   {"waifanglaba",      {732,400,48,48},      FALSE},     //外放喇叭
    {"back",             {294, 400, 64, 64},      FALSE},
    {"bofang",           {364, 400, 72, 72},      FALSE},
    {"next",             {442, 400, 64, 64},      FALSE},
    {"fenbianlv",        {0,40,380,40},   FALSE},
    {"zanting/bofang",   {300, 140, 200, 200}, FALSE},
-   {"xiayishou",        {600, 200, 80, 80},   FALSE},    
-   {"mini_next",        {580, 4, 80, 80},     FALSE},
-   {"mini_Stop",        {652, 4, 80, 80},     FALSE},
-   {"mini_back",        {724, 3, 80, 80},     FALSE},  
-   {"上边栏",           {0 ,0, 800, 80},     FALSE},
-   {"下边栏",           {0 ,400, 800, 80},     FALSE},   
+   {"xiayishou",        {600, 200, 80, 80},   FALSE}, 
+   {"bofangliebiao",    {675,400,48,48},      FALSE},   
+//   {"mini_next",        {580, 4, 80, 80},     FALSE},
+//   {"mini_Stop",        {652, 4, 80, 80},     FALSE},
+//   {"mini_back",        {724, 3, 80, 80},     FALSE},  
+//   {"上边栏",           {0 ,0, 800, 80},     FALSE},
+//   {"下边栏",           {0 ,400, 800, 80},     FALSE}, 
+   
 };
 VIDEO_DIALOG_Typedef VideoDialog ={
   .power = 20,
@@ -254,7 +257,10 @@ static void vedio_button_ownerdraw(DRAWITEM_HDR *ds)
       //设置按钮字体
       SetFont(hdc_mem, ctrlFont48);
    }
- 
+   if((ds->State & BST_CHECKED) )
+   { //按钮是按下状态
+     SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
+   }  
    DrawText(hdc_mem, wbuf,-1,&rc_cli,DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
    
    BitBlt(hdc, rc_cli.x, rc_cli.y, rc_cli.w, rc_cli.h, hdc_mem, 0, 0, SRCCOPY);
@@ -385,6 +391,8 @@ static FRESULT scan_files (char* path)
   return res; 
 }
 static int thread_PlayVideo = 0;
+#if 1
+
 static void App_PlayVideo(void *param)
 {
 	int app=0;
@@ -411,7 +419,19 @@ static void App_PlayVideo(void *param)
    GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
 
 }
+#else
+static void App_PlayVideo(void *param)
+{
+ 
+  while(1)
+  {
+    AVI_play(avi_playlist[VideoDialog.playindex]);
+    GUI_msleep(10);
+  }
 
+
+}
+#endif
 static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   static struct __obj_list *menu_list = NULL;
@@ -588,7 +608,12 @@ static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
   return WM_NULL;
 }
 
+extern u8 Frame_buf[];
+extern UINT BytesRD;
+extern volatile BOOL bDrawVideo;
+
 SURFACE *pSurf1;
+u16 *vbuf;
 static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   switch(msg)
@@ -599,66 +624,71 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //				  frame =0;
 //					win_fps =0;
 //        
-       App_PlayVideo(NULL);
+
        //音量icon（切换静音模式），返回控件句柄值
        avi_icon[0].rc.y = Set_Widget_VCENTER(440, avi_icon[0].rc.h);
-       CreateWindow(BUTTON,L"A",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,//按钮控件，属性为自绘制和可视
+       CreateWindow(BUTTON,L"A",WS_OWNERDRAW|WS_VISIBLE,//按钮控件，属性为自绘制和可视
                                 avi_icon[0].rc.x,avi_icon[0].rc.y,//位置坐标和控件大小
                                 avi_icon[0].rc.w,avi_icon[0].rc.h,//由avi_icon[0]决定
                                 hwnd,eID_Vedio_Power,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_Power，附加参数为： NULL
        
       avi_icon[1].rc.y = Set_Widget_VCENTER(440, avi_icon[1].rc.h);                         
-       //播放列表icon
-       CreateWindow(BUTTON,L"D",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE, //按钮控件，属性为自绘制和可视
+       //喇叭icon
+       CreateWindow(BUTTON,L"P",BS_NOTIFY|BS_CHECKBOX|WS_OWNERDRAW |WS_VISIBLE,
                     avi_icon[1].rc.x,avi_icon[1].rc.y,//位置坐标
                     avi_icon[1].rc.w,avi_icon[1].rc.h,//控件大小
-                    hwnd,eID_Vedio_List,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_List，附加参数为： NULL
-        
-      avi_icon[2].rc.y = Set_Widget_VCENTER(440, avi_icon[2].rc.h);
+                   hwnd,eID_Vedio_TRUM,NULL,NULL);       
+       avi_icon[2].rc.y = Set_Widget_VCENTER(440, avi_icon[2].rc.h);
        //上一首icon
-       CreateWindow(BUTTON,L"S",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE, //按钮控件，属性为自绘制和可视
+       CreateWindow(BUTTON,L"S",WS_OWNERDRAW|WS_VISIBLE, //按钮控件，属性为自绘制和可视
                     avi_icon[2].rc.x,avi_icon[2].rc.y,//位置坐标
                     avi_icon[2].rc.w,avi_icon[2].rc.h,//控件大小
                     hwnd,eID_Vedio_BACK,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_List，附加参数为： NULL
        avi_icon[3].rc.y = Set_Widget_VCENTER(440, avi_icon[3].rc.h);
        
        //播放icon
-       CreateWindow(BUTTON,L"U",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE, //按钮控件，属性为自绘制和可视
+       CreateWindow(BUTTON,L"U",WS_OWNERDRAW|WS_VISIBLE, //按钮控件，属性为自绘制和可视
                     avi_icon[3].rc.x,avi_icon[3].rc.y,//位置坐标
                     avi_icon[3].rc.w,avi_icon[3].rc.h,//控件大小
                     hwnd,eID_Vedio_START,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_List，附加参数为： NULL
        avi_icon[4].rc.y = Set_Widget_VCENTER(440, avi_icon[4].rc.h);
        //下一首icon
-       CreateWindow(BUTTON,L"V",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE, //按钮控件，属性为自绘制和可视
+       CreateWindow(BUTTON,L"V",WS_OWNERDRAW|WS_VISIBLE, //按钮控件，属性为自绘制和可视
                     avi_icon[4].rc.x,avi_icon[4].rc.y,//位置坐标
                     avi_icon[4].rc.w,avi_icon[4].rc.h,//控件大小
                     hwnd,eID_Vedio_NEXT,NULL,NULL);//父窗口hwnd,ID为ID_BUTTON_List，附加参数为： NULL
        
-       CreateWindow(BUTTON,L"分辨率：0*0",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,
+       CreateWindow(BUTTON,L"分辨率：0*0",WS_OWNERDRAW|WS_VISIBLE,
                     0,40,380,40,hwnd,eID_TEXTBOX_RES,NULL,NULL);
-
+                    
+       avi_icon[8].rc.y = Set_Widget_VCENTER(440, avi_icon[8].rc.h);
+       //
+       CreateWindow(BUTTON,L"D",WS_OWNERDRAW|WS_VISIBLE, //按钮控件，属性为自绘制和可视
+                    avi_icon[8].rc.x,avi_icon[8].rc.y,//位置坐标
+                    avi_icon[8].rc.w,avi_icon[8].rc.h,//控件大小
+                    hwnd,eID_Vedio_List,NULL,NULL);
        
        //歌曲名字
-       CreateWindow(BUTTON,L"",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,
+       CreateWindow(BUTTON,L"",WS_OWNERDRAW|WS_VISIBLE,
                     100,0,600,40,hwnd,eID_TEXTBOX_ITEM,NULL,NULL);
                
        //总时间        
-       CreateWindow(BUTTON,L"00:00:00",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,
+       CreateWindow(BUTTON,L"00:00:00",WS_OWNERDRAW|WS_VISIBLE,
                     680,Set_Widget_VCENTER(382, 30) ,120,30,hwnd,eID_TEXTBOX_ALLTIME,NULL,NULL);
          
        //当前时间           
-       CreateWindow(BUTTON,L"00:00:00",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,
+       CreateWindow(BUTTON,L"00:00:00",WS_OWNERDRAW|WS_VISIBLE,
                     0,Set_Widget_VCENTER(382, 30) ,120,30,hwnd,eID_TEXTBOX_CURTIME,NULL,NULL);
    
                  
-       CreateWindow(BUTTON,L"帧率:0FPS/s",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,
+       CreateWindow(BUTTON,L"帧率:0FPS/s",WS_OWNERDRAW|WS_VISIBLE,
                     420,40,300,40,hwnd,eID_TEXTBOX_FPS,NULL,NULL);
       #if 1  
        /*********************歌曲进度条******************/
        video_sif_time.cbSize = sizeof(video_sif_time);
        video_sif_time.fMask = SIF_ALL;
        video_sif_time.nMin = 0;
-       video_sif_time.nMax = 255;
+       video_sif_time.nMax = 249;
        video_sif_time.nValue = 0;//初始值
        video_sif_time.TrackSize = 35;//滑块值
        video_sif_time.ArrowSize = 0;//两端宽度为0（水平滑动条）          
@@ -673,12 +703,12 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
        video_sif_power.nValue = 20;//初始音量值
        video_sif_power.TrackSize = 31;//滑块值
        video_sif_power.ArrowSize = 0;//两端宽度为0（水平滑动条）
-       CreateWindow(SCROLLBAR, L"SCROLLBAR_R", WS_OWNERDRAW|WS_TRANSPARENT, 
+       CreateWindow(SCROLLBAR, L"SCROLLBAR_R", WS_OWNERDRAW,
                           70, Set_Widget_VCENTER(440, 31), 150, 31, hwnd, eID_SBN_POWER, NULL, NULL);
        SendMessage(GetDlgItem(hwnd, eID_SBN_POWER), SBM_SETSCROLLINFO, TRUE, (LPARAM)&video_sif_power);         
        
        
-       CreateWindow(BUTTON, L"O",WS_OWNERDRAW|WS_VISIBLE|WS_TRANSPARENT,
+       CreateWindow(BUTTON, L"O",WS_OWNERDRAW|WS_VISIBLE,
                       730, 0, 70, 70, hwnd, eID_VIDEO_EXIT, NULL, NULL);            
        
        #endif
@@ -700,8 +730,11 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
        }
        /* 释放图片内容空间 */
        RES_Release_Content((char **)&jpeg_buf);         
-       u16 *vbuf =GUI_GRAM_Alloc(800*480*2);
-       pSurf1 =CreateSurface(SURF_SCREEN,800,480,800*2,vbuf);       
+       vbuf =GUI_GRAM_Alloc(800*480*2);
+       pSurf1 =CreateSurface(SURF_SCREEN,800,480,800*2,vbuf);
+
+       App_PlayVideo(NULL);
+       //GUI_Thread_Create(App_PlayVideo,"App_PlayVideo",16*1024,NULL,6,5);
        break;
     }
     case WM_NOTIFY:
@@ -709,6 +742,19 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
        u16 code, id, ctr_id;
        id  =LOWORD(wParam);//获取消息的ID码
        code=HIWORD(wParam);//获取消息的类型
+        if(code == BN_CLICKED && id == eID_Vedio_TRUM)
+        {
+          avi_icon[1].state = ~avi_icon[1].state;
+          if(avi_icon[1].state == FALSE)
+          {
+            wm8978_CfgAudioPath(DAC_ON,  EAR_LEFT_ON|EAR_RIGHT_ON);
+          }
+          //当音量icon被按下时，设置为静音模式
+          else
+          {                
+            wm8978_CfgAudioPath(DAC_ON,  SPK_ON|EAR_LEFT_ON|EAR_RIGHT_ON);
+          }         
+        }      
        //发送单击
        if(code == BN_CLICKED)
        { 
@@ -753,9 +799,8 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 //当音量icon未被按下时
                 if(avi_icon[3].state == FALSE)
                 {
-//                   I2S_Play_Start();
-//                   TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE); //允许定时器3更新中断
-//                   TIM_Cmd(TIM3,ENABLE); //使能定时器3                        
+                   SAI_Play_Start();
+                   HAL_TIM_Base_Start_IT(&TIM3_Handle);                       
                    
                    SetWindowText(GetDlgItem(hwnd, eID_Vedio_START), L"U");
                             
@@ -763,9 +808,8 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 //当音量icon被按下时，暂停
                 else
                 {          
-//                   I2S_Play_Stop();
-//                   TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE); //允许定时器3更新中断
-//                   TIM_Cmd(TIM3,DISABLE); //使能定时器3                     
+                   SAI_Play_Stop();;
+                   HAL_TIM_Base_Stop_IT(&TIM3_Handle);               
                    SetWindowText(GetDlgItem(hwnd, eID_Vedio_START), L"T");
                 }
                 //
@@ -790,7 +834,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
              {                  
                 VideoDialog.playindex++;
                 
-                if(VideoDialog.playindex > VideoDialog.avi_file_num -1 )
+                if(VideoDialog.playindex > VideoDialog.avi_file_num - 1)
                    VideoDialog.playindex = 0;
 //                sw_flag = 1;
                 VideoDialog.SWITCH_STATE = 1;
@@ -821,7 +865,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 i = sb_nr->nTrackValue; //获得滑块当前位置值                
                 SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i); //设置进度值
                 //置位进度条变更位置
-//                avi_chl = 1;//滑动标志
+                VideoDialog.avi_chl = 1;//滑动标志
              }
              break;
           }
@@ -847,7 +891,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
           VideoDialog.List_Hwnd = CreateWindowEx(NULL,
                                                     &wcex,L"VideoList",
-                                                    WS_CLIPCHILDREN|WS_VISIBLE,
+                                                    WS_TRANSPARENT|WS_CLIPCHILDREN|WS_VISIBLE,
                                                     0,0,800,480,
                                                     hwnd,0,NULL,NULL);
           
@@ -928,35 +972,49 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     }
 
-//    case WM_PAINT:
-//    {
-//    	PAINTSTRUCT ps;
-//    	HDC hdc;
-//      HDC hdc2;
-////      RECT rc = {120,280,240,240};
-//    	extern u8 Frame_buf[];
-//    	extern UINT BytesRD;
-//    	extern volatile BOOL bDrawVideo;
+    case WM_PAINT:
+    {
+    	PAINTSTRUCT ps;
+    	HDC hdc;
+    	RECT rc;
 
-//    	hdc =BeginPaint(hwnd,&ps);
-//    	if(bDrawVideo)
-//    	{
-//        //GUI_DEBUG("s");
-//        hdc2 =CreateDC(pSurf1,NULL);
-//        BitBlt(hdc,160,89,img_w,img_h, hdc2,160,89,SRCCOPY);
-//        DeleteDC(hdc2);
-//    		bDrawVideo=FALSE;
-//    	}
-//      
-//      
-//    	EndPaint(hwnd,&ps);
-//    	return TRUE;
-//    }
+
+    	hdc =BeginPaint(hwnd,&ps);
+    	SetBrushColor(hdc,MapRGB(hdc,250,0,0));
+        rc.x =160;
+        rc.y =89;
+        rc.w =120;
+        rc.h =80;
+        FillRect(hdc,&rc);
+
+    //	if(bDrawVideo)
+    	{
+    		HDC hdc_avi;
+
+    		hdc_avi =CreateDC(pSurf1,NULL);
+
+    		OffsetRect(&rc,rc.w+4,0);
+    		SetBrushColor(hdc,MapRGB(hdc,0,250,0));
+    		FillRect(hdc,&rc);
+
+    		//JPEG_Out(hdc,160,89,Frame_buf,BytesRD);
+    		BitBlt(hdc,160,89,480,272,hdc_avi,0,0,SRCCOPY);
+
+    		DeleteDC(hdc_avi);
+
+    		bDrawVideo=FALSE;
+    	}
+    	EndPaint(hwnd,&ps);
+    	return TRUE;
+    }
 
     case WM_DESTROY:
     {      
       thread_PlayVideo = 0;
-      DeleteDC(VideoDialog.hdc_bk);    
+      VideoDialog.SWITCH_STATE = 1;
+      DeleteDC(VideoDialog.hdc_bk);
+      GUI_GRAM_Free(vbuf);
+      DeleteSurface(pSurf1);
       return PostQuitMessage(hwnd);	
     }  
     default:
@@ -966,7 +1024,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void	GUI_Video_DIALOG(void)
+void	GUI_Video_DIALOG(void*param)
 {	
 	WNDCLASS	wcex;
 	MSG msg;
@@ -988,7 +1046,7 @@ void	GUI_Video_DIALOG(void)
 	wcex.hCursor = NULL;//LoadCursor(NULL, IDC_ARROW);
 
 	//创建主窗口
-	VideoDialog.Video_Hwnd = CreateWindowEx(WS_EX_NOFOCUS,
+	VideoDialog.Video_Hwnd = CreateWindowEx(WS_EX_NOFOCUS|WS_EX_FRAMEBUFFER,
                                     &wcex,
                                     L"GUI_MUSICPLAYER_DIALOG",
                                     WS_VISIBLE|WS_CLIPCHILDREN,
@@ -1024,7 +1082,7 @@ void GUI_VIDEO_DIALOGTest(void *param)
 		if(app==0)
 		{
 			app=1;
-			GUI_Video_DIALOG();
+			GUI_Video_DIALOG(NULL);
       
       
 			app=0;

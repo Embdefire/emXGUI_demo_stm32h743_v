@@ -54,6 +54,7 @@ void TIM3_Config(uint16_t period,uint16_t prescaler);
 void AVI_play(char *filename);
 extern u32 alltime;		//总时长 
 extern u32 cur_time; 		//当前播放时间 
+extern TIM_HandleTypeDef TIM3_Handle;
 #endif
 #endif
 

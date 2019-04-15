@@ -184,8 +184,8 @@ static void button_owner_draw(DRAWITEM_HDR *ds)
 	}
 	if((ds->State & BST_CHECKED) )
 	{ //按钮是按下状态
-		SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
-	}  
+	 	SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
+	} 
  
    DrawText(hdc, wbuf,-1,&rc_cli,DT_VCENTER);//绘制文字(居中对齐方式)
    

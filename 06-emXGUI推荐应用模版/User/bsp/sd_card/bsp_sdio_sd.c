@@ -103,7 +103,7 @@ HAL_StatusTypeDef BSP_SD_Init(void)
   uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
   uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-  uSdHandle.Init.ClockDiv            = 4;
+  uSdHandle.Init.ClockDiv            = 0;
   
   /* 初始化SD底层驱动 */
   BSP_SD_MspInit();
@@ -425,10 +425,9 @@ uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint64_t WriteAddr, uint32_t Num
 void BSP_SD_MspInit(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
-
     /* 使能 SDMMC 时钟 */
     __HAL_RCC_SDMMC1_CLK_ENABLE();
-  
+//    HAL_RCCEx_GetPLL1ClockFreq(&PLL1_Clocks);
     /* 使能 GPIOs 时钟 */
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -450,22 +449,11 @@ void BSP_SD_MspInit(void)
     //禁用WIFI模块
     WIFI_PDN_INIT();
         
-    HAL_NVIC_SetPriority(SDMMC1_IRQn,0x0,0);  //配置SDMMC1中断
+    HAL_NVIC_SetPriority(SDMMC1_IRQn,0x7,0);  //配置SDMMC1中断
     HAL_NVIC_EnableIRQ(SDMMC1_IRQn);        //使能SDMMC1中断
     
     HAL_NVIC_SetPriority(SysTick_IRQn, 0x0E ,0);
 }
 
-//SDMMC1发送完成回调函数
-void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
-{
-    TX_Flag=1; //标记写完成
-}
 
-//SDMMC1接受完成回调函数
-void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
-{
-    //SCB_InvalidateDCache_by_Addr((uint32_t*)Buffer_Block_Rx, MULTI_BUFFER_SIZE/4);
-    RX_Flag=1;
-}
 /************************END OF FILE*******************/

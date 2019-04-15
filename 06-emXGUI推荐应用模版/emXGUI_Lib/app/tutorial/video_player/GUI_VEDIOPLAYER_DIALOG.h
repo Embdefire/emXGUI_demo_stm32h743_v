@@ -1,6 +1,7 @@
 #ifndef _GUI_VIDEOPLAYER_DIALOG_H_
 #define _GUI_VIDEOPLAYER_DIALOG_H_
-
+#include "emXGUI.h"
+#include "Widget.h"
 
 #define GUI_RGB_BACKGROUNG_PIC      "avi_desktop.jpg"
 
@@ -53,10 +54,12 @@ typedef struct
   BOOL LOAD_STATE;
   BOOL SWITCH_STATE;
   BOOL LIST_STATE;
+  BOOL avi_chl;
 }VIDEO_DIALOG_Typedef;
 extern VIDEO_DIALOG_Typedef VideoDialog;
 extern char lcdlist[20][100];//œ‘ ælis
 extern SURFACE *pSurf1;
+extern ICON_Typedef avi_icon[13];
 #endif
 
 

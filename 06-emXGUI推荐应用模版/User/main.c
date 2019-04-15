@@ -60,7 +60,6 @@
  * 当我们在写应用程序的时候，可能需要用到一些全局变量。
  */
 
-
 /*
 *************************************************************************
 *                             函数声明
@@ -114,8 +113,6 @@ static void BSP_Init(void)
   /*hardfault 跟踪器初始化*/ 
   cm_backtrace_init("Fire_emxgui", HARDWARE_VERSION, SOFTWARE_VERSION);
   
-  
- 
 }
 
 

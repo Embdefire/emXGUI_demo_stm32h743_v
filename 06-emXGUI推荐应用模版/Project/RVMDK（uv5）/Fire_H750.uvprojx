@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,X_GUI_USE_FREERTOS,</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw;..\..\emXGUI_Lib\app\tutorial\music_player;..\..\User\bsp\mp3\real;..\..\User\bsp\mp3\pub;..\..\emXGUI_Lib\app\tutorial\pic_view</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw;..\..\emXGUI_Lib\app\tutorial\music_player;..\..\User\bsp\mp3\real;..\..\User\bsp\mp3\pub;..\..\emXGUI_Lib\app\tutorial\pic_view;..\..\emXGUI_Lib\app\tutorial\camera</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1582,6 +1582,16 @@
               <FileName>GUI_VEDIOPLAYER_DIALOG.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\tutorial\video_player\GUI_VEDIOPLAYER_DIALOG.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tutorial/camera</GroupName>
+          <Files>
+            <File>
+              <FileName>GUI_CAMERA_DIALOG.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\camera\GUI_CAMERA_DIALOG.c</FilePath>
             </File>
           </Files>
         </Group>
