@@ -83,7 +83,7 @@ static void Checkbox_owner_draw(DRAWITEM_HDR *ds)
 	hdc = ds->hDC;   //button的绘图上下文句柄.
 	rc = ds->rc;     //button的绘制矩形区.
   EnableAntiAlias(hdc, TRUE);
-	if (CamDialog.focus_status==1)//按钮是按下状态
+	if (CamDialog.focus_status!=0)//按钮是按下状态
 	{ 
 		SetBrushColor(hdc, MapRGB(hdc, 119, 136, 153)); 
 		FillRoundRect(hdc, &rc, rc.h / 2);
@@ -352,6 +352,734 @@ int Set_VCENTER(int y0, int h)
 {
   return y0-h/2;
 }
+/*
+ * @brief  清空背景函数
+ * @param  hdc:    绘图上下文
+ * @param  lprc：  绘制区域
+ * @param  hwnd: 绘制窗口句柄
+ * @retval TRUE
+*/
+static BOOL cbErase(HDC hdc, const RECT* lprc,HWND hwnd)
+{
+  SetBrushColor(hdc, MapRGB(hdc,105,105,105));
+  FillRect(hdc, lprc);
+  return TRUE;
+}
+
+static LRESULT	dlg_set_Resolution_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
+{
+  switch(msg)
+  {
+    case WM_CREATE: //窗口创建时,会自动产生该消息,在这里做一些初始化的操作或创建子窗口.
+    {
+      RECT rc;
+      GetClientRect(hwnd, &rc);
+      rc.x =5;
+      rc.y =55;
+      rc.w =200;
+      rc.h =24;
+      //多选一按键--设置分辨率
+      CreateWindow(BUTTON,L"320*240",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB1,NULL,NULL);
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"480*272",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB2,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"800*480(默认)",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB3,NULL,NULL);   
+
+      switch(CamDialog.cur_Resolution)
+      {
+        case eID_RB1:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB1),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }
+        case eID_RB2:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB2),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB3:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB3),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }              
+      }   
+      //返回按键
+      CreateWindow(BUTTON, L"F", BS_FLAT | BS_NOTIFY|WS_TRANSPARENT|WS_OWNERDRAW |WS_VISIBLE,
+      0, 0, 90, 50, hwnd, eID_BT1, NULL, NULL); 
+
+      //擦除背景
+      SetWindowEraseEx(hwnd, cbErase, TRUE);
+      break;
+    }    
+    case WM_DRAWITEM:
+    {
+      DRAWITEM_HDR *ds;
+      ds = (DRAWITEM_HDR*)lParam;
+      if (ds->ID == eID_SCROLLBAR)
+      {
+        Cam_scrollbar_ownerdraw(ds);
+        return TRUE;
+      }
+      if (ds->ID == eID_BT1)
+      {
+        camera_return_ownerdraw(ds);
+        return TRUE;
+      }
+    }     
+    case WM_PAINT: //窗口需要绘制时，会自动产生该消息.
+    {
+      PAINTSTRUCT ps;
+      HDC hdc;
+      RECT rc;
+      hdc =BeginPaint(hwnd,&ps); //开始绘图
+
+      ////用户的绘制内容...
+      GetClientRect(hwnd, &rc);
+      //上边栏目
+      rc.h = 50;
+      SetBrushColor(hdc,MapRGB(hdc,0,0,0));
+      FillRect(hdc, &rc);
+      GetClientRect(hwnd, &rc);
+      SetBrushColor(hdc,MapRGB(hdc,105,105,105));
+      
+      rc.y = 50;
+      rc.h = rc.h-50;
+      FillRect(hdc, &rc);         
+      SetTextColor(hdc, MapRGB(hdc,250,250,250));
+
+      rc.x =100;
+      rc.y =0;
+      rc.w =200; 
+      rc.h =50;
+
+      DrawText(hdc,L"分辨率",-1,&rc,DT_CENTER|DT_VCENTER); 
+
+
+      //TextOut(hdc,10,10,L"Hello",-1);
+
+      EndPaint(hwnd,&ps); //结束绘图
+      break;
+    }  
+    case WM_NOTIFY:
+    {
+      u16 code,id;
+      code =HIWORD(wParam); //获得通知码类型.
+      id   =LOWORD(wParam); //获得产生该消息的控件ID.
+      if(id==eID_BT1 && code==BN_CLICKED)
+      {
+        PostCloseMessage(hwnd);
+      }
+
+//      if(id >= eID_RB1 && id<= eID_RB3)
+//      {
+//        if(code == BN_CLICKED)
+//        { 
+//          cur_Resolution = id;
+//          switch(cur_Resolution)
+//          {
+//            case eID_RB1:
+//            {
+//              OV5640_Capture_Control(DISABLE);
+//              //输出窗口
+//              cam_mode.scaling = 1;      //使能自动缩放
+//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+//              cam_mode.cam_out_width = 320;
+//              cam_mode.cam_out_height = 240;
+
+//              //LCD位置
+//              cam_mode.lcd_sx = 270;
+//              cam_mode.lcd_sy = 120;
+//              OV5640_OutSize_Set(cam_mode.scaling,
+//                       cam_mode.cam_out_sx,
+//                       cam_mode.cam_out_sy,
+//                       cam_mode.cam_out_width,
+//                       cam_mode.cam_out_height);
+
+//              OV5640_Capture_Control(ENABLE);
+//             
+//              state = 3;
+//              break;  
+//            }          
+//            case eID_RB2:
+//            {
+//              OV5640_Capture_Control(DISABLE);
+//              //输出窗口
+//              cam_mode.scaling = 1;      //使能自动缩放
+//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+//              cam_mode.cam_out_width = 480;
+//              cam_mode.cam_out_height = 272;
+
+//              //LCD位置
+//              cam_mode.lcd_sx = 160;
+//              cam_mode.lcd_sy = 104;
+//              OV5640_OutSize_Set(cam_mode.scaling,
+//                       cam_mode.cam_out_sx,
+//                       cam_mode.cam_out_sy,
+//                       cam_mode.cam_out_width,
+//                       cam_mode.cam_out_height);
+
+//              OV5640_Capture_Control(ENABLE);
+
+//              state = 3;
+//              break;
+//            }
+//            case eID_RB3:
+//            {
+//              OV5640_Capture_Control(DISABLE);
+//              //输出窗口
+//              cam_mode.scaling = 1;      //使能自动缩放
+//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+//              cam_mode.cam_out_width = 800;
+//              cam_mode.cam_out_height = 480;
+
+//              //LCD位置
+//              cam_mode.lcd_sx = 0;
+//              cam_mode.lcd_sy = 0;
+//              OV5640_OutSize_Set(cam_mode.scaling,
+//                       cam_mode.cam_out_sx,
+//                       cam_mode.cam_out_sy,
+//                       cam_mode.cam_out_width,
+//                       cam_mode.cam_out_height);
+
+
+//              OV5640_Capture_Control(ENABLE);
+//              
+//              state = 3;
+//              break;
+//            }
+//          }
+//        
+//        }
+//      }
+      break;
+    }    
+    case	WM_CTLCOLOR:
+    {
+      u16 id;
+      id =LOWORD(wParam);
+      CTLCOLOR *cr;
+      cr =(CTLCOLOR*)lParam;
+      if(id >=eID_RB1 && id <= eID_RB3)
+      {
+        cr->TextColor =RGB888(250,250,250);
+        cr->BackColor =RGB888(105,105,105);
+        cr->BorderColor =RGB888(50,50,50);
+        cr->ForeColor =RGB888(105,105,105);
+        return TRUE;            
+      }
+
+      return FALSE;
+
+    }
+    case WM_CLOSE:
+    {
+      HWND wnd =GetDlgItem(CamDialog.SetWIN, eID_TB1);
+
+      switch(CamDialog.cur_Resolution)
+      {
+        case eID_RB1:
+          SetWindowText(wnd, L"320*240");
+          break;
+        case eID_RB2:
+          SetWindowText(wnd, L"480*272");
+          break;
+        case eID_RB3:
+          SetWindowText(wnd, L"800*480(默认)");
+          break;
+      }         
+
+      InvalidateRect(wnd,NULL,TRUE);
+
+      DestroyWindow(hwnd);
+      ShowWindow(CamDialog.SetWIN, SW_SHOW);
+      return TRUE;  
+    }    
+    default:
+      return DefWindowProc(hwnd,msg,wParam,lParam);
+  }
+  return WM_NULL;
+}
+
+static LRESULT	dlg_set_LightMode_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
+{
+  switch(msg)
+  {
+		case WM_CREATE: //窗口创建时,会自动产生该消息,在这里做一些初始化的操作或创建子窗口.
+		{
+      RECT rc;
+      GetClientRect(hwnd, &rc);
+      rc.x =5;
+      rc.y =55;
+      rc.w =200;
+      rc.h =24;
+      CreateWindow(BUTTON,L"自动(默认)",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+                  rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB4,NULL,NULL);
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"光照",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+                  rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB5,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"阴天",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+                  rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB6,NULL,NULL);          
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"办公室",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+                  rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB7,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"家里",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+                  rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB8,NULL,NULL);     
+
+      CreateWindow(BUTTON, L"F", BS_FLAT | BS_NOTIFY|WS_TRANSPARENT|WS_OWNERDRAW |WS_VISIBLE,
+                  0, 0, 90, 50, hwnd, eID_BT2, NULL, NULL); 
+                  
+      SetWindowEraseEx(hwnd, cbErase, TRUE);
+
+      switch(CamDialog.cur_LightMode)
+      {
+        case eID_RB4:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB4),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }
+        case eID_RB5:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB5),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB6:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB6),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB7:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB7),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB8:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB8),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }             
+      }          
+      break;
+		} 
+    case WM_DRAWITEM:
+    { 
+       DRAWITEM_HDR *ds;
+       ds = (DRAWITEM_HDR*)lParam;
+       if (ds->ID == eID_BT2)
+       {
+          camera_return_ownerdraw(ds);
+          return TRUE;
+       }
+    } 
+		case WM_PAINT: //窗口需要绘制时，会自动产生该消息.
+		{
+      PAINTSTRUCT ps;
+      HDC hdc;
+      RECT rc;
+      hdc =BeginPaint(hwnd,&ps); //开始绘图
+
+      GetClientRect(hwnd, &rc);
+
+      rc.h = 50;
+      SetBrushColor(hdc,MapRGB(hdc,0,0,0));
+      FillRect(hdc, &rc);
+      GetClientRect(hwnd, &rc);
+      SetBrushColor(hdc,MapRGB(hdc,105,105,105));
+      rc.y = 50;
+      rc.h = rc.h-50;
+      FillRect(hdc, &rc);         
+      SetTextColor(hdc, MapRGB(hdc,250,250,250));
+
+      rc.x =100;
+      rc.y =0;
+      rc.w =200; 
+      rc.h =50;
+
+      DrawText(hdc,L"光线模式",-1,&rc,DT_CENTER|DT_VCENTER); 
+
+      EndPaint(hwnd,&ps); //结束绘图
+      break; 
+		}
+    case WM_NOTIFY:
+    {
+      u16 code,id;
+      code =HIWORD(wParam); //获得通知码类型.
+      id   =LOWORD(wParam); //获得产生该消息的控件ID.
+      if(id==eID_BT2 && code==BN_CLICKED)
+      {
+        PostCloseMessage(hwnd);
+      }
+//      if(id >= eID_RB4 && id<= eID_RB8)
+//      {
+//        if(code == BN_CLICKED)
+//        { 
+//          cur_LightMode = id;
+////          switch(cur_LightMode)
+////          {
+////            case eID_RB4:
+////            {
+////              cam_mode.light_mode = 0;
+////              OV5640_LightMode(cam_mode.light_mode);
+////              break;  
+////            }            
+////            case eID_RB5:
+////            {
+////              cam_mode.light_mode = 1;
+////              OV5640_LightMode(cam_mode.light_mode);
+////              break;
+////            }
+////            case eID_RB6:
+////            {
+////              cam_mode.light_mode = 2;
+////              OV5640_LightMode(cam_mode.light_mode);
+////              break;
+////            }
+////            case eID_RB7:
+////            {
+////              cam_mode.light_mode = 3;
+////              OV5640_LightMode(cam_mode.light_mode);
+////              break;
+////            }
+////            case eID_RB8:
+////            {
+////              cam_mode.light_mode = 4;
+////              OV5640_LightMode(cam_mode.light_mode);
+////              break;
+////            }
+////          }   
+//        }
+//      }
+      break;
+    }
+ 		case	WM_CTLCOLOR:
+		{
+      u16 id;
+      id =LOWORD(wParam);
+      CTLCOLOR *cr;
+      cr =(CTLCOLOR*)lParam;
+      if(id >=eID_RB4 && id <= eID_RB8)
+      {
+        cr->TextColor =RGB888(250,250,250);
+        cr->BackColor =RGB888(105,105,105);
+        cr->BorderColor =RGB888(50,50,50);
+        cr->ForeColor =RGB888(105,105,105);
+        return TRUE;            
+      }
+
+      return FALSE;
+			
+		}     
+    case WM_CLOSE:
+    {
+      switch(CamDialog.cur_LightMode)
+      {
+        case eID_RB4:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB2), L"自动(默认)");
+          break;
+        }          
+        case eID_RB5:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB2), L"光照");
+          break;
+        }
+        case eID_RB6:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB2), L"阴天");
+          break;
+        }
+        case eID_RB7:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB2), L"办公室");
+          break;
+        }
+        case eID_RB8:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB2), L"家里");
+          break;
+        }
+      }         
+
+      DestroyWindow(hwnd);
+      ShowWindow(CamDialog.SetWIN, SW_SHOW);
+      return TRUE; 
+    }     
+    default:
+      return DefWindowProc(hwnd,msg,wParam,lParam);
+  }
+  return WM_NULL;
+}
+
+
+static LRESULT	dlg_set_SpecialEffects_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
+{
+  switch(msg)
+  {
+		case WM_CREATE: //窗口创建时,会自动产生该消息,在这里做一些初始化的操作或创建子窗口.
+		{
+      RECT rc;
+      GetClientRect(hwnd, &rc);
+      rc.x =5;
+      rc.y =55;
+      rc.w =200;
+      rc.h =24;
+      CreateWindow(BUTTON,L"冷色",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB9,NULL,NULL);
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"暖色",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB10,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"黑白",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB11,NULL,NULL);          
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"泛黄",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB12,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"反色",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB13,NULL,NULL); 
+      OffsetRect(&rc,0,rc.h+10);         
+      CreateWindow(BUTTON,L"偏绿",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB14,NULL,NULL);         
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"过曝",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB15,NULL,NULL);   
+      OffsetRect(&rc,0,rc.h+10);
+      CreateWindow(BUTTON,L"正常(默认)",BS_RADIOBOX|WS_VISIBLE|WS_TRANSPARENT,
+      rc.x,rc.y,rc.w,rc.h,hwnd,(1<<16)|eID_RB16,NULL,NULL); 
+      CreateWindow(BUTTON, L"F", BS_FLAT | BS_NOTIFY|WS_TRANSPARENT|WS_OWNERDRAW |WS_VISIBLE,
+      0, 0, 90, 50, hwnd, eID_BT3, NULL, NULL); 
+
+      SetWindowEraseEx(hwnd, cbErase, TRUE);
+
+      switch(CamDialog.cur_SpecialEffects)
+      {
+        case eID_RB9:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB9),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }
+        case eID_RB10:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB10),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB11:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB11),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB12:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB12),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB13:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB13),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }     
+        case eID_RB14:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB14),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB15:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB15),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }    
+        case eID_RB16:
+        {
+          SendMessage(GetDlgItem(hwnd, eID_RB16),BM_SETSTATE,BST_CHECKED,0);
+          break;
+        }              
+      }          
+      break;
+		}    
+		case WM_PAINT: //窗口需要绘制时，会自动产生该消息.
+		{
+			PAINTSTRUCT ps;
+			HDC hdc;
+			RECT rc;
+			hdc =BeginPaint(hwnd,&ps); //开始绘图
+      GetClientRect(hwnd, &rc);
+
+      rc.h = 50;
+      SetBrushColor(hdc,MapRGB(hdc,0,0,0));
+      FillRect(hdc, &rc);
+      GetClientRect(hwnd, &rc);
+      SetBrushColor(hdc,MapRGB(hdc,105,105,105));
+      rc.y = 50;
+      rc.h = rc.h-50;
+      FillRect(hdc, &rc);         
+      SetTextColor(hdc, MapRGB(hdc,250,250,250));
+
+      rc.x =100;
+      rc.y =0;
+      rc.w =200; 
+      rc.h =50;
+
+      DrawText(hdc,L"特殊效果",-1,&rc,DT_CENTER|DT_VCENTER);
+
+			EndPaint(hwnd,&ps); //结束绘图
+      break;
+		}
+    case	WM_CTLCOLOR:
+    {
+      u16 id;
+      id =LOWORD(wParam);
+      CTLCOLOR *cr;
+      cr =(CTLCOLOR*)lParam;
+      if(id >=eID_RB9 && id <= eID_RB16)
+      {
+        cr->TextColor =RGB888(250,250,250);
+        cr->BackColor =RGB888(105,105,105);
+        cr->BorderColor =RGB888(50,50,50);
+        cr->ForeColor =RGB888(105,105,105);
+        return TRUE;            
+      }
+      return FALSE;			
+		}    
+    case WM_NOTIFY:
+    {
+      u16 code,id;
+      code =HIWORD(wParam); //获得通知码类型.
+      id   =LOWORD(wParam); //获得产生该消息的控件ID.
+      if(id==eID_BT3 && code==BN_CLICKED)
+      {
+        PostCloseMessage(hwnd);
+      }
+//      if(id >= eID_RB9 && id<= eID_RB16)
+//      {
+//        if(code == BN_CLICKED)
+//        { 
+//          cur_SpecialEffects = id;
+//          switch(cur_SpecialEffects)
+//          {
+//            case eID_RB9:
+//            {
+//              cam_mode.effect = 1;
+//              OV5640_SpecialEffects(cam_mode.effect);
+//              break;    
+//            }            
+//            case eID_RB10:
+//            {
+//              cam_mode.effect = 2;
+//              OV5640_SpecialEffects(cam_mode.effect);
+//              break;
+//            }
+//            case eID_RB11:
+//            {
+//              cam_mode.effect = 3;
+//              OV5640_SpecialEffects(cam_mode.effect);               
+//              break;
+//            }
+//            case eID_RB12:
+//            {
+//              cam_mode.effect = 4;
+//              OV5640_SpecialEffects(cam_mode.effect);                
+//              break;
+//            }
+//            case eID_RB13:
+//            {
+//              cam_mode.effect = 5;
+//              OV5640_SpecialEffects(cam_mode.effect);                
+//              break;
+//            }
+//            case eID_RB14:
+//            {
+//              cam_mode.effect = 6;
+//              OV5640_SpecialEffects(cam_mode.effect);                
+//              break;
+//            }
+//            case eID_RB15:
+//            {
+//              cam_mode.effect = 7;
+//              OV5640_SpecialEffects(cam_mode.effect);                
+//              break;
+//            }
+//            case eID_RB16:
+//            {
+//              cam_mode.effect = 0;
+//              OV5640_SpecialEffects(cam_mode.effect);
+//              break;  
+//            }            
+//          } 
+//        }
+//      }
+      break;
+    }    
+    case WM_DRAWITEM:
+    { 
+      DRAWITEM_HDR *ds;
+      ds = (DRAWITEM_HDR*)lParam;
+      if (ds->ID == eID_BT3)
+      {
+        camera_return_ownerdraw(ds);
+        return TRUE;
+      }
+    }     
+    case WM_CLOSE:
+    {
+      switch(CamDialog.cur_SpecialEffects)
+      {
+        case eID_RB9:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"冷色");
+          break;                 
+        }
+        case eID_RB10:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"暖色");
+          break;
+        }
+        case eID_RB11:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"黑白");
+          break;
+        }
+        case eID_RB12:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"泛黄");break;
+        }
+        case eID_RB13:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"反色");
+          break;
+        }
+        case eID_RB14:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"偏绿");
+          break;
+        }
+        case eID_RB15:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"过曝");
+          break;
+        }
+        case eID_RB16:
+        {
+          SetWindowText(GetDlgItem(CamDialog.SetWIN, eID_TB3), L"正常(默认)");
+          break;   
+        }        
+      }         
+      ShowWindow(CamDialog.SetWIN, SW_SHOW);
+      DestroyWindow(hwnd);
+      return TRUE; 
+    }     
+    default:
+      return DefWindowProc(hwnd,msg,wParam,lParam);
+  }
+  return WM_NULL;
+}
+
 
 static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -580,7 +1308,146 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
       }
 
       return TRUE;
-		}    
+		} 
+		case WM_NOTIFY: //WM_NOTIFY消息:wParam低16位为发送该消息的控件ID,高16位为通知码;lParam指向了一个NMHDR结构体.
+		{
+			u16 code,id;
+      NMHDR *nr;  
+      u16 ctr_id = LOWORD(wParam); //wParam低16位是发送该消息的控件ID. 
+      nr = (NMHDR*)lParam; //lParam参数，是以NMHDR结构体开头.
+			code =HIWORD(wParam); //获得通知码类型.
+			id   =LOWORD(wParam); //获得产生该消息的控件ID.
+      NM_SCROLLBAR *sb_nr;
+      sb_nr = (NM_SCROLLBAR*)nr; //Scrollbar的通知消息实际为 NM_SCROLLBAR扩展结构,里面附带了更多的信息.
+      switch (nr->code)
+      {
+        case SBN_THUMBTRACK: //R滑块移动
+        {
+          switch(ctr_id)
+          {
+            case eID_SCROLLBAR://亮度
+            {
+//              cam_mode.brightness = sb_nr->nTrackValue; //得到当前的音量值
+//              OV5640_BrightnessConfig(cam_mode.brightness);
+              int i=sb_nr->nTrackValue;
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i);//cam_mode.brightness); 
+              break;
+            }
+            case eID_SCROLLBAR1://饱和度
+            {
+//              cam_mode.saturation = sb_nr->nTrackValue; //得到当前的音量值
+//              OV5640_Color_Saturation(cam_mode.saturation);
+              int i=sb_nr->nTrackValue;
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i/*cam_mode.saturation*/); 
+              break;
+            }
+            case eID_SCROLLBAR2://对比度
+            {
+//              cam_mode.contrast = sb_nr->nTrackValue; //得到当前的音量值
+//              OV5640_ContrastConfig(cam_mode.contrast);
+              int i = sb_nr->nTrackValue;
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i);//cam_mode.contrast);                      
+              break;
+            }
+
+          }
+          break;
+        } 
+      
+      }
+			if((id==eID_Setting1|| id == eID_TB1)&& code==BN_CLICKED)
+			{
+        ShowWindow(hwnd, SW_HIDE); //隐藏设置窗口
+        WNDCLASS wcex;
+        
+        GetClientRect(CamDialog.Cam_Hwnd,&rc);
+        rc.x = rc.x+(rc.w-win_rc.w)/2;
+        rc.w =400;
+        rc.h =155;
+
+        wcex.Tag	 		= WNDCLASS_TAG;
+        wcex.Style			= CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc	= (WNDPROC)dlg_set_Resolution_WinProc;
+        wcex.cbClsExtra		= 0;
+        wcex.cbWndExtra		= 0;
+        wcex.hInstance		= NULL;
+        wcex.hIcon			= NULL;
+        wcex.hCursor		= NULL;
+        
+        CreateWindowEx(WS_EX_FRAMEBUFFER,
+                        &wcex,L"Set_1_xxx",
+                        WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                        rc.x,rc.y,rc.w,rc.h,
+                        CamDialog.Cam_Hwnd,0,NULL,NULL);
+                         
+			}
+
+			if((id==eID_Setting2|| id == eID_TB2) && code==BN_CLICKED)
+			{
+        WNDCLASS wcex;
+        ShowWindow(hwnd, SW_HIDE);//隐藏设置窗口
+        GetClientRect(CamDialog.Cam_Hwnd,&rc);
+        
+        rc.x = rc.x+(rc.w-win_rc.w)/2;
+        rc.w =400;
+        rc.h =225;
+        wcex.Tag	 		= WNDCLASS_TAG;
+        wcex.Style			= CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc	= (WNDPROC)dlg_set_LightMode_WinProc;
+        wcex.cbClsExtra		= 0;
+        wcex.cbWndExtra		= 0;
+        wcex.hInstance		= NULL;
+        wcex.hIcon			= NULL;
+        wcex.hCursor		= NULL;
+
+
+        CreateWindowEx(WS_EX_FRAMEBUFFER,
+                        &wcex,L"Set_2_xxx",
+                        WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                        rc.x,rc.y,rc.w,rc.h,
+                        CamDialog.Cam_Hwnd,0,NULL,NULL);
+
+			}
+			if((id==eID_Setting3|| id == eID_TB3) && code==BN_CLICKED)
+			{
+        WNDCLASS wcex;
+        ShowWindow(hwnd, SW_HIDE);
+        GetClientRect(CamDialog.Cam_Hwnd,&rc);
+
+        rc.x = rc.x+(rc.w-win_rc.w)/2;
+ 
+        rc.w =400;
+        rc.h =325;
+        wcex.Tag	 		= WNDCLASS_TAG;
+        wcex.Style			= CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc	= (WNDPROC)dlg_set_SpecialEffects_WinProc;
+        wcex.cbClsExtra		= 0;
+        wcex.cbWndExtra		= 0;
+        wcex.hInstance		= NULL;
+        wcex.hIcon			= NULL;
+        wcex.hCursor		= NULL;
+
+
+        CreateWindowEx(WS_EX_FRAMEBUFFER,
+                      &wcex,L"Set_3_xxx",
+                      WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                      rc.x,rc.y,rc.w,rc.h,
+                      CamDialog.Cam_Hwnd,0,NULL,NULL);
+
+			}
+			if(id==eID_RETURN && code==BN_CLICKED) // 按钮“单击”了.
+			{
+        CamDialog.flag = 0;
+				PostCloseMessage(hwnd); //使产生WM_CLOSE消息关闭窗口.
+			}
+         
+			if (id == eID_switch && code == BN_CLICKED)//切换自动对焦状态
+			{
+				CamDialog.focus_status = ~CamDialog.focus_status;
+       // GUI_SemPost(set_sem);
+			}               
+      break;		
+    }    
 		case WM_PAINT: //窗口需要绘制时，会自动产生该消息.
 		{
 			PAINTSTRUCT ps;
@@ -618,7 +1485,13 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
       BitBlt(hdc, 0,0,rc.w, rc.h, hdc_bk,0,0,SRCCOPY);        
       EndPaint(hwnd,&ps); //结束绘图
       break;
-		}    
+		}  
+    case WM_DESTROY:
+    {
+      DeleteDC(hdc_bk);
+      PostQuitMessage(hwnd);
+      break;
+    }    
     default:
       return DefWindowProc(hwnd, msg, wParam, lParam);
   }
@@ -689,17 +1562,17 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         
       }
     }
-     case WM_NOTIFY: //WM_NOTIFY消息:wParam低16位为发送该消息的控件ID,高16位为通知码;lParam指向了一个NMHDR结构体.
+    case WM_NOTIFY: //WM_NOTIFY消息:wParam低16位为发送该消息的控件ID,高16位为通知码;lParam指向了一个NMHDR结构体.
     {
       u16 code,id;
-      static int flag = 0;//设置窗口是否弹出
+//      static  = 0;//设置窗口是否弹出
       code =HIWORD(wParam); //获得通知码类型.
       id   =LOWORD(wParam); //获得产生该消息的控件ID.
-      if(flag == 0)//设置窗口未存在，则创建
+      if(CamDialog.flag == 0)//设置窗口未存在，则创建
       {
         if(id==eID_SET && code==BN_CLICKED)
         {
-          flag = 1;
+          CamDialog.flag = 1;
           WNDCLASS wcex;
 
           GUI_DEBUG("C");
@@ -738,7 +1611,7 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       else//设置窗口已经存在，再次点击设置按钮，则关闭窗口
       {
-        flag = 0;
+        CamDialog.flag = 0;
         PostCloseMessage(CamDialog.SetWIN);
 
       }

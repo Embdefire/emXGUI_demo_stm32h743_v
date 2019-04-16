@@ -8,7 +8,7 @@ typedef struct
   HWND Cam_Hwnd;
   HWND SetWIN;
   
-  
+  int flag;
   int cur_Resolution;
   int cur_LightMode;
   int cur_SpecialEffects;
@@ -63,6 +63,11 @@ typedef enum
   eID_RB14,             //偏绿
   eID_RB15,             //过曝
   eID_RB16,             //正常  
+  
+  
+  eID_BT1,             //分辨率界面返回按键
+  eID_BT2,             //光线模式界面返回按键
+  eID_BT3,             //特殊效果界面返回按键
 }VideoDlg_Master_ID;
 
 extern void GUI_Camera_DIALOGTest(void *param);
