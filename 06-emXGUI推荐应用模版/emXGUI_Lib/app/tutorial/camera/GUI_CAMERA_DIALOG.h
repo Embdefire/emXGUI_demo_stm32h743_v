@@ -8,10 +8,15 @@ typedef struct
   HWND Cam_Hwnd;
   HWND SetWIN;
   
+  uint16_t *cam_buff0;
+  uint16_t *cam_buff1;
+  
+  uint8_t fps;
   int flag;
   int cur_Resolution;
   int cur_LightMode;
   int cur_SpecialEffects;
+  BOOL update_flag;
   BOOL focus_status;
 }Cam_DIALOG_Typedef;
 
@@ -72,4 +77,5 @@ typedef enum
 
 extern void GUI_Camera_DIALOGTest(void *param);
 extern Cam_DIALOG_Typedef CamDialog;
+extern GUI_SEM *cam_sem;//更新图像同步信号量（二值型）
 #endif

@@ -25,7 +25,7 @@ I2C_HandleTypeDef I2c_Handle;
   * @param  无
   * @retval 无
   */
-void I2cMaster_Init(void) 
+void I2CMaster_Init(void) 
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -71,86 +71,88 @@ void I2cMaster_Init(void)
 		HAL_I2C_Init(&I2c_Handle);	
 		/* 使能模拟滤波器 */
 		HAL_I2CEx_AnalogFilter_Config(&I2c_Handle, I2C_ANALOGFILTER_ENABLE); 
+    
+    
 	}
+  Delay(100);
 }
 /**
   * @brief  Manages error callback by re-initializing I2C.
   * @param  Addr: I2C Address
   * @retval None
   */
-static void I2Cx_Error(uint8_t Addr)
+static void I2Cx_Error(void)
 {
 	/* 恢复I2C寄存器为默认值 */
 	HAL_I2C_DeInit(&I2c_Handle); 
 	/* 重新初始化I2C外设 */
-	I2cMaster_Init();
+	I2CMaster_Init();
 }
 /**
-  * @brief  写寄存器，这是提供给上层的接口
-	* @param  slave_addr: 从机地址
-	* @param 	reg_addr:寄存器地址
-	* @param len：写入的长度
-	*	@param data_ptr:指向要写入的数据
-  * @retval 正常为0，不正常为非0
+  * @brief  写一字节数据到OV2640寄存器
+  * @param  Addr: OV2640 的寄存器地址
+  * @param  Data: 要写入的数据
+  * @retval 返回0表示写入正常，0xFF表示错误
   */
-int Sensors_I2C_WriteRegister(unsigned char slave_addr,
-                                        unsigned char reg_addr,
-                                        unsigned short len, 
-                                        unsigned char *data_ptr)
+uint8_t OV5640_WriteReg(uint16_t Addr, uint8_t Data)
 {
-	HAL_StatusTypeDef status = HAL_OK;
-	status = HAL_I2C_Mem_Write(&I2c_Handle, slave_addr, reg_addr, I2C_MEMADD_SIZE_8BIT,data_ptr, len,I2Cx_FLAG_TIMEOUT); 
-	/* 检查通讯状态 */
-	if(status != HAL_OK)
-	{
-		/* 总线出错处理 */
-		I2Cx_Error(slave_addr);
-	}
-	while (HAL_I2C_GetState(&I2c_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	/* 检查SENSOR是否就绪进行下一次读写操作 */
-	while (HAL_I2C_IsDeviceReady(&I2c_Handle, slave_addr, I2Cx_FLAG_TIMEOUT, I2Cx_FLAG_TIMEOUT) == HAL_TIMEOUT);
-	/* 等待传输结束 */
-	while (HAL_I2C_GetState(&I2c_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	return status;
+//    I2Cx_WriteMultiple(&I2c_Handle, OV2640_DEVICE_WRITE_ADDRESS, (uint16_t)Addr, I2C_MEMADD_SIZE_8BIT,(uint8_t*)&Data, 1);
+  HAL_StatusTypeDef status = HAL_OK;
+  
+  
+  status = HAL_I2C_Mem_Write(&I2c_Handle, OV5640_DEVICE_ADDRESS, (uint16_t)Addr, I2C_MEMADD_SIZE_16BIT, (uint8_t*)&Data, 1, 1000);
+  
+  /* Check the communication status */
+  if(status != HAL_OK)
+  {
+    /* Re-Initiaize the I2C Bus */
+    I2Cx_Error();
+  }
+  return status;
 }
 
 /**
-  * @brief  读寄存器，这是提供给上层的接口
-	* @param  slave_addr: 从机地址
-	* @param 	reg_addr:寄存器地址
-	* @param len：要读取的长度
-	*	@param data_ptr:指向要存储数据的指针
-  * @retval 正常为0，不正常为非0
+  * @brief  从OV2640寄存器中读取一个字节的数据
+  * @param  Addr: 寄存器地址
+  * @retval 返回读取得的数据
   */
-int Sensors_I2C_ReadRegister(unsigned char slave_addr,
-                                       unsigned char reg_addr,
-                                       unsigned short len, 
-                                       unsigned char *data_ptr)
+uint8_t OV5640_ReadReg(uint16_t Addr)
 {
-	HAL_StatusTypeDef status = HAL_OK;
-	status =HAL_I2C_Mem_Read(&I2c_Handle,slave_addr,reg_addr,I2C_MEMADD_SIZE_8BIT,data_ptr,len,I2Cx_FLAG_TIMEOUT);    
-	/* 检查通讯状态 */
-	if(status != HAL_OK)
-	{
-		/* 总线出错处理 */
-		I2Cx_Error(slave_addr);
-	}
-	while (HAL_I2C_GetState(&I2c_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	/* 检查SENSOR是否就绪进行下一次读写操作 */
-	while (HAL_I2C_IsDeviceReady(&I2c_Handle, slave_addr, I2Cx_FLAG_TIMEOUT, I2Cx_FLAG_TIMEOUT) == HAL_TIMEOUT);
-	/* 等待传输结束 */
-	while (HAL_I2C_GetState(&I2c_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	return status;
+    uint8_t Data = 0;
+//    I2Cx_ReadMultiple(&I2c_Handle, OV2640_DEVICE_READ_ADDRESS, Addr, I2C_MEMADD_SIZE_8BIT, (uint8_t*)&Data, 1);
+    
+  HAL_StatusTypeDef status = HAL_OK;
+
+  status = HAL_I2C_Mem_Read(&I2c_Handle, OV5640_DEVICE_ADDRESS, (uint16_t)Addr, I2C_MEMADD_SIZE_16BIT, (uint8_t*)&Data, 1, 1000);
+
+  /* Check the communication status */
+  if(status != HAL_OK)
+  {
+    /* I2C error occurred */
+    I2Cx_Error();
+  }
+  /* return the read data */
+    return Data;
+}
+
+/**
+  * @brief  将固件写入到OV5640片内MCU
+  * @param  Addr: OV5640 的MCU基地址0x8000
+  * @param  Data: 要写入的数据
+  * @retval 返回0表示写入正常，0xFF表示错误
+  */
+uint8_t OV5640_WriteFW(uint8_t *pBuffer ,uint16_t BufferSize)
+{
+  uint16_t Addr=0x8000;
+  HAL_StatusTypeDef status = HAL_OK;
+  
+  status = HAL_I2C_Mem_Write(&I2c_Handle, OV5640_DEVICE_ADDRESS, (uint16_t)Addr, I2C_MEMADD_SIZE_16BIT, pBuffer, BufferSize, 1000);
+  
+  /* 检查通信状态 */
+  if(status != HAL_OK)
+  {
+    /* 发生错误重新初始化I2C */
+    I2Cx_Error();
+  }
+  return status;
 }

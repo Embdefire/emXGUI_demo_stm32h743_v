@@ -395,6 +395,35 @@ void LCD_Init(uint32_t fb_addr, int lcd_clk_mhz, uint32_t pixel_format )
     LCD_LayerInit(0,fb_addr,pixel_format);
 }
 
+void LCD_LayerInit_Cam(uint16_t LayerIndex, uint16_t x0, uint16_t x1,
+                      uint16_t y0, uint16_t y1,uint32_t FB_Address,uint32_t PixelFormat)
+{     
+  LTDC_LayerCfgTypeDef  layer_cfg;
 
+  /* 层初始化 */
+  layer_cfg.WindowX0 = x0;				//窗口起始位置X坐标
+  layer_cfg.WindowX1 = x1;	//窗口结束位置X坐标
+  layer_cfg.WindowY0 = y0;				//窗口起始位置Y坐标
+  layer_cfg.WindowY1 = y1;  //窗口结束位置Y坐标
+  layer_cfg.PixelFormat = PixelFormat;	//像素格式
+  layer_cfg.FBStartAdress = FB_Address; //层显存首地址
+  layer_cfg.Alpha = 255;				//用于混合的透明度常量，范围（0—255）0为完全透明
+  layer_cfg.Alpha0 = 0;					//默认透明度常量，范围（0—255）0为完全透明
+  layer_cfg.Backcolor.Blue = 0;			//层背景颜色蓝色分量
+  layer_cfg.Backcolor.Green = 0;		//层背景颜色绿色分量
+  layer_cfg.Backcolor.Red = 0;			//层背景颜色红色分量
+  layer_cfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;//层混合系数1
+  layer_cfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;//层混合系数2
+  layer_cfg.ImageWidth = x1-x0;//设置图像宽度
+  layer_cfg.ImageHeight = y1-y0;//设置图像高度
+  
+  HAL_LTDC_ConfigLayer(&Ltdc_Handler, &layer_cfg, LayerIndex); //设置选中的层参数
+
+//  DrawProp[LayerIndex].BackColor = LCD_COLOR_WHITE;//设置层的字体颜色
+//  DrawProp[LayerIndex].pFont     = &LCD_DEFAULT_FONT;//设置层的字体类型
+//  DrawProp[LayerIndex].TextColor = LCD_COLOR_BLACK; //设置层的字体背景颜色
+  
+  __HAL_LTDC_RELOAD_CONFIG(&Ltdc_Handler);//重载层的配置参数
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

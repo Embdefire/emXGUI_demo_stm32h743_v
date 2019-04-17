@@ -107,7 +107,7 @@ uint8_t wm8978_Init(void)
 {
 	uint8_t res;
 	
-	I2cMaster_Init();		/* 初始化I2C接口 */
+	I2CMaster_Init();		/* 初始化I2C接口 */
 	res=wm8978_Reset();		/* 硬件复位WM8978所有寄存器到缺省状态 */
 	wm8978_CtrlGPIO1(1);	/* 控制WM8978的一个GPIO接口控制其为放音状态 */
 	return res;

@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "./camera/bsp_ov5640.h"
 #include "./i2c/i2c.h"
-
+#include "GUI_CAMERA_DIALOG.h"
 #include "./delay/core_delay.h"  
 DCMI_HandleTypeDef DCMI_Handle;
 DMA_HandleTypeDef DMA_Handle_dcmi;
@@ -28,9 +28,9 @@ void TransferComplete(DMA2D_HandleTypeDef *hdma2d)
   //SCB_InvalidateDCache();
 }
 
-static int cur_index;//当前内存块
-__attribute__ ((at(0xD0000000))) uint32_t cam_buff0[800*480];
-__attribute__ ((at(0xD0200000))) uint32_t cam_buff1[800*480];
+int cur_index;//当前内存块
+//uint32_t cam_buff0[800*480];
+//uint32_t cam_buff1[800*480];
 /** @addtogroup DCMI_Camera
   * @{
   */ 
@@ -41,7 +41,7 @@ OV5640_MODE_PARAM cam_mode =
 	
 /*以下包含几组摄像头配置，可自行测试，保留一组，把其余配置注释掉即可*/
 /************配置1***854*480******横屏显示*****************************/
-	.frame_rate = FRAME_RATE_30FPS,	
+	.frame_rate = FRAME_RATE_15FPS,	
 	
 	//ISP窗口
 	.cam_isp_sx = 0,
@@ -832,6 +832,7 @@ void OV5640_HW_Init(void)
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;    
     HAL_GPIO_Init(DCMI_RST_GPIO_PORT, &GPIO_InitStructure);
 
+    I2CMaster_Init();
     HAL_GPIO_WritePin(DCMI_RST_GPIO_PORT,DCMI_RST_GPIO_PIN,GPIO_PIN_RESET);
     /*PWDN引脚，高电平关闭电源，低电平供电*/
     HAL_GPIO_WritePin(DCMI_PWDN_GPIO_PORT,DCMI_PWDN_GPIO_PIN,GPIO_PIN_SET);
@@ -897,10 +898,10 @@ void OV5640_Init(void)
   HAL_DCMI_Init(&DCMI_Handle); 	
     
 	/* 配置中断 */
-  HAL_NVIC_SetPriority(DCMI_IRQn, 0, 5);
+  HAL_NVIC_SetPriority(DCMI_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(DCMI_IRQn); 	
   //dma_memory 以16位数据为单位， dma_bufsize以32位数据为单位(即像素个数/2)
-  OV5640_DMA_Config((uint32_t)cam_buff0,cam_mode.cam_out_height*cam_mode.cam_out_width/2);	
+  OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,cam_mode.cam_out_height*cam_mode.cam_out_width/2);	
 }
 
 
@@ -931,7 +932,7 @@ void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize)
   /*DMA中断配置 */
   __HAL_LINKDMA(&DCMI_Handle, DMA_Handle, DMA_Handle_dcmi);
   
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
   
   HAL_DMA_Init(&DMA_Handle_dcmi);
@@ -1452,8 +1453,7 @@ void OV5640_Capture_Control(FunctionalState state)
   {
     case ENABLE:
     {
-      HAL_DCMI_Stop(&DCMI_Handle);
-      HAL_DMA_Abort(&DMA_Handle_dcmi);      
+      //OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,cam_mode.cam_out_height*cam_mode.cam_out_width);	   
       break;
     }
     case DISABLE:
@@ -1470,40 +1470,40 @@ void OV5640_Capture_Control(FunctionalState state)
 //		DMA_Cmd(DMA2_Stream1, state);//DMA2,Stream1
 
 }
-DMA2D_HandleTypeDef h_dma2d;
-static void CopyImageToLcdFrameBuffer(void *pSrc, void *pDst, uint32_t xSize, uint32_t ySize)
-{
- __HAL_UNLOCK(&h_dma2d);
-  h_dma2d.Init.Mode          = DMA2D_M2M;//DMA2D内存到内存模式
-  h_dma2d.Init.ColorMode     = DMA2D_OUTPUT_RGB565; //输出RGB565格式
-  h_dma2d.Init.AlphaInverted = DMA2D_REGULAR_ALPHA;//不需要透明度
-  h_dma2d.Init.RedBlueSwap   = DMA2D_RB_REGULAR;//不交换RB的位置       
+//DMA2D_HandleTypeDef h_dma2d;
+//static void CopyImageToLcdFrameBuffer(void *pSrc, void *pDst, uint32_t xSize, uint32_t ySize)
+//{
+// __HAL_UNLOCK(&h_dma2d);
+//  h_dma2d.Init.Mode          = DMA2D_M2M;//DMA2D内存到内存模式
+//  h_dma2d.Init.ColorMode     = DMA2D_OUTPUT_RGB565; //输出RGB565格式
+//  h_dma2d.Init.AlphaInverted = DMA2D_REGULAR_ALPHA;//不需要透明度
+//  h_dma2d.Init.RedBlueSwap   = DMA2D_RB_REGULAR;//不交换RB的位置       
 
-  h_dma2d.Init.OutputOffset = 0;//输出偏移为0
-  //配置前景层
-  h_dma2d.LayerCfg[1].AlphaMode      = DMA2D_NO_MODIF_ALPHA;//
-  h_dma2d.LayerCfg[1].InputAlpha     = 0xFF; //完全不透明
-  h_dma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;//输入颜色格式
-  h_dma2d.LayerCfg[1].InputOffset    = 0;//偏差为0
-  h_dma2d.LayerCfg[1].RedBlueSwap    = DMA2D_RB_REGULAR; //不交换RB的位置  
-  h_dma2d.LayerCfg[1].AlphaInverted  = DMA2D_REGULAR_ALPHA; //不需要透明度
-  h_dma2d.XferCpltCallback  = TransferComplete;
-  h_dma2d.Instance = DMA2D;
+//  h_dma2d.Init.OutputOffset = 0;//输出偏移为0
+//  //配置前景层
+//  h_dma2d.LayerCfg[1].AlphaMode      = DMA2D_NO_MODIF_ALPHA;//
+//  h_dma2d.LayerCfg[1].InputAlpha     = 0xFF; //完全不透明
+//  h_dma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;//输入颜色格式
+//  h_dma2d.LayerCfg[1].InputOffset    = 0;//偏差为0
+//  h_dma2d.LayerCfg[1].RedBlueSwap    = DMA2D_RB_REGULAR; //不交换RB的位置  
+//  h_dma2d.LayerCfg[1].AlphaInverted  = DMA2D_REGULAR_ALPHA; //不需要透明度
+//  h_dma2d.XferCpltCallback  = TransferComplete;
+//  h_dma2d.Instance = DMA2D;
 
-  //初始化DMA2D
-  HAL_DMA2D_Init(&h_dma2d);
-  //配置DMA2D前景层
-  HAL_DMA2D_ConfigLayer(&h_dma2d, 1);
-  
-  HAL_NVIC_SetPriority(DMA2D_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2D_IRQn); 
-  //SCB_CleanDCache();  
-  //开启中断传输
-  HAL_DMA2D_Start_IT(&h_dma2d, (uint32_t)pSrc, (uint32_t)pDst, xSize, ySize); 
-  
-  
+//  //初始化DMA2D
+//  HAL_DMA2D_Init(&h_dma2d);
+//  //配置DMA2D前景层
+//  HAL_DMA2D_ConfigLayer(&h_dma2d, 1);
+//  
+//  HAL_NVIC_SetPriority(DMA2D_IRQn, 0, 0);
+//  HAL_NVIC_EnableIRQ(DMA2D_IRQn); 
+//  //SCB_CleanDCache();  
+//  //开启中断传输
+//  HAL_DMA2D_Start_IT(&h_dma2d, (uint32_t)pSrc, (uint32_t)pDst, xSize, ySize); 
+//  
+//  
 
-}
+//}
 
 //int i = 0;
 //void DMA2D_IRQHandler(void)
@@ -1516,15 +1516,22 @@ static void CopyImageToLcdFrameBuffer(void *pSrc, void *pDst, uint32_t xSize, ui
   * @param  None
   * @retval None
   */
-extern uint8_t fps;
+//uint8_t fps;count*BLOCKSIZE + ((uint32_t)buff - alignedAddr)
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
-    fps++; //帧率计数
+    CamDialog.fps++; //帧率计数
+
+    GUI_SemPostISR(cam_sem);  
+
     if(cur_index == 0)//0--配置第二块内存，使用第一块内存
     {
-      cur_index = 1;
-      OV5640_DMA_Config((uint32_t)cam_buff1,
-                        cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+      
+      //SCB_CleanInvalidateDCache();
+      //SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+     // GUI_SemPostISR(cam_sem);      
+      cur_index = 0;
+      OV5640_DMA_Config((uint32_t)CamDialog.cam_buff1,
+                        cam_mode.cam_out_height*cam_mode.cam_out_width/2);  
       
       //LTDC_Color_Fill(0,0,800,480,(uint16_t *)cam_buff);
       //CopyImageToLcdFrameBuffer(cam_buff0, (uint32_t *)LCD_FB_START_ADDRESS, 800, 480);
@@ -1532,18 +1539,62 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
       
 //      LCD_LayerInit_Cam(0, 400-cam_mode.cam_out_width/2, 400-cam_mode.cam_out_width/2 + cam_mode.cam_out_width,
 //                        240-cam_mode.cam_out_height/2,240-cam_mode.cam_out_height/2+cam_mode.cam_out_height,
-//                        (uint32_t)cam_buff0,RGB565);      
+//                        (uint32_t)CamDialog.cam_buff0,LTDC_PIXEL_FORMAT_RGB565);      
     }
     else//1--配置第一块内存，使用第二块内存
     {
+//      
       cur_index = 0;
-      OV5640_DMA_Config((uint32_t)cam_buff0,
-                        cam_mode.cam_out_height*cam_mode.cam_out_width/2);   
+      OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,
+                        cam_mode.cam_out_height*cam_mode.cam_out_width/2);       
+//      SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff1, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+      //SCB_CleanInvalidateDCache();
+      //GUI_SemPostISR(cam_sem);
+ 
+      
+      
 //      LCD_LayerInit(0, (uint32_t)cam_buff1, RGB565);
+      
 //      LCD_LayerInit_Cam(0, 400-cam_mode.cam_out_width/2, 400-cam_mode.cam_out_width/2 + cam_mode.cam_out_width,
 //                        240-cam_mode.cam_out_height/2,240-cam_mode.cam_out_height/2+cam_mode.cam_out_height,
-//                        (uint32_t)cam_buff1,RGB565);       
+//                        (uint32_t)CamDialog.cam_buff1,LTDC_PIXEL_FORMAT_RGB565);  
+      
       //CopyImageToLcdFrameBuffer((uint16_t*)cam_buff1, (uint32_t *)LCD_FB_START_ADDRESS, 800, 480);
     }
+
+}
+
+
+
+
+
+/**
+  * @brief  DMA中断服务函数
+  * @param  None
+  * @retval None
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+//  printf("DMA\n");
+//  uint32_t ulReturn;
+//  /* 进入临界段，临界段可以嵌套 */
+//  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
+//  
+//  SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+  HAL_DMA_IRQHandler(&DMA_Handle_dcmi);
+//  //SCB_CleanInvalidateDCache();
+//  taskEXIT_CRITICAL_FROM_ISR( ulReturn );
+  
+}
+
+/**
+  * @brief  DCMI中断服务函数
+  * @param  None
+  * @retval None
+  */
+void DCMI_IRQHandler(void)
+{
+  HAL_DCMI_IRQHandler(&DCMI_Handle);
+  
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

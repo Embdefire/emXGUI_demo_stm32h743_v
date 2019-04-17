@@ -155,9 +155,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>151</LineNumber>
+          <LineNumber>1676</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237908</Address>
+          <Address>134239252</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -166,7 +166,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\tutorial\camera\GUI_CAMERA_DIALOG.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/tutorial/camera/GUI_CAMERA_DIALOG.c\151</Expression>
+          <Expression>\\\../../emXGUI_Lib/app/tutorial/camera/GUI_CAMERA_DIALOG.c\1676</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -236,6 +236,16 @@
           <count>6</count>
           <WinNumber>2</WinNumber>
           <ItemText>PLL1_Clocks,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>CamDialog</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>state</ItemText>
         </Ww>
       </WatchWindow2>
       <MemoryWindow1>
@@ -308,6 +318,10 @@
         <Entry>
           <Name>System Viewer\DMA1</Name>
           <WinId>35904</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\FMC</Name>
+          <WinId>35901</WinId>
         </Entry>
         <Entry>
           <Name>System Viewer\SAI1</Name>
@@ -1289,7 +1303,7 @@
 
   <Group>
     <GroupName>USER</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1369,7 +1383,7 @@
 
   <Group>
     <GroupName>BSP</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1749,7 +1763,7 @@
 
   <Group>
     <GroupName>emxgui/arch</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2437,7 +2451,7 @@
 
   <Group>
     <GroupName>Fafts</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2813,7 +2827,7 @@
 
   <Group>
     <GroupName>tutorial/video_player</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

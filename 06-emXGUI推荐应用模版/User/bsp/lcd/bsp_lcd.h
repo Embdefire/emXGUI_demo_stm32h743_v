@@ -226,5 +226,6 @@ extern const LCD_PARAM_TypeDef lcd_param[];
 
 void LCD_Init(uint32_t fb_addr, int lcd_clk_mhz, uint32_t pixel_format );
 void LCD_BackLed_Control ( int on );
-
+void LCD_LayerInit_Cam(uint16_t LayerIndex, uint16_t x0, uint16_t x1,
+                      uint16_t y0, uint16_t y1,uint32_t FB_Address,uint32_t PixelFormat);
 #endif /* __BSP_LCD_H */

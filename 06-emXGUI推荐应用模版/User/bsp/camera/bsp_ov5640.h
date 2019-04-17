@@ -171,7 +171,7 @@ typedef enum
 
 /*debug*/
 
-#define CAMERA_DEBUG_ON          1
+#define CAMERA_DEBUG_ON          0
 #define CAMERA_DEBUG_ARRAY_ON   1
 #define CAMERA_DEBUG_FUNC_ON    1
    
@@ -335,7 +335,7 @@ void OV5640_SpecialEffects(uint8_t mode);
 void OV5640_LightMode(uint8_t mode);
 void OV5640_USER_Config(void);
 void OV5640_Capture_Control(FunctionalState state);
-
+extern OV5640_MODE_PARAM cam_mode;
 
 void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize);
 
