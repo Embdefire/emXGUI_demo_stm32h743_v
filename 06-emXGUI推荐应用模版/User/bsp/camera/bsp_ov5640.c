@@ -1525,41 +1525,15 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 
     if(cur_index == 0)//0--配置第二块内存，使用第一块内存
     {
-      
-      //SCB_CleanInvalidateDCache();
-      //SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
-     // GUI_SemPostISR(cam_sem);      
-      cur_index = 0;
+      cur_index = 1;
       OV5640_DMA_Config((uint32_t)CamDialog.cam_buff1,
                         cam_mode.cam_out_height*cam_mode.cam_out_width/2);  
-      
-      //LTDC_Color_Fill(0,0,800,480,(uint16_t *)cam_buff);
-      //CopyImageToLcdFrameBuffer(cam_buff0, (uint32_t *)LCD_FB_START_ADDRESS, 800, 480);
-     // LCD_LayerInit(0, (uint32_t)cam_buff0, RGB565);
-      
-//      LCD_LayerInit_Cam(0, 400-cam_mode.cam_out_width/2, 400-cam_mode.cam_out_width/2 + cam_mode.cam_out_width,
-//                        240-cam_mode.cam_out_height/2,240-cam_mode.cam_out_height/2+cam_mode.cam_out_height,
-//                        (uint32_t)CamDialog.cam_buff0,LTDC_PIXEL_FORMAT_RGB565);      
     }
     else//1--配置第一块内存，使用第二块内存
-    {
-//      
+    {      
       cur_index = 0;
       OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,
                         cam_mode.cam_out_height*cam_mode.cam_out_width/2);       
-//      SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff1, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
-      //SCB_CleanInvalidateDCache();
-      //GUI_SemPostISR(cam_sem);
- 
-      
-      
-//      LCD_LayerInit(0, (uint32_t)cam_buff1, RGB565);
-      
-//      LCD_LayerInit_Cam(0, 400-cam_mode.cam_out_width/2, 400-cam_mode.cam_out_width/2 + cam_mode.cam_out_width,
-//                        240-cam_mode.cam_out_height/2,240-cam_mode.cam_out_height/2+cam_mode.cam_out_height,
-//                        (uint32_t)CamDialog.cam_buff1,LTDC_PIXEL_FORMAT_RGB565);  
-      
-      //CopyImageToLcdFrameBuffer((uint16_t*)cam_buff1, (uint32_t *)LCD_FB_START_ADDRESS, 800, 480);
     }
 
 }
@@ -1575,15 +1549,7 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
   */
 void DMA2_Stream1_IRQHandler(void)
 {
-//  printf("DMA\n");
-//  uint32_t ulReturn;
-//  /* 进入临界段，临界段可以嵌套 */
-//  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
-//  
-//  SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
   HAL_DMA_IRQHandler(&DMA_Handle_dcmi);
-//  //SCB_CleanInvalidateDCache();
-//  taskEXIT_CRITICAL_FROM_ISR( ulReturn );
   
 }
 

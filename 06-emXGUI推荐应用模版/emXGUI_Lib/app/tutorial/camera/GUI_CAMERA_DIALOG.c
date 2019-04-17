@@ -1652,23 +1652,18 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         switch(cur_index)//DMA使用的内存块，不能被CPU使用
         {
-          SCB_CleanInvalidateDCache();
+          //SCB_CleanInvalidateDCache();
           case 0:
           {
             
-            //SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width);
-            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff1);
-          
-            
+            SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff1);     
             break;
           }
           case 1:
-          {           
-            
-            //SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width);
-            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff0);
-            
-             
+          {                       
+            SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
+            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff0);          
             break;
           }
         }
