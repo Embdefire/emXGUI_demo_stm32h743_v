@@ -2,17 +2,24 @@
 #include "gui_drv.h"
 #include "GUI_CAMERA_DIALOG.h"
 #include "./camera/ov5640_AF.h"
+#include <string.h>
 #include "./camera/bsp_ov5640.h"
 #include "GUI_AppDef.h"
 extern BOOL g_dma2d_en ;
 extern int cur_index;
 static HDC hdc_bk = NULL;//背景图层，绘制透明控件
-Cam_DIALOG_Typedef CamDialog;
+Cam_DIALOG_Typedef CamDialog = 
+{
+  .cur_Resolution = eID_RB3,
+  .cur_LightMode =eID_RB4,
+  .cur_SpecialEffects =eID_RB16,
+};
 OV5640_IDTypeDef OV5640_Camera_ID;
 int state = 0;//初始化摄像头状态机
 static int b_close=FALSE;//窗口关闭标志位
 static RECT win_rc;//二级菜单位置信息
 GUI_SEM *cam_sem = NULL;//更新图像同步信号量（二值型）
+GUI_SEM *set_sem = NULL;//更新图像同步信号量（二值型）
 /*
  * @brief  自定义参数设置按钮
  * @param  ds:	自定义绘制结构体
@@ -85,7 +92,7 @@ static void Checkbox_owner_draw(DRAWITEM_HDR *ds)
 	hdc = ds->hDC;   //button的绘图上下文句柄.
 	rc = ds->rc;     //button的绘制矩形区.
   EnableAntiAlias(hdc, TRUE);
-	if (CamDialog.focus_status!=0)//按钮是按下状态
+	if (CamDialog.focus_status == 1)//按钮是按下状态
 	{ 
 		SetBrushColor(hdc, MapRGB(hdc, 119, 136, 153)); 
 		FillRoundRect(hdc, &rc, rc.h / 2);
@@ -346,10 +353,43 @@ static void Button_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
   }
 
 }
+
+static void Set_AutoFocus(void *param)
+{
+	if(CamDialog.AutoFocus_Thread==0)
+	{  
+      GUI_Thread_Create(Set_AutoFocus,"Set_AutoFocus",5*1024,NULL,5,3);			
+      CamDialog.AutoFocus_Thread =1;
+      return;
+	}
+	while(CamDialog.AutoFocus_Thread==1) //线程已创建了
+	{
+    GUI_SemWait(set_sem, 0xFFFFFFFF);
+    if(CamDialog.focus_status != 1)
+    {
+      //暂停对焦
+      OV5640_FOCUS_AD5820_Pause_Focus();
+
+    }
+    else
+    {
+      //自动对焦
+      OV5640_FOCUS_AD5820_Constant_Focus();
+
+    } 
+
+    GUI_Yield();
+		
+	}
+  GUI_Thread_Delete(GUI_GetCurThreadHandle());
+}
+
+
 static void Update_Dialog(void *param)
 {
 	int app=0;
-	while(1) //线程已创建了
+  CamDialog.Update_Thread = 1;
+	while(CamDialog.Update_Thread) //线程已创建了
 	{
 		if(app==0)
 		{
@@ -359,6 +399,7 @@ static void Update_Dialog(void *param)
 			app=0;
 		}
 	}
+  GUI_Thread_Delete(GUI_GetCurThreadHandle());
 }
 
 /*
@@ -490,90 +531,90 @@ static LRESULT	dlg_set_Resolution_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARA
         PostCloseMessage(hwnd);
       }
 
-//      if(id >= eID_RB1 && id<= eID_RB3)
-//      {
-//        if(code == BN_CLICKED)
-//        { 
-//          cur_Resolution = id;
-//          switch(cur_Resolution)
-//          {
-//            case eID_RB1:
-//            {
-//              OV5640_Capture_Control(DISABLE);
-//              //输出窗口
-//              cam_mode.scaling = 1;      //使能自动缩放
-//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
-//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
-//              cam_mode.cam_out_width = 320;
-//              cam_mode.cam_out_height = 240;
+      if(id >= eID_RB1 && id<= eID_RB3)
+      {
+        if(code == BN_CLICKED)
+        { 
+          CamDialog.cur_Resolution = id;
+          switch(CamDialog.cur_Resolution)
+          {
+            case eID_RB1:
+            {
+              OV5640_Capture_Control(DISABLE);
+              //输出窗口
+              cam_mode.scaling = 1;      //使能自动缩放
+              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+              cam_mode.cam_out_width = 320;
+              cam_mode.cam_out_height = 240;
 
-//              //LCD位置
-//              cam_mode.lcd_sx = 270;
-//              cam_mode.lcd_sy = 120;
-//              OV5640_OutSize_Set(cam_mode.scaling,
-//                       cam_mode.cam_out_sx,
-//                       cam_mode.cam_out_sy,
-//                       cam_mode.cam_out_width,
-//                       cam_mode.cam_out_height);
+              //LCD位置
+              cam_mode.lcd_sx = 270;
+              cam_mode.lcd_sy = 120;
+              OV5640_OutSize_Set(cam_mode.scaling,
+                       cam_mode.cam_out_sx,
+                       cam_mode.cam_out_sy,
+                       cam_mode.cam_out_width,
+                       cam_mode.cam_out_height);
 
-//              OV5640_Capture_Control(ENABLE);
-//             
-//              state = 3;
-//              break;  
-//            }          
-//            case eID_RB2:
-//            {
-//              OV5640_Capture_Control(DISABLE);
-//              //输出窗口
-//              cam_mode.scaling = 1;      //使能自动缩放
-//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
-//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
-//              cam_mode.cam_out_width = 480;
-//              cam_mode.cam_out_height = 272;
+              OV5640_Capture_Control(ENABLE);
+             
+              state = 3;
+              break;  
+            }          
+            case eID_RB2:
+            {
+              OV5640_Capture_Control(DISABLE);
+              //输出窗口
+              cam_mode.scaling = 1;      //使能自动缩放
+              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+              cam_mode.cam_out_width = 480;
+              cam_mode.cam_out_height = 272;
 
-//              //LCD位置
-//              cam_mode.lcd_sx = 160;
-//              cam_mode.lcd_sy = 104;
-//              OV5640_OutSize_Set(cam_mode.scaling,
-//                       cam_mode.cam_out_sx,
-//                       cam_mode.cam_out_sy,
-//                       cam_mode.cam_out_width,
-//                       cam_mode.cam_out_height);
+              //LCD位置
+              cam_mode.lcd_sx = 160;
+              cam_mode.lcd_sy = 104;
+              OV5640_OutSize_Set(cam_mode.scaling,
+                       cam_mode.cam_out_sx,
+                       cam_mode.cam_out_sy,
+                       cam_mode.cam_out_width,
+                       cam_mode.cam_out_height);
 
-//              OV5640_Capture_Control(ENABLE);
+              OV5640_Capture_Control(ENABLE);
 
-//              state = 3;
-//              break;
-//            }
-//            case eID_RB3:
-//            {
-//              OV5640_Capture_Control(DISABLE);
-//              //输出窗口
-//              cam_mode.scaling = 1;      //使能自动缩放
-//              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
-//              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
-//              cam_mode.cam_out_width = 800;
-//              cam_mode.cam_out_height = 480;
+              state = 3;
+              break;
+            }
+            case eID_RB3:
+            {
+              OV5640_Capture_Control(DISABLE);
+              //输出窗口
+              cam_mode.scaling = 1;      //使能自动缩放
+              cam_mode.cam_out_sx = 16;	//使能自动缩放后，一般配置成16即可
+              cam_mode.cam_out_sy = 4;	  //使能自动缩放后，一般配置成4即可
+              cam_mode.cam_out_width = 800;
+              cam_mode.cam_out_height = 480;
 
-//              //LCD位置
-//              cam_mode.lcd_sx = 0;
-//              cam_mode.lcd_sy = 0;
-//              OV5640_OutSize_Set(cam_mode.scaling,
-//                       cam_mode.cam_out_sx,
-//                       cam_mode.cam_out_sy,
-//                       cam_mode.cam_out_width,
-//                       cam_mode.cam_out_height);
+              //LCD位置
+              cam_mode.lcd_sx = 0;
+              cam_mode.lcd_sy = 0;
+              OV5640_OutSize_Set(cam_mode.scaling,
+                       cam_mode.cam_out_sx,
+                       cam_mode.cam_out_sy,
+                       cam_mode.cam_out_width,
+                       cam_mode.cam_out_height);
 
 
-//              OV5640_Capture_Control(ENABLE);
-//              
-//              state = 3;
-//              break;
-//            }
-//          }
-//        
-//        }
-//      }
+              OV5640_Capture_Control(ENABLE);
+              
+              state = 3;
+              break;
+            }
+          }
+        
+        }
+      }
       break;
     }    
     case	WM_CTLCOLOR:
@@ -622,7 +663,7 @@ static LRESULT	dlg_set_Resolution_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARA
   }
   return WM_NULL;
 }
-
+int cur_LightMode = eID_RB4;
 static LRESULT	dlg_set_LightMode_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
   switch(msg)
@@ -654,31 +695,38 @@ static LRESULT	dlg_set_LightMode_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM
                   0, 0, 90, 50, hwnd, eID_BT2, NULL, NULL); 
                   
       SetWindowEraseEx(hwnd, cbErase, TRUE);
-
-      switch(CamDialog.cur_LightMode)
+//      GUI_DEBUG("%d, %d", CamDialog.cur_LightMode, eID_RB4);
+//      SendMessage(GetDlgItem(hwnd, eID_RB4),BM_SETSTATE,BST_CHECKED,0);
+      switch(cam_mode.light_mode)
       {
-        case eID_RB4:
+        
+        case 0:
         {
+          GUI_DEBUG("RB4");
           SendMessage(GetDlgItem(hwnd, eID_RB4),BM_SETSTATE,BST_CHECKED,0);
           break;
         }
-        case eID_RB5:
+        case 1:
         {
+          GUI_DEBUG("RB5");
           SendMessage(GetDlgItem(hwnd, eID_RB5),BM_SETSTATE,BST_CHECKED,0);
           break;
         }    
-        case eID_RB6:
+        case 2:
         {
+          GUI_DEBUG("RB6");
           SendMessage(GetDlgItem(hwnd, eID_RB6),BM_SETSTATE,BST_CHECKED,0);
           break;
         }    
-        case eID_RB7:
+        case 3:
         {
+          
           SendMessage(GetDlgItem(hwnd, eID_RB7),BM_SETSTATE,BST_CHECKED,0);
           break;
         }    
-        case eID_RB8:
+        case 4:
         {
+          GUI_DEBUG("RB8");
           SendMessage(GetDlgItem(hwnd, eID_RB8),BM_SETSTATE,BST_CHECKED,0);
           break;
         }             
@@ -733,46 +781,46 @@ static LRESULT	dlg_set_LightMode_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM
       {
         PostCloseMessage(hwnd);
       }
-//      if(id >= eID_RB4 && id<= eID_RB8)
-//      {
-//        if(code == BN_CLICKED)
-//        { 
-//          cur_LightMode = id;
-////          switch(cur_LightMode)
-////          {
-////            case eID_RB4:
-////            {
-////              cam_mode.light_mode = 0;
-////              OV5640_LightMode(cam_mode.light_mode);
-////              break;  
-////            }            
-////            case eID_RB5:
-////            {
-////              cam_mode.light_mode = 1;
-////              OV5640_LightMode(cam_mode.light_mode);
-////              break;
-////            }
-////            case eID_RB6:
-////            {
-////              cam_mode.light_mode = 2;
-////              OV5640_LightMode(cam_mode.light_mode);
-////              break;
-////            }
-////            case eID_RB7:
-////            {
-////              cam_mode.light_mode = 3;
-////              OV5640_LightMode(cam_mode.light_mode);
-////              break;
-////            }
-////            case eID_RB8:
-////            {
-////              cam_mode.light_mode = 4;
-////              OV5640_LightMode(cam_mode.light_mode);
-////              break;
-////            }
-////          }   
-//        }
-//      }
+      if(id >= eID_RB4 && id<= eID_RB8)
+      {
+        if(code == BN_CLICKED)
+        { 
+          CamDialog.cur_LightMode = id;
+          switch(CamDialog.cur_LightMode)
+          {
+            case eID_RB4:
+            {
+              cam_mode.light_mode = 0;
+              OV5640_LightMode(cam_mode.light_mode);
+              break;  
+            }            
+            case eID_RB5:
+            {
+              cam_mode.light_mode = 1;
+              OV5640_LightMode(cam_mode.light_mode);
+              break;
+            }
+            case eID_RB6:
+            {
+              cam_mode.light_mode = 2;
+              OV5640_LightMode(cam_mode.light_mode);
+              break;
+            }
+            case eID_RB7:
+            {
+              cam_mode.light_mode = 3;
+              OV5640_LightMode(cam_mode.light_mode);
+              break;
+            }
+            case eID_RB8:
+            {
+              cam_mode.light_mode = 4;
+              OV5640_LightMode(cam_mode.light_mode);
+              break;
+            }
+          }   
+        }
+      }
       break;
     }
  		case	WM_CTLCOLOR:
@@ -973,64 +1021,64 @@ static LRESULT	dlg_set_SpecialEffects_WinProc(HWND hwnd,UINT msg,WPARAM wParam,L
       {
         PostCloseMessage(hwnd);
       }
-//      if(id >= eID_RB9 && id<= eID_RB16)
-//      {
-//        if(code == BN_CLICKED)
-//        { 
-//          cur_SpecialEffects = id;
-//          switch(cur_SpecialEffects)
-//          {
-//            case eID_RB9:
-//            {
-//              cam_mode.effect = 1;
-//              OV5640_SpecialEffects(cam_mode.effect);
-//              break;    
-//            }            
-//            case eID_RB10:
-//            {
-//              cam_mode.effect = 2;
-//              OV5640_SpecialEffects(cam_mode.effect);
-//              break;
-//            }
-//            case eID_RB11:
-//            {
-//              cam_mode.effect = 3;
-//              OV5640_SpecialEffects(cam_mode.effect);               
-//              break;
-//            }
-//            case eID_RB12:
-//            {
-//              cam_mode.effect = 4;
-//              OV5640_SpecialEffects(cam_mode.effect);                
-//              break;
-//            }
-//            case eID_RB13:
-//            {
-//              cam_mode.effect = 5;
-//              OV5640_SpecialEffects(cam_mode.effect);                
-//              break;
-//            }
-//            case eID_RB14:
-//            {
-//              cam_mode.effect = 6;
-//              OV5640_SpecialEffects(cam_mode.effect);                
-//              break;
-//            }
-//            case eID_RB15:
-//            {
-//              cam_mode.effect = 7;
-//              OV5640_SpecialEffects(cam_mode.effect);                
-//              break;
-//            }
-//            case eID_RB16:
-//            {
-//              cam_mode.effect = 0;
-//              OV5640_SpecialEffects(cam_mode.effect);
-//              break;  
-//            }            
-//          } 
-//        }
-//      }
+      if(id >= eID_RB9 && id<= eID_RB16)
+      {
+        if(code == BN_CLICKED)
+        { 
+          CamDialog.cur_SpecialEffects = id;
+          switch(CamDialog.cur_SpecialEffects)
+          {
+            case eID_RB9:
+            {
+              cam_mode.effect = 1;
+              OV5640_SpecialEffects(cam_mode.effect);
+              break;    
+            }            
+            case eID_RB10:
+            {
+              cam_mode.effect = 2;
+              OV5640_SpecialEffects(cam_mode.effect);
+              break;
+            }
+            case eID_RB11:
+            {
+              cam_mode.effect = 3;
+              OV5640_SpecialEffects(cam_mode.effect);               
+              break;
+            }
+            case eID_RB12:
+            {
+              cam_mode.effect = 4;
+              OV5640_SpecialEffects(cam_mode.effect);                
+              break;
+            }
+            case eID_RB13:
+            {
+              cam_mode.effect = 5;
+              OV5640_SpecialEffects(cam_mode.effect);                
+              break;
+            }
+            case eID_RB14:
+            {
+              cam_mode.effect = 6;
+              OV5640_SpecialEffects(cam_mode.effect);                
+              break;
+            }
+            case eID_RB15:
+            {
+              cam_mode.effect = 7;
+              OV5640_SpecialEffects(cam_mode.effect);                
+              break;
+            }
+            case eID_RB16:
+            {
+              cam_mode.effect = 0;
+              OV5640_SpecialEffects(cam_mode.effect);
+              break;  
+            }            
+          } 
+        }
+      }
       break;
     }    
     case WM_DRAWITEM:
@@ -1131,7 +1179,7 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
       sif.fMask = SIF_ALL;
       sif.nMin = -2;
       sif.nMax = 2;
-      sif.nValue = 0;//cam_mode.brightness;
+      sif.nValue = cam_mode.brightness;
       sif.TrackSize = 31;//滑块值
       sif.ArrowSize = 0;//两端宽度为0（水平滑动条）
       rc_second[1].y = Set_VCENTER(rc_second[0].y+rc_second[0].h/2,31);
@@ -1147,7 +1195,7 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
       sif1.fMask = SIF_ALL;
       sif1.nMin = -3;
       sif1.nMax = 3;
-      sif1.nValue = 0;//cam_mode.saturation;
+      sif1.nValue = cam_mode.saturation;
       sif1.TrackSize = 31;//滑块值
       sif1.ArrowSize = 0;//两端宽度为0（水平滑动条）
       rc_third[1].y = Set_VCENTER(rc_third[0].y+rc_third[0].h/2,31);
@@ -1163,7 +1211,7 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
       sif2.fMask = SIF_ALL;
       sif2.nMin = -3;
       sif2.nMax = 3;
-      sif2.nValue = 0;//cam_mode.contrast;
+      sif2.nValue = cam_mode.contrast;
       sif2.TrackSize = 31;//滑块值
       sif2.ArrowSize = 0;//两端宽度为0（水平滑动条）
       rc_third[1].y = Set_VCENTER(rc_third[0].y+rc_third[0].h/2,31);
@@ -1344,26 +1392,23 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
           {
             case eID_SCROLLBAR://亮度
             {
-//              cam_mode.brightness = sb_nr->nTrackValue; //得到当前的音量值
-//              OV5640_BrightnessConfig(cam_mode.brightness);
-              int i=sb_nr->nTrackValue;
-              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i);//cam_mode.brightness); 
+              cam_mode.brightness = sb_nr->nTrackValue; 
+              OV5640_BrightnessConfig(cam_mode.brightness);
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, cam_mode.brightness); 
               break;
             }
             case eID_SCROLLBAR1://饱和度
             {
-//              cam_mode.saturation = sb_nr->nTrackValue; //得到当前的音量值
-//              OV5640_Color_Saturation(cam_mode.saturation);
-              int i=sb_nr->nTrackValue;
-              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i/*cam_mode.saturation*/); 
+              cam_mode.saturation = sb_nr->nTrackValue; 
+              OV5640_Color_Saturation(cam_mode.saturation);
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, cam_mode.saturation); 
               break;
             }
             case eID_SCROLLBAR2://对比度
             {
-//              cam_mode.contrast = sb_nr->nTrackValue; //得到当前的音量值
-//              OV5640_ContrastConfig(cam_mode.contrast);
-              int i = sb_nr->nTrackValue;
-              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, i);//cam_mode.contrast);                      
+              cam_mode.contrast = sb_nr->nTrackValue; 
+              OV5640_ContrastConfig(cam_mode.contrast);
+              SendMessage(nr->hwndFrom, SBM_SETVALUE, TRUE, cam_mode.contrast);//cam_mode.contrast);                      
               break;
             }
 
@@ -1461,7 +1506,7 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (id == eID_switch && code == BN_CLICKED)//切换自动对焦状态
 			{
 				CamDialog.focus_status = ~CamDialog.focus_status;
-       // GUI_SemPost(set_sem);
+        GUI_SemPost(set_sem);
 			}               
       break;		
     }    
@@ -1507,6 +1552,7 @@ static LRESULT dlg_set_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     {
       DeleteDC(hdc_bk);
       PostQuitMessage(hwnd);
+      InvalidateRect(CamDialog.Cam_Hwnd,NULL,TRUE);
       break;
     }    
     default:
@@ -1550,11 +1596,14 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;  
       }
       cam_sem = GUI_SemCreate(0,1);//同步摄像头图像
+      set_sem = GUI_SemCreate(0,1);//同步摄像头图像
       GetClientRect(hwnd, &rc);
       //设置按键
       CreateWindow(BUTTON,L"参数设置",WS_OWNERDRAW|WS_TRANSPARENT,rc.w-135,419,120,40,hwnd,eID_SET,NULL,NULL);
 
       GUI_Thread_Create(Update_Dialog,"Update_Dialog",5*1024,NULL,6,5);
+      
+      
       //帧率
       CreateWindow(BUTTON,L" ",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,rc.w-600,400,400,72,hwnd,eID_FPS,NULL,NULL);
       SetTimer(hwnd,1,1000,TMR_START,NULL); 
@@ -1649,7 +1698,7 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //      {}
       if(state == 2)
       {     
-
+        U16 *ptmp;
         switch(cur_index)//DMA使用的内存块，不能被CPU使用
         {
           //SCB_CleanInvalidateDCache();
@@ -1657,23 +1706,27 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           {
             
             SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
-            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff1);     
+            pSurf =CreateSurface(SURF_RGB565,cam_mode.cam_out_width, cam_mode.cam_out_height, 0, (U16*)CamDialog.cam_buff1);     
+            ptmp = CamDialog.cam_buff1;
             break;
           }
           case 1:
           {                       
             SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width/2);
-            pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, (U16*)CamDialog.cam_buff0);          
+            pSurf =CreateSurface(SURF_RGB565,cam_mode.cam_out_width, cam_mode.cam_out_height, 0, (U16*)CamDialog.cam_buff0);  
+            ptmp = CamDialog.cam_buff0;
             break;
           }
         }
 //        pSurf =CreateSurface(SURF_RGB565,GUI_XSIZE, GUI_YSIZE, 0, bits);
 //        //切换分辨率时，清除窗口内容
-//        if(switch_res == 1)
-//        {
-//          switch_res = 0;
-//          memset(bits,0,GUI_XSIZE*GUI_YSIZE*2);
-//        }
+        if(switch_res == 1)
+        {
+          switch_res = 0;
+          memset(ptmp,0,GUI_XSIZE*GUI_YSIZE*2);
+          SetBrushColor(hdc, MapRGB(hdc,0,0,0));
+          FillRect(hdc, &rc);
+        }
         hdc_mem =CreateDC(pSurf,NULL);
 //        //更新窗口分辨率
 //        if(update_flag)
@@ -1685,17 +1738,18 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //        x_wsprintf(wbuf,L"帧率:%dFPS",old_fps);
 //        SetWindowText(GetDlgItem(hwnd, ID_FPS), wbuf);                
 //        //更新图像
-        BitBlt(hdc, 0, 0, 800, 480, hdc_mem, 0, 0, SRCCOPY);          
+        
+        BitBlt(hdc, cam_mode.lcd_sx , cam_mode.lcd_sy, cam_mode.cam_out_width,  cam_mode.cam_out_height, hdc_mem, 0 , 0, SRCCOPY);          
         DeleteSurface(pSurf);
         DeleteDC(hdc_mem);
 //        cur_index++;
         
       }
-//      if(state == 3)
-//      {
-//        switch_res = 1;
-//        state = 2;
-//      }
+      if(state == 3)
+      {
+        switch_res = 1;
+        state = 2;
+      }
 
       EndPaint(hwnd,&ps);
       break;
@@ -1759,12 +1813,41 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         PostCloseMessage(hwnd);
       }
       break;  
-    }   
+    }
+    case WM_ERASEBKGND:
+    {
+      HDC hdc =(HDC)wParam;
+      RECT rc =*(RECT*)lParam; 
+      
+      SetBrushColor(hdc,MapRGB(hdc,0,0,0));
+      FillRect(hdc, &rc);      
+      
+      
+      return TRUE;
+    }
     case WM_DESTROY:
     {
+      OV5640_Capture_Control(DISABLE);
+      CamDialog.Update_Thread = 0;
+      cam_mode.cam_out_height = GUI_YSIZE;
+      cam_mode.cam_out_width = GUI_XSIZE;
+      CamDialog.AutoFocus_Thread = 0;
+      cam_mode.lcd_sx = 0;
+      cam_mode.lcd_sy = 0;
+      cam_mode.light_mode =0x04;
+      cam_mode.saturation = 0;
+      cam_mode.brightness = 0;
+      cam_mode.contrast = 0;
+      cam_mode.effect = 0;
+      cam_mode.auto_focus = 1;
+      CamDialog.cur_LightMode = eID_RB4;
+      CamDialog.cur_Resolution = eID_RB3;
+      CamDialog.cur_SpecialEffects = eID_RB16;
+      CamDialog.focus_status = 1;
+      state = 0;   //摄像头状态机
       GUI_VMEM_Free(CamDialog.cam_buff1);
       GUI_VMEM_Free(CamDialog.cam_buff0);
-      break;
+      return PostQuitMessage(hwnd);
     }  
       
     default:

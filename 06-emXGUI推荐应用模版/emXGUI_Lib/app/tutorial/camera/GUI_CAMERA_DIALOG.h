@@ -18,6 +18,8 @@ typedef struct
   int cur_SpecialEffects;
   BOOL update_flag;
   BOOL focus_status;
+  BOOL AutoFocus_Thread;
+  BOOL Update_Thread;
 }Cam_DIALOG_Typedef;
 
 

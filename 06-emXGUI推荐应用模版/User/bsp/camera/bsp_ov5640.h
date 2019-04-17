@@ -338,7 +338,9 @@ void OV5640_Capture_Control(FunctionalState state);
 extern OV5640_MODE_PARAM cam_mode;
 
 void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize);
-
+void OV5640_Color_Saturation(int8_t sat);
+void OV5640_ContrastConfig(int8_t cnst);
+void OV5640_OutSize_Set(uint8_t scaling,uint16_t x_off,uint16_t y_off,uint16_t width,uint16_t height);
 //void I2Cx_Error(I2C_HandleTypeDef *i2c_handler);
 #endif /* __DCMI_OV5640_H */
 

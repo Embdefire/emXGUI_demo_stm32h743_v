@@ -1278,6 +1278,11 @@
               <FileType>8</FileType>
               <FilePath>..\..\emXGUI_Lib\app\demo\GUI_DEMO_ShowWave.cpp</FilePath>
             </File>
+            <File>
+              <FileName>GUI_DEMO_Window.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\base\GUI_DEMO_Window.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

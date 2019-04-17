@@ -1454,11 +1454,13 @@ void OV5640_Capture_Control(FunctionalState state)
     case ENABLE:
     {
       //OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,cam_mode.cam_out_height*cam_mode.cam_out_width);	   
+      OV5640_Init();
       break;
     }
     case DISABLE:
     {
-      
+      HAL_DCMI_DeInit(&DCMI_Handle);
+
       HAL_DCMI_Stop(&DCMI_Handle);
       HAL_DMA_Abort(&DMA_Handle_dcmi);
       break;
