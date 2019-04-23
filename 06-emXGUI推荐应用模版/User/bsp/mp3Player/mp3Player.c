@@ -278,7 +278,7 @@ void mp3PlayerDemo(const char *mp3file)
 		{
       mp3player.ucStatus=STA_SWITCH;
       MusicDialog.playindex++;
-      if(MusicDialog.playindex > MusicDialog.music_file_num)
+      if(MusicDialog.playindex >= MusicDialog.music_file_num)
         MusicDialog.playindex = 0;      
 			printf("END\r\n");
 			break;
