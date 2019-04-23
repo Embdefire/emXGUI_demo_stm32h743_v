@@ -2156,7 +2156,7 @@ static	LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       list_menu_cfg_t cfg;
       CreateWindow(BUTTON, L"图片浏览器", WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE, 100,0,600,35,          
                    hwnd, eID_Pic_Title, NULL, NULL);
-      CreateWindow(BUTTON, L"支持jpg、bmp、png、gif格式", WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE, 100,35,600,35,          
+      CreateWindow(BUTTON, L"支持jpg、bmp、png、gif格式",WS_TRANSPARENT | WS_OWNERDRAW|WS_VISIBLE, 100,35,600,35,          
                    hwnd, eID_Pic_Def, NULL, NULL);
       
       cfg.list_objs = path_list_1; //指定list列表.

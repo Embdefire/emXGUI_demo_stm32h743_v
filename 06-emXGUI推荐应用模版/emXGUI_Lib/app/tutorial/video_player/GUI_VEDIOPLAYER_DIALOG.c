@@ -171,13 +171,16 @@ static void vedio_exit_ownerdraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 {
 	HWND hwnd;
 	HDC hdc;
-	RECT rc;
+	RECT rc,rc_tmp;
 	WCHAR wbuf[128];
 
 	hwnd = ds->hwnd; //button的窗口句柄.
 	hdc = ds->hDC;   //button的绘图上下文句柄.
 	rc = ds->rc;     //button的绘制矩形区.
-
+  
+  GetClientRect(hwnd, &rc_tmp);//得到控件的位置
+  WindowToScreen(hwnd, (POINT *)&rc_tmp, 1);//坐标转换
+  BitBlt(hdc, rc.x, rc.y, rc.w, rc.h, VideoDialog.hdc_bk, rc_tmp.x, rc_tmp.y, SRCCOPY);
 	SetBrushColor(hdc, MapRGB(hdc, COLOR_DESKTOP_BACK_GROUND));
    
    FillCircle(hdc, rc.x+rc.w, rc.y, rc.w);
@@ -257,9 +260,10 @@ static void vedio_button_ownerdraw(DRAWITEM_HDR *ds)
       //设置按钮字体
       SetFont(hdc_mem, ctrlFont48);
    }
+
    if((ds->State & BST_CHECKED) )
    { //按钮是按下状态
-     SetTextColor(hdc, MapRGB(hdc, 105,105,105));      //设置文字色     
+     SetTextColor(hdc_mem, MapRGB(hdc_mem, 105,105,105));      //设置文字色     
    }  
    DrawText(hdc_mem, wbuf,-1,&rc_cli,DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
    
@@ -1011,7 +1015,9 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
     {      
       thread_PlayVideo = 0;
+      
       VideoDialog.SWITCH_STATE = 1;
+      VideoDialog.playindex = 0;
       DeleteDC(VideoDialog.hdc_bk);
       GUI_GRAM_Free(vbuf);
       DeleteSurface(pSurf1);
@@ -1073,7 +1079,7 @@ void GUI_VIDEO_DIALOGTest(void *param)
   
   if(thread == 0)
   {
-     GUI_Thread_Create(GUI_VIDEO_DIALOGTest,"VIDEO_DIALOG",5*1024,NULL,5,3);
+     GUI_Thread_Create(GUI_VIDEO_DIALOGTest,"VIDEO_DIALOG",16*1024,NULL,5,3);
      thread = 1;
      return;
   }
