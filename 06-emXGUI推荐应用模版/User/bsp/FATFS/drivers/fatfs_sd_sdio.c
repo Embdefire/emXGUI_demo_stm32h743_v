@@ -23,7 +23,8 @@
 #include "emXGUI.h"
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
-static GUI_SEM *sem_sd = NULL;//更新图像同步信号量（二值型）
+static GUI_SEM *sem_sd = NULL;
+static GUI_MUTEX *mutex_lock=NULL;
 extern SD_HandleTypeDef uSdHandle;
 //发送标志位
 extern volatile uint8_t TX_Flag;
@@ -45,9 +46,11 @@ const Diskio_drvTypeDef  SD_Driver =
 DSTATUS SD_initialize(BYTE lun)
 {
     Stat = STA_NOINIT;
+  
     if(BSP_SD_Init() == HAL_OK)
     {    
         sem_sd = GUI_SemCreate(0,1);//同步摄像头图像
+        mutex_lock = GUI_MutexCreate();
         Stat &= ~STA_NOINIT;
     }
     return Stat;
@@ -79,22 +82,22 @@ DRESULT SD_ReadBlocks(BYTE *buff,//数据缓存区
   {
     taskEXIT_CRITICAL();
     /* Wait that the reading process is completed or a timeout occurs */
-    timeout = HAL_GetTick();
-    while((RX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
+//    timeout = HAL_GetTick();
+//    while((RX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
+//    {
+//    }
+//    /* incase of a timeout return error */
+//    if (RX_Flag == 0)
+//    {
+//      res = RES_ERROR;
+//    }
+//    else
+    GUI_SemWait(sem_sd,2000);
     {
-    }
-    /* incase of a timeout return error */
-    if (RX_Flag == 0)
-    {
-      res = RES_ERROR;
-    }
-    else
-    //GUI_SemWait(sem_sd,2000);
-    {
-      RX_Flag = 0;
-      timeout = HAL_GetTick();
+//      RX_Flag = 0;
+      //timeout = HAL_GetTick();
 
-      while((HAL_GetTick() - timeout) < SD_TIMEOUT)
+      //while((HAL_GetTick() - timeout) < SD_TIMEOUT)
       {
         //if (HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
         {
@@ -108,7 +111,7 @@ DRESULT SD_ReadBlocks(BYTE *buff,//数据缓存区
           //使相应的DCache无效
           SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
 
-           break;
+//           break;
         }
       }
     }
@@ -131,7 +134,7 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
 	if((DWORD)buff&3)
     GUI_DEBUG("不对齐");
 	{
-  
+    GUI_MutexLock(mutex_lock,0xffffff);
 	 	for(i=0;i<count;i++)
 		{
       //GUI_DEBUG("1");
@@ -148,6 +151,7 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
 //    res = SD_ReadBlock(buff,sector,count);	//单个/多个sector     
 
 //  }
+  GUI_MutexUnlock(mutex_lock);
   return RES_OK;
 }
   
@@ -251,7 +255,7 @@ void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
 //SDMMC1接受完成回调函数
 void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
 {
-
+    GUI_SemPostISR(sem_sd);
     //SCB_InvalidateDCache_by_Addr((uint32_t*)Buffer_Block_Rx, MULTI_BUFFER_SIZE/4);
     RX_Flag=1;
 }
