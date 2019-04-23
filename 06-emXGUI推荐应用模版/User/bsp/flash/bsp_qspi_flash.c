@@ -17,6 +17,7 @@
   
 #include "./flash/bsp_qspi_flash.h"
 #include "backend_res_mgr.h"
+#include "emXGUI.h"
 QSPI_HandleTypeDef QSPIHandle;
 
 /**
@@ -76,7 +77,7 @@ uint8_t QSPI_FLASH_Init(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
     //QSPI freq = osc/PLL2M*PLL2N/PLL2R/（ClockPrescaler+1）
   PeriphClkInitStruct.PLL2.PLL2M = 5;
-  PeriphClkInitStruct.PLL2.PLL2N = 144;
+  PeriphClkInitStruct.PLL2.PLL2N = 120;
   PeriphClkInitStruct.PLL2.PLL2P = 2;
   PeriphClkInitStruct.PLL2.PLL2Q = 2;
   PeriphClkInitStruct.PLL2.PLL2R = 3;
@@ -325,10 +326,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		}
 
 		/* 配置自动轮询模式等待程序结束 */  
-		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
-		{
-			return QSPI_ERROR;
-		}
+    QSPI_FLASH_Wait_Busy();
 
 		/* 更新下一页编程的地址和大小变量 */
 		current_addr += current_size;
@@ -409,10 +407,10 @@ uint8_t BSP_QSPI_Erase_Chip(void)
 		return QSPI_ERROR;
 	} 
 	/* 配置自动轮询模式等待擦除结束 */  
-	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
-	{
-		return QSPI_ERROR;
-	}
+//	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
+//	{
+//		return QSPI_ERROR;
+//	}
 	return QSPI_OK;
 }
 
@@ -848,5 +846,64 @@ void QSPI_FLASH_Wait_Busy(void)
 {   
 	while((QSPI_FLASH_ReadStatusReg(1)&0x01)==0x01);   // 等待BUSY位清空
 }   
+extern HWND wnd_res_writer_progbar;
+#define ESTIMATE_ERASING_TIME (58*1000)
 
+/**
+  * @brief  擦除FLASH扇区，整片擦除，带GUI
+  * @param  无
+  * @retval 无
+  */
+void SPI_FLASH_BulkErase_GUI(void)
+{
+  
+  /* 重置进度条 */
+  u32 progbar_val = 0;
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
+  SetWindowText(wnd_res_writer_progbar,L"擦除Flash中");
+
+  /* 设置最大值，擦除大概需要30s */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
+  
+  BSP_QSPI_Erase_Chip(); 
+
+  GUI_msleep(10);
+  /* 等待擦除完毕*/
+  {
+    u8 FLASH_Status = 0;
+
+    progbar_val = 0;
+    /* 若FLASH忙碌，则等待 */
+    do
+    {
+      /* 读取FLASH芯片的状态寄存器 */
+      FLASH_Status = QSPI_FLASH_ReadStatusReg(1)&0x01;	 
+      
+      progbar_val += 120;
+      /* 超过40*1000ms没完成，继续等*/
+//      if(progbar_val >= ESTIMATE_ERASING_TIME - 10*1000)
+//          progbar_val =ESTIMATE_ERASING_TIME - 10*1000;
+
+      SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,progbar_val);
+      /* 让出cpu */
+      GUI_msleep(100);
+
+      {
+        /* 大于2倍预估时间，跳出 */
+        if(progbar_val > 2*ESTIMATE_ERASING_TIME) 
+        {
+//          SPI_TIMEOUT_UserCallback(4);
+          return;
+        }
+      } 
+    }
+    while ((FLASH_Status & 0x01)==0x01); /* 正在写入标志 */
+
+  }
+  
+  /* 完成 */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
+}
 /*********************************************END OF FILE**********************/

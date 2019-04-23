@@ -72,6 +72,45 @@ static void App_Load_Res(void )
   return;
 }
 
+static void progressbar_owner_draw(DRAWITEM_HDR *ds)
+{
+	HWND hwnd;
+	HDC hdc;
+	RECT rc,m_rc[2];
+//	int range,val;
+	WCHAR wbuf[128];
+	PROGRESSBAR_CFG cfg;
+	hwnd =ds->hwnd;
+	hdc =ds->hDC;
+   /*************第一步***************/
+   //获取客户区矩形位置，大小
+	GetClientRect(hwnd,&rc);
+   //设置进度条的背景颜色
+	SetBrushColor(hdc,MapRGB(hdc,150,200,250));
+   //填充进度条的背景
+	FillRoundRect(hdc,&ds->rc, MIN(rc.w,rc.h)/2);   
+//   //设置画笔颜色
+	SetPenColor(hdc,MapRGB(hdc,100,10,10));
+//   //绘制进度条的背景边框
+//   DrawRect(hdc,&rc);
+   /*************第二步***************/	
+   cfg.cbSize =sizeof(cfg);
+	cfg.fMask =PB_CFG_ALL;
+	SendMessage(hwnd,PBM_GET_CFG,0,(LPARAM)&cfg);
+   //生成进度条矩形
+	MakeProgressRect(m_rc,&rc,cfg.Rangle,cfg.Value,PB_ORG_BOTTOM);
+   //设置进度条的颜色
+	SetBrushColor(hdc,MapRGB(hdc,210,10,10));
+   //填充进度条
+	FillRoundRect(hdc,&m_rc[0],MIN(rc.w,rc.h)/2);
+
+   //绘制进度条的边框，采用圆角边框
+	DrawRoundRect(hdc,&m_rc[0],MIN(rc.w,rc.h)/2);
+   /************显示进度值****************/
+	
+	//InflateRect(&rc,40,0);
+	//DrawText(hdc,L"加载中...",-1,&rc,DT_CENTER);
+}
 /**
   * @brief  启动界面回调函数
   */
@@ -104,10 +143,10 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       OffsetRect(&rc0,0,png_bm.Height);
       rc0.x = 0;
       rc0.y = rc.h/2;
-      rc0.h = 30;      
+      rc0.h = 35;      
       rc0.w = rc.w;
 
-      CreateWindow(TEXTBOX, L"emXGUI booting", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L"系统启动中", WS_VISIBLE, 
                     rc0.x,rc0.y,rc0.w,rc0.h,
                     hwnd, ID_TEXT1, NULL, NULL);
       SendMessage(GetDlgItem(hwnd, ID_TEXT1),TBM_SET_TEXTFLAG,0,
@@ -115,18 +154,18 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
       OffsetRect(&rc0,0,rc0.h);
 
-      CreateWindow(TEXTBOX, L"Copying FontLIB from SPIFLASH to SDRAM", WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L"正从外部FLASH拷贝字库到SDRAM", WS_VISIBLE, 
                     rc0.x,rc0.y,rc0.w,rc0.h,
                     hwnd, ID_TEXT2, NULL, NULL);
       SendMessage(GetDlgItem(hwnd, ID_TEXT2),TBM_SET_TEXTFLAG,0,
                     DT_SINGLELINE|DT_CENTER|DT_VCENTER|DT_BKGND); 
 
-      OffsetRect(&rc0,0,rc0.h+10);
+      OffsetRect(&rc0,0,rc0.h+15);
 
-      rc0.x = 10;
-      rc0.h = 30;
-      rc0.w = rc.w - 2*rc0.x;
-
+      
+      rc0.h = 35;
+      rc0.w = 360;
+      rc0.x = 400-rc0.w/2;
       //PROGRESSBAR_CFG结构体的大小
       cfg.cbSize	 = sizeof(PROGRESSBAR_CFG);
       //开启所有的功能
@@ -135,7 +174,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       cfg.TextFlag = DT_VCENTER|DT_CENTER;  
 
       Boot_progbar = CreateWindow(PROGRESSBAR,L"Loading",
-                                     PBS_TEXT|PBS_ALIGN_LEFT|WS_VISIBLE,
+                                     PBS_TEXT|PBS_ALIGN_LEFT|WS_VISIBLE|WS_OWNERDRAW,
                                     rc0.x,rc0.y,rc0.w,rc0.h,hwnd,ID_PROGBAR,NULL,NULL);
 
       SendMessage(Boot_progbar,PBM_GET_CFG,TRUE,(LPARAM)&cfg);
@@ -170,7 +209,13 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return TRUE;
 
     }
-
+		case	WM_DRAWITEM:
+		{
+			DRAWITEM_HDR *ds;
+			ds =(DRAWITEM_HDR*)lParam;
+			progressbar_owner_draw(ds);
+			return TRUE;
+		}
 
     case	WM_CTLCOLOR:
     {
@@ -180,7 +225,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       cr =(CTLCOLOR*)lParam;
       if(id == ID_TEXT1 || id == ID_TEXT2)
       {
-        cr->TextColor =RGB888(255,255,255);//文字颜色（RGB888颜色格式)
+        cr->TextColor =RGB888(210,61,50);//文字颜色（RGB888颜色格式)
         cr->BackColor =RGB888(0,0,0);//背景颜色（RGB888颜色格式)
         //cr->BorderColor =RGB888(255,10,10);//边框颜色（RGB888颜色格式)
         return TRUE;
@@ -242,15 +287,17 @@ void	GUI_Boot_Interface_Dialog(void *param)
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
-
+    static int i = 0;
   /* 启动界面在加载完资源后会关闭，执行以下代码，创建应用线程 */
 //  {  
 #if (GUI_APP_RES_WRITER_EN )  
     /* 人为设置为TRUE，测试用 */
     //res_not_found_flag = TRUE; 
-  
-     if(res_not_found_flag)
+    if(!i){
+      i = 1;
+     if(res_not_found_flag )
      {
+       
         GUI_INFO("外部SPI FLASH缺少资源，即将开始烧录资源内容...");
 
         /* 若找不到资源，进入资源烧录应用 */      
@@ -276,7 +323,7 @@ void	GUI_Boot_Interface_Dialog(void *param)
 //        rt_thread_startup(h);
      }   
 //  } 
-
+   }
     /* 部分操作系统在退出任务函数时，必须删除线程自己 */
     GUI_Thread_Delete(GUI_GetCurThreadHandle());
 

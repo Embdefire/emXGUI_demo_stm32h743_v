@@ -31,7 +31,7 @@ FRESULT res_sd;                /* 文件操作结果 */
 
 
 
-//extern Diskio_drvTypeDef  SD_Driver;
+extern Diskio_drvTypeDef  SD_Driver;
 
 
 /**
@@ -62,7 +62,7 @@ BOOL FileSystem_Init(void)
 
 
 	//链接驱动器，创建盘符
-//	FATFS_LinkDriver(&SD_Driver, SDPath);
+	FATFS_LinkDriver(&SD_Driver, SDPath);
 	//f_mkfs(SDPath, FM_ANY, 0, SDworkBuffer, sizeof(SDworkBuffer));		
 	res_sd = f_mount(&fs,"0:",1);	
 	if(res_sd == FR_NO_FILESYSTEM)
@@ -98,7 +98,7 @@ BOOL FileSystem_Init(void)
   {
     printf("》文件系统挂载成功\r\n");
     
-#if 1
+#if 0
     /* 文件系统测试 */
     FileSystem_Test();
 #endif 

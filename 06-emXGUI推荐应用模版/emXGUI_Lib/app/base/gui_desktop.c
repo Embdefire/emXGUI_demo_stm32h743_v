@@ -87,7 +87,7 @@ static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 
 	SetTextColor(hdc,MapRGB(hdc,255,255,255));
   rc.y +=20;
-  DrawText(hdc,L"emXGUI@Embedfire STM32H743X ",-1,&rc,DT_CENTER);
+  DrawText(hdc,L"emXGUI@embedFire STM32H743X ",-1,&rc,DT_CENTER);
     
   /* ±³¾° */
   GetClientRect(hwnd,&rc);

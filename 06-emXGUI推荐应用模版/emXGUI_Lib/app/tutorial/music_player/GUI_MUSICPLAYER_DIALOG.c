@@ -23,7 +23,7 @@ static BITMAP bm_rotate;
 static char path[100]="0:";//文件根目录
 MUSIC_DIALOG_Typedef MusicDialog = 
 {
-  .filename = "desktop.jpg",
+  .filename = "musicdesktop.jpg",
   .power = 20,
   .playindex = 0,
 };
@@ -590,7 +590,7 @@ static void Dialog_Init(HWND hwnd)
   //Step3：分配内存
     
   //Step4：读取音乐列表
-  scan_Musicfiles(path);//出现hardfault时，注意线程栈的大小
+  //scan_Musicfiles(path);//出现hardfault时，注意线程栈的大小
   //Step5:initialize Hardware
 	if (wm8978_Init()==0)
 	{
@@ -1418,7 +1418,7 @@ void	GUI_MUSIC_DIALOG(void *param)
   
 	WNDCLASS	wcex;
 	MSG msg;
-
+  scan_Musicfiles(path);
 	wcex.Tag = WNDCLASS_TAG;
 
 	wcex.Style = CS_HREDRAW | CS_VREDRAW;
@@ -1458,7 +1458,9 @@ void GUI_MUSIC_DIALOGTest(void *param)
   
   if(thread == 0)
   {
-     GUI_Thread_Create(GUI_MUSIC_DIALOGTest,"MUSIC_DIALOG",12*1024,NULL,5,3);
+     //
+     
+     GUI_Thread_Create(GUI_MUSIC_DIALOGTest,"MUSIC_DIALOG",5*1024,NULL,5,3);
      thread = 1;
      return;
   }

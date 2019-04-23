@@ -25,7 +25,8 @@ static u32 file_num = 0;
 
 extern HWND wnd_res_writer_info_textbox ;
 extern HWND wnd_res_writer_progbar;
-
+static uint8_t state = QSPI_ERROR;
+uint32_t loop = 0;
 extern void SPI_FLASH_BulkErase_GUI(void);
 
  
@@ -142,11 +143,11 @@ FRESULT Make_Catalog (char* path,uint8_t clear)
 
     /* 重置进度条 */
     SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-    SetWindowText(wnd_res_writer_progbar,L"Creating catalog...");
+    SetWindowText(wnd_res_writer_progbar,L"生成目录文件...");
     /* 设置进度条最大值为100 */
     SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,100);
 
-    SetWindowText(wnd_res_writer_info_textbox,L"Creating catalog file...");
+    SetWindowText(wnd_res_writer_info_textbox,L"生成目录文件...");
     GUI_msleep(20);
     
     /* 第一次执行Make_Catalog函数时删除旧的烧录信息文件 */
@@ -351,10 +352,10 @@ void Burn_Catalog(void)
   
   /* 重置进度条 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Writing catalog...");
+  SetWindowText(wnd_res_writer_progbar,L"烧写目录中...");
   /* 设置最大值 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"Writing catalog...");
+  SetWindowText(wnd_res_writer_info_textbox,L"烧写目录中...");
 
   GUI_msleep(20);
   BURN_INFO("-------------------------------------"); 
@@ -374,12 +375,18 @@ void Burn_Catalog(void)
     GUI_msleep(20);
 
     /* 把dir信息烧录到FLASH中 */  
-    BSP_QSPI_Write((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    state = BSP_QSPI_Write((u8*)&dir,RESOURCE_BASE_ADDR + sizeof(dir)*i,sizeof(dir));
+    if(state != QSPI_OK)
+    {
+      BURN_ERROR("Burn_Catalog QSPI_Write ERROR");
+      BURN_ERROR("loop=%d",loop);
+
+    }    
   }
   
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  BURN_INFO("准备烧录目录文件完成");
-  SetWindowText(wnd_res_writer_info_textbox,L"Writing catalog complete.");
+  BURN_INFO("烧写目录文件成功");
+  SetWindowText(wnd_res_writer_info_textbox,L"烧写目录成功");
   GUI_msleep(20);
 
 }
@@ -429,7 +436,7 @@ FRESULT Burn_Content(void)
   
   /* 重置进度条 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Writing file");
+  SetWindowText(wnd_res_writer_progbar,L"烧写文件");
   /* 设置最大值*/
   SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
   GUI_msleep(20);
@@ -448,7 +455,7 @@ FRESULT Burn_Content(void)
     BURN_INFO("-------------------------------------"); 
     BURN_INFO("准备烧录内容：%s",full_file_name);
     
-    x_wsprintf((WCHAR*)tempbuf,L"Writing file %d/%d,writing big files will take a long time.\r\nPlease wait...",i,file_num);
+    x_wsprintf((WCHAR*)tempbuf,L"烧写中(%d/%d),烧写大文件需要很长时间.\r\n请耐心等待...",i,file_num);
     SetWindowText(wnd_res_writer_info_textbox,(WCHAR*)tempbuf);
     SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
 
@@ -475,8 +482,17 @@ FRESULT Burn_Content(void)
           BURN_ERROR("读取文件失败！");
           LED_RED;
           return result;
-        }      
-        BSP_QSPI_Write(tempbuf,write_addr,bw);  //拷贝数据到外部flash上    
+        }
+        loop = 0;
+        if(bw == 0)break;//为0时不进行读写，跳出         
+        state = BSP_QSPI_Write(tempbuf,write_addr,bw);  //拷贝数据到外部flash上   
+        if(state != QSPI_OK)
+        {
+          loop++;
+          BURN_ERROR("Burn_Content QSPI_Write ERROR");
+          BURN_ERROR("loop=%d bw =%d",loop,bw);
+
+        }  
         write_addr+=bw;				
         if(bw !=256)break;
       }
@@ -489,7 +505,7 @@ FRESULT Burn_Content(void)
   BURN_INFO("所有文件均已烧录完毕！（非文件系统部分）");
   
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"All file have been complete.");
+  SetWindowText(wnd_res_writer_info_textbox,L"所有资源烧写完成");
   GUI_msleep(20);
 
   return FR_OK;
@@ -515,7 +531,7 @@ FRESULT Check_Resource(void)
   
   /* 重置进度条 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
-  SetWindowText(wnd_res_writer_progbar,L"Checking file");
+  SetWindowText(wnd_res_writer_progbar,L"校验文件中...");
 
   /* 设置最大值 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,file_num);
@@ -531,7 +547,7 @@ FRESULT Check_Resource(void)
     if(is_end !=0)   
       break;    
     
-    x_wsprintf((WCHAR *)tempbuf,L"Checking file %d/%d,checking big files will take a long time.\r\nPlease wait...",i,file_num);
+    x_wsprintf((WCHAR *)tempbuf,L"校验中(%d/%d),校验大文件需要很长时间.\r\n请耐心等待...",i,file_num);
     SetWindowText(wnd_res_writer_info_textbox,(WCHAR *)tempbuf);
     SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,i);
 
@@ -578,12 +594,19 @@ FRESULT Check_Resource(void)
         }      
         
         if(bw == 0)break;//为0时不进行读写，跳出
-        BSP_QSPI_FastRead(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        state = BSP_QSPI_FastRead(flash_buf,read_addr,bw);  //从FLASH中读取数据
+        if(state != QSPI_OK)
+        {
+          BURN_ERROR("Check_Resource BSP_QSPI_Read ERROR");
+          BURN_ERROR("loop=%d bw =%d",loop,bw);
+
+
+        }        
         read_addr+=bw;		
         
         for(j=0;j<bw;j++)
         {
-          if(tempbuf[i] != flash_buf[i])
+          if(tempbuf[j] != flash_buf[j])
           {
             BURN_ERROR("数据校验失败！");
             LED_RED;
@@ -605,7 +628,7 @@ FRESULT Check_Resource(void)
   BURN_INFO("所有文件校验正常！（非文件系统部分）");
   
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,file_num);
-  SetWindowText(wnd_res_writer_info_textbox,L"All files check normal!");
+  SetWindowText(wnd_res_writer_info_textbox,L"所有文件校验正常!");
   GUI_msleep(20);
 
   return FR_OK;
@@ -634,21 +657,21 @@ FRESULT BurnFile(void)
   if(result != FR_OK)
   {
     GUI_ERROR("请插入带‘srcdata’烧录数据的SD卡,并重新复位开发板！ result = %d",result);
-    SetWindowText(wnd_res_writer_info_textbox,L"1.Please insert an SD card with [srcdata] resources.\r\n2.Powerup again the board.");
+    SetWindowText(wnd_res_writer_info_textbox,L"1.插入带有srcdata文件夹的SD卡.\r\n2.重新给板子上电.");
     GUI_msleep(20);
     
     return result;
   }
   f_closedir(&dir);
   
-  SetWindowText(wnd_res_writer_info_textbox,L"Erasing FLASH,it will take a long time,\r\nplease wait...");
+  SetWindowText(wnd_res_writer_info_textbox,L"在进行整片擦除,时间很长,\r\n请耐心等候...");
   GUI_msleep(20);
   
   BURN_INFO("正在进行整片擦除，时间很长，请耐心等候...");
   
 
   /* 整片FLASH擦除 */
-  BSP_QSPI_Erase_Chip();    
+  SPI_FLASH_BulkErase_GUI();    
   
 
   /* 生成烧录目录信息文件 */

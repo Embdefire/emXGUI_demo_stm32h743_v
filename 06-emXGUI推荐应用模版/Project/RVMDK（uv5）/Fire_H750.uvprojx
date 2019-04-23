@@ -1393,6 +1393,11 @@
                 </FileArmAds>
               </FileOption>
             </File>
+            <File>
+              <FileName>fatfs_sd_sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\FATFS\drivers\fatfs_sd_sdio.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
