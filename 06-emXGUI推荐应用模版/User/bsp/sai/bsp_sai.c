@@ -103,7 +103,7 @@ void BSP_AUDIO_OUT_ClockConfig(uint32_t AudioFreq)
     }         
     
     default:
-      while(1);
+      break;
   }
   HAL_RCCEx_PeriphCLKConfig(&RCC_ExCLKInitStruct);
   

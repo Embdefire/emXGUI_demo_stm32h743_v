@@ -579,7 +579,7 @@ static void Dialog_Init(HWND hwnd)
   /* 转换成bitmap */
   DCtoBitmap(rotate_disk_hdc,&bm_rotate); 
   pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);  
-  SetTimer(hwnd, 1, 100, TMR_START,NULL);
+  SetTimer(hwnd, 1, 150, TMR_START,NULL);
 
   rc.x =0;
   rc.y =0;
@@ -953,7 +953,7 @@ static LRESULT Dlg_LRC_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 }
 static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  static int angle=0;
+  
 	switch (msg)
 	{
       
@@ -1055,18 +1055,18 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     } 
     case WM_TIMER:
     {
-      
+      if(music_icon[6].state != FALSE) break;
       RECT rc;
       {
         if(!MusicDialog.mList_State)
         {
-          angle+=5;
-          angle%=360;
+          MusicDialog.angle+=5;
+          MusicDialog.angle%=360;
           //ClrDisplay(hdc_rotate,NULL,MapRGB(hdc_rotate,0,0,0));
           BitBlt(hdc_rotate, 0, 0, 240, 240, MusicDialog.hdc_bk, 280, 120, SRCCOPY);
           
           EnableAntiAlias(hdc_rotate, TRUE);
-          RotateBitmap(hdc_rotate,120,120,&bm_rotate,angle);
+          RotateBitmap(hdc_rotate,120,120,&bm_rotate,MusicDialog.angle);
           EnableAntiAlias(hdc_rotate, FALSE);
           
           
@@ -1194,6 +1194,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           case eID_BUTTON_NEXT:
           {     
+            MusicDialog.angle = 0;
             MusicDialog.playindex++;
             if(MusicDialog.playindex >= MusicDialog.music_file_num) MusicDialog.playindex = 0;
             if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
@@ -1218,7 +1219,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           case eID_BUTTON_BACK:
           {
 
-           
+            MusicDialog.angle = 0;
             MusicDialog.playindex--;
             if(MusicDialog.playindex > MusicDialog.music_file_num) MusicDialog.playindex = 0;
             if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
@@ -1399,7 +1400,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       MusicDialog.playindex = 0;
       MusicDialog.music_file_num = 0;
       MusicDialog.power = 20;
-      angle = 0;
+      MusicDialog.angle = 0;
       
       SAI_Play_Stop();		/* 停止I2S录音和放音 */
       wm8978_Reset();	/* 复位WM8978到复位状态 */        

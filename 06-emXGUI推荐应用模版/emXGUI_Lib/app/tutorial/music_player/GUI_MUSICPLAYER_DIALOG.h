@@ -68,6 +68,7 @@ typedef struct
   BOOL mLRC_State;
   BOOL Update_Content;
   uint8_t chgsch;
+  int angle;
 }MUSIC_DIALOG_Typedef;
 extern MUSIC_DIALOG_Typedef MusicDialog;
 extern LYRIC lrc;

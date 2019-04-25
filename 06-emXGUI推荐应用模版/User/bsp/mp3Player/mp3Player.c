@@ -166,6 +166,9 @@ void mp3PlayerDemo(const char *mp3file)
   ID3V2_size = mp3_GetID3V2_Size(inputbuf);
 	read_ptr=inputbuf;
 	bytes_left=bw;
+  MusicDialog.angle = 0;
+  x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
+  SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);    
 	/* 进入主程序循环体 */
 	while(mp3player.ucStatus == STA_PLAYING)
 	{
@@ -278,11 +281,13 @@ void mp3PlayerDemo(const char *mp3file)
 		{
       mp3player.ucStatus=STA_SWITCH;
       MusicDialog.playindex++;
+      
       if(MusicDialog.playindex >= MusicDialog.music_file_num)
         MusicDialog.playindex = 0;      
 			printf("END\r\n");
 			break;
 		}	
+
     int update = 0;//记录只更新一次的参数
 //    static int times= 0 ;
 		while(Isread==0)
@@ -302,8 +307,7 @@ void mp3PlayerDemo(const char *mp3file)
             update = 1;
             x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.alltime/60,MusicDialog.alltime%60);
             SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_ALL_TIME), wbuf);
-            x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
-            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);    
+              
           }          
                       
           x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.curtime/60,MusicDialog.curtime%60);
