@@ -233,15 +233,70 @@ static void vedio_button_ownerdraw(DRAWITEM_HDR *ds)
   //创建缓冲层，格式为SURF_ARGB4444
   hdc_mem = CreateMemoryDC(SURF_SCREEN, rc_cli.w, rc_cli.h);
    
-	GetWindowText(ds->hwnd,wbuf,128); //获得按钮控件的文字  
+	
+   GetWindowText(ds->hwnd,wbuf,128); //获得按钮控件的文字  
    GetClientRect(hwnd, &rc_tmp);//得到控件的位置
    GetClientRect(hwnd, &rc_cli);//得到控件的位置
-   WindowToScreen(hwnd, (POINT *)&rc_tmp, 1);//坐标转换
-   
+   WindowToScreen(hwnd, (POINT *)&rc_tmp, 1);//坐标转换   
    BitBlt(hdc_mem, rc_cli.x, rc_cli.y, rc_cli.w, rc_cli.h, VideoDialog.hdc_bk, rc_tmp.x, rc_tmp.y, SRCCOPY);
+   //设置按键的颜色
+   SetTextColor(hdc_mem, MapARGB(hdc_mem, 250,250,250,250));
+   if((ds->ID == eID_Vedio_BACK || ds->ID == eID_Vedio_NEXT)&& ds->State & BST_PUSHED)
+      SetTextColor(hdc_mem, MapARGB(hdc_mem, 250,105,105,105));
+   if(ds->ID == eID_Vedio_BACK || ds->ID == eID_Vedio_NEXT)
+   {
+      SetFont(hdc_mem, ctrlFont64);
+
+   }
+   else if(ds->ID == eID_Vedio_START)
+   {
+      SetFont(hdc_mem, ctrlFont72);
+   }
+   else
+   {
+      //设置按钮字体
+      SetFont(hdc_mem, ctrlFont48);
+   }
+
+   if((ds->State & BST_CHECKED) )
+   { //按钮是按下状态
+     SetTextColor(hdc_mem, MapRGB(hdc_mem, 105,105,105));      //设置文字色     
+   }  
+   DrawText(hdc_mem, wbuf,-1,&rc_cli,DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
    
-//   SetBrushColor(hdc_mem,MapARGB(hdc_mem, 0, 255, 250, 250));
-//   FillRect(hdc_mem, &rc_cli);
+   BitBlt(hdc, rc_cli.x, rc_cli.y, rc_cli.w, rc_cli.h, hdc_mem, 0, 0, SRCCOPY);
+   
+   //StretchBlt(hdc, rc_cli.x, rc_cli.y, rc_cli.w, rc_cli.h, hdc_mem, 0, 0, rc_cli.w, rc_cli.h, SRCCOPY);
+   
+   DeleteDC(hdc_mem);  
+}
+/**
+  * @brief  vedio_button_ownerdraw 按钮控件的重绘制
+  * @param  ds:DRAWITEM_HDR结构体
+  * @retval NULL
+  */
+static void List_button_ownerdraw(DRAWITEM_HDR *ds)
+{
+  HDC hdc; //控件窗口HDC
+  HDC hdc_mem;//内存HDC，作为缓冲区
+  HWND hwnd; //控件句柄 
+  RECT rc_cli,rc_tmp;//控件的位置大小矩形
+  WCHAR wbuf[128];
+  hwnd = ds->hwnd;
+	hdc = ds->hDC; 
+  //获取控件的位置大小信息
+  GetClientRect(hwnd, &rc_cli);
+  //创建缓冲层，格式为SURF_ARGB4444
+  hdc_mem = CreateMemoryDC(SURF_SCREEN, rc_cli.w, rc_cli.h);
+   
+	
+   GetWindowText(ds->hwnd,wbuf,128); //获得按钮控件的文字  
+   GetClientRect(hwnd, &rc_tmp);//得到控件的位置
+   GetClientRect(hwnd, &rc_cli);//得到控件的位置
+   WindowToScreen(hwnd, (POINT *)&rc_tmp, 1);//坐标转换   
+//   BitBlt(hdc_mem, rc_cli.x, rc_cli.y, rc_cli.w, rc_cli.h, VideoDialog.hdc_bk, rc_tmp.x, rc_tmp.y, SRCCOPY);
+   SetBrushColor(hdc_mem, MapRGB(hdc_mem, 54, 54, 54));
+   FillRect(hdc_mem, &rc_cli);   
    //设置按键的颜色
    SetTextColor(hdc_mem, MapARGB(hdc_mem, 250,250,250,250));
    if((ds->ID == eID_Vedio_BACK || ds->ID == eID_Vedio_NEXT)&& ds->State & BST_PUSHED)
@@ -518,7 +573,7 @@ static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
        if(ds->ID == eID_VIDEO_RETURN)
           video_return_ownerdraw(ds); //执行自绘制按钮
        else if(ds->ID == ICON_VIEWER_ID_NEXT || ds->ID == ICON_VIEWER_ID_PREV)
-          vedio_button_ownerdraw(ds);
+          List_button_ownerdraw(ds);
 //       else if(ds->ID == ID_HOME )
 //          home_owner_draw(ds);
        return TRUE;    

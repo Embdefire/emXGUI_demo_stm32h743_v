@@ -419,7 +419,7 @@ void mp3PlayerDemo(const char *mp3file)
     timecount++;
 	}
 	SAI_Play_Stop();
-
+  lyriccount=0;
 	mp3player.ucStatus=STA_IDLE;
 	MP3FreeDecoder(Mp3Decoder);
 	f_close(&file);	

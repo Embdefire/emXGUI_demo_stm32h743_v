@@ -25,7 +25,7 @@
 /*=========================================================================================*/
 /*访问资源设备的互斥信号量*/
 static GUI_MUTEX *mutex_lock=NULL;
-
+uint8_t Rx_Buffer[256];
 /**
   * @brief  初始化资源设备（外部FLASH）
   * @param  无
@@ -47,7 +47,7 @@ BOOL RES_DevInit(void)
     GUI_DEBUG("\r\nFlash Status Reg1 is 0x%02X", QSPI_FLASH_ReadStatusReg(1));	
     GUI_DEBUG("\r\nFlash Status Reg2 is 0x%02X", QSPI_FLASH_ReadStatusReg(2));
     GUI_DEBUG("\r\nFlash Status Reg3 is 0x%02X", QSPI_FLASH_ReadStatusReg(3));    
-    //RES_DevTest();
+    BSP_QSPI_FastRead(Rx_Buffer, 16*1024*1024, 256);
 #endif
     return TRUE;
   }

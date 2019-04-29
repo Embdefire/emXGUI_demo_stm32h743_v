@@ -51,10 +51,10 @@ void BSP_MPU_ConfigRegion(	uint8_t		Region,
   MPU_InitStruct.BaseAddress = Address;									//区域基地址。
   MPU_InitStruct.Size = Size;														//要配置的区域的区域大小。
   MPU_InitStruct.AccessPermission = AccessPermission;		//数据访问权限允许您配置用户和特权模式的读/写访问权限。
-  MPU_InitStruct.IsBufferable = IsBufferable;						//区域是可缓冲的，即使用回写缓存。 可缓存但不可缓冲的区域使用直写策略。
+  MPU_InitStruct.IsBufferable = IsBufferable;						//区域是可缓冲的，即使用回写缓存。 可缓存但不可缓冲的区域使用直写策略。WB 
   MPU_InitStruct.IsCacheable = IsCacheable;							//区域是否可缓存的，即其值是否可以保存在缓存中。
   MPU_InitStruct.IsShareable = IsShareable;							//区域是否可以在多个总线主控器之间共享。
-  MPU_InitStruct.Number = Region;												//区域保护。
+  MPU_InitStruct.Number = Region;												//区域号。
   MPU_InitStruct.TypeExtField = TypeExtField;						//键入扩展字段，允许您配置内存访问类型。
   MPU_InitStruct.SubRegionDisable = 0x00;								//子区域禁用字段。
   MPU_InitStruct.DisableExec = DisableExec;							//指令访问禁用位。

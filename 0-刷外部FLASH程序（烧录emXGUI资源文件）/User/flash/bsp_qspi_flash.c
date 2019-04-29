@@ -94,7 +94,7 @@ void QSPI_FLASH_Init(void)
 	/*采样移位半个周期*/
 	QSPIHandle.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
 	/*Flash大小为16M字节，2^24，所以取权值24-1=23*/
-	QSPIHandle.Init.FlashSize = 23;
+	QSPIHandle.Init.FlashSize = 24;
 	/*片选高电平保持时间，至少50ns，对应周期数6*9.2ns =55.2ns*/
 	QSPIHandle.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
 	/*时钟模式选择模式0，nCS为高电平（片选释放）时，CLK必须保持低电平*/

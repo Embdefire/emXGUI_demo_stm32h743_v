@@ -1401,7 +1401,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       MusicDialog.music_file_num = 0;
       MusicDialog.power = 20;
       MusicDialog.angle = 0;
-      
+      MusicDialog.mLRC_State = 0;
       SAI_Play_Stop();		/* 停止I2S录音和放音 */
       wm8978_Reset();	/* 复位WM8978到复位状态 */        
       return PostQuitMessage(hwnd);	
