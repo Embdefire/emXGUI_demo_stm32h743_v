@@ -1448,9 +1448,9 @@
               <FilePath>..\..\emXGUI_Lib\app\tutorial\music_player\GUI_MUSICPLAYER_DIALOG.c</FilePath>
             </File>
             <File>
-              <FileName>MP3_Player.c</FileName>
+              <FileName>WAV_Player.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\emXGUI_Lib\app\tutorial\music_player\MP3_Player.c</FilePath>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\music_player\WAV_Player.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
