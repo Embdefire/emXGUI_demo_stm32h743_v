@@ -16,7 +16,7 @@ extern "C"{
 /* 资源在SD卡中的路径 */
 #define RESOURCE_DIR         "0:/srcdata"
 /* 资源烧录到的FLASH基地址（目录地址） */
-#define RESOURCE_BASE_ADDR    (16*1024*1024)
+#define RESOURCE_BASE_ADDR    (10*1024*1024)
 /* 存储在FLASH中的资源目录大小 */
 #define CATALOG_SIZE           (8*1024)
   

@@ -54,6 +54,6 @@ typedef __packed struct
 } WavHead;
 extern MP3_TYPE mp3player;         /* mp3≤•∑≈…Ë±∏ */
 void mp3PlayerDemo(const char *mp3file);
-void wavplayer(const char *wavfile, uint8_t vol, HDC hdc);
+void wavplayer(const char *wavfile);
 #endif  /* __MP3PLAYER_H__   */
 

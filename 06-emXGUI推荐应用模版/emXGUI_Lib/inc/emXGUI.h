@@ -11,8 +11,8 @@
   **********************************************************************
   */ 
 
-#ifndef	__EMXGUI_H_20181124_1520__
-#define	__EMXGUI_H_20181124_1520__
+#ifndef	__EMXGUI_H_20190418_1136__
+#define	__EMXGUI_H_20190418_1136__
 
 #ifdef	__cplusplus
 extern	"C"{
@@ -95,7 +95,7 @@ typedef	struct	tagSIZE16
 
 typedef	struct	tagPOINT
 {
-	INT x,y;
+	int x,y;
 }POINT,*LPPOINT;
 
 typedef	struct tagRECT
@@ -313,10 +313,10 @@ typedef union
 
 /*============================================================================*/
 
-#define	COLOR_FORMAT_INDEX1		1
-#define	COLOR_FORMAT_INDEX2		2
-#define	COLOR_FORMAT_INDEX4		3
-#define	COLOR_FORMAT_INDEX8		4
+#define	COLOR_FORMAT_LUT1		1
+#define	COLOR_FORMAT_LUT2		2
+#define	COLOR_FORMAT_LUT4		3
+#define	COLOR_FORMAT_LUT8		4
 #define	COLOR_FORMAT_XRGB2222	5
 #define	COLOR_FORMAT_ARGB2222	6
 #define	COLOR_FORMAT_RGB332		7
@@ -328,10 +328,10 @@ typedef union
 #define	COLOR_FORMAT_RGB888		13
 #define	COLOR_FORMAT_XRGB8888	14
 #define	COLOR_FORMAT_ARGB8888	15
-#define	COLOR_FORMAT_ALPHA1		16
-#define	COLOR_FORMAT_ALPHA2		17
-#define	COLOR_FORMAT_ALPHA4		18
-#define	COLOR_FORMAT_ALPHA8		19
+#define	COLOR_FORMAT_AL1		16
+#define	COLOR_FORMAT_AL2		17
+#define	COLOR_FORMAT_AL4		18
+#define	COLOR_FORMAT_AL8		19
 
 #define	RGB332(r,g,b)		((r&0x7)<<5)|((g&0x7)<<2)|(b&0x3)
 #define	RGB565(r,g,b)		((r&0x1F)<<11)|((g&0x3F)<<5)|(b&0x1F)
@@ -380,10 +380,10 @@ typedef union
 
 typedef enum
 {
-	BM_LUT1	= COLOR_FORMAT_INDEX1,
-	BM_LUT2	= COLOR_FORMAT_INDEX2,
-	BM_LUT4	= COLOR_FORMAT_INDEX4,
-	BM_LUT8	= COLOR_FORMAT_INDEX8,
+	BM_LUT1	= COLOR_FORMAT_LUT1,
+	BM_LUT2	= COLOR_FORMAT_LUT2,
+	BM_LUT4	= COLOR_FORMAT_LUT4,
+	BM_LUT8	= COLOR_FORMAT_LUT8,
 	BM_RGB332 = COLOR_FORMAT_RGB332,
 	BM_RGB565 = COLOR_FORMAT_RGB565,
 	BM_XRGB1555 = COLOR_FORMAT_XRGB1555,
@@ -392,10 +392,10 @@ typedef enum
 	BM_RGB888   = COLOR_FORMAT_RGB888,
 	BM_XRGB8888 = COLOR_FORMAT_XRGB8888,
 	BM_ARGB8888 = COLOR_FORMAT_ARGB8888,
-	BM_AL1 = COLOR_FORMAT_ALPHA1,
-	BM_AL2 = COLOR_FORMAT_ALPHA2,
-	BM_AL4 = COLOR_FORMAT_ALPHA4,
-	BM_AL8 = COLOR_FORMAT_ALPHA8,
+	BM_AL1 = COLOR_FORMAT_AL1,
+	BM_AL2 = COLOR_FORMAT_AL2,
+	BM_AL4 = COLOR_FORMAT_AL4,
+	BM_AL8 = COLOR_FORMAT_AL8,
 
 }BITMAP_FORMAT;
 
@@ -921,7 +921,7 @@ typedef struct tagNMHDR
 #define WS_CAPTION          0x00080000UL // 窗口会带有标题栏.
 //#define WS_WINSURFACE       0x00040000UL
 #define WS_OWNERDRAW        0x00020000UL // 窗口自绘,对子窗口有效,将产生WM_DRAWITEM消息.
-#define WS_OWNERDC          0x00010000UL
+//#define WS_OWNERDC          0x00010000UL
 
 //默认的窗口风格
 #define WS_OVERLAPPEDWINDOW (\
@@ -1513,16 +1513,10 @@ typedef struct tagMDINEXTMENU
 /*
  * 按钮消息 / Button Messages
  */
-//#define BM_GETCHECK        0x00F0
-//#define BM_SETCHECK        0x00F1
-#define BM_GETSTATE        0x00F2 // [获得状态]: <wParam>忽略; <lParam>忽略; <返回>状态值.
-#define BM_SETSTATE        0x00F3 // [设置状态]: <wParam>状态值; <lParam>忽略; <返回>忽略.
-//#define BM_SETSTYLE        0x00F4
-//#define BM_CLICK           0x00F5
-//#define BM_GETIMAGE        0x00F6
-//#define BM_SETIMAGE        0x00F7
-
-
+//#define BM_GETCHECK      (WM_WIDGET+0)
+//#define BM_SETCHECK      (WM_WIDGET+1)
+#define BM_GETSTATE        (WM_WIDGET+2) // [获得状态]: <wParam>忽略; <lParam>忽略; <返回>状态值.
+#define BM_SETSTATE        (WM_WIDGET+3) // [设置状态]: <wParam>状态值; <lParam>忽略; <返回>忽略.
 
 /*============================================================================*/
 /*** 字符框 / Textbox ***/
@@ -2069,7 +2063,7 @@ BOOL	DCtoBitmap(HDC hdc,BITMAP *bitmap);
 
 void	LPtoDP(HDC hdc,POINT *lpPoint,int nCount);
 void	DPtoLP(HDC hdc,POINT *lpPoint,int nCount);
-BOOL	MoveToEx(HDC hdc,int x,int y,POINT *pt);
+BOOL	MoveToEx(HDC hdc,int x,int y,POINT *pt_old);
 
 
 //int			SetPenStyle(HDC hdc,int style);

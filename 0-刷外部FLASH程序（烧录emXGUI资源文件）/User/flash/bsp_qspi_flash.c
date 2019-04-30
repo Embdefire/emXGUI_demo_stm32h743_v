@@ -106,7 +106,43 @@ void QSPI_FLASH_Init(void)
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
 }
+/**
+  * @brief  设置QSPI存储器为4-byte地址模式
+  * @param  无
+  * @retval 返回状态
+  */
+uint8_t QSPI_EnterFourBytesAddress(void)
+{
+  QSPI_CommandTypeDef s_command;
 
+  /* Initialize the command */
+  s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+  s_command.Instruction       = ENTER_4_BYTE_ADDR_MODE_CMD;
+  s_command.AddressMode       = QSPI_ADDRESS_NONE;
+  s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+  s_command.DataMode          = QSPI_DATA_NONE;
+  s_command.DummyCycles       = 0;
+  s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
+  s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
+  s_command.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
+
+  /* 使能写操作 */
+  QSPI_WriteEnable();
+  
+  /* 传输命令 */
+  if (HAL_QSPI_Command(&QSPIHandle, &s_command,HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+	/* 自动轮询模式等待存储器就绪 */  
+	if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+	{
+		return QSPI_ERROR;
+	}
+	return QSPI_OK;
+
+}
 
 /**
   * @brief  初始化QSPI存储器
@@ -115,14 +151,14 @@ void QSPI_FLASH_Init(void)
 uint8_t BSP_QSPI_Init(void)
 { 
 	QSPI_CommandTypeDef s_command;
-	uint8_t value = W25Q256JV_FSR_QE;
+	uint8_t value = 0x06;
 	
 	/* QSPI存储器复位 */
 	if (QSPI_ResetMemory() != QSPI_OK)
 	{
 		return QSPI_NOT_SUPPORTED;
 	}
-	
+	QSPI_EnterFourBytesAddress();
 	/* 使能写操作 */
 	if (QSPI_WriteEnable() != QSPI_OK)
 	{
@@ -130,7 +166,7 @@ uint8_t BSP_QSPI_Init(void)
 	}	
 	/* 设置四路使能的状态寄存器，使能四通道IO2和IO3引脚 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
-	s_command.Instruction       = WRITE_STATUS_REG2_CMD;
+	s_command.Instruction       = WRITE_STATUS_REG1_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_NONE;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -178,7 +214,7 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = ReadAddr;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -221,7 +257,7 @@ uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INOUT_FAST_READ_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_4_LINES;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = ReadAddr;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_4_LINES;
@@ -285,7 +321,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INPUT_PAGE_PROG_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_4_LINES;
 	s_command.DummyCycles       = 0;
@@ -349,7 +385,7 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = SECTOR_ERASE_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = BlockAddress;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_NONE;
@@ -605,7 +641,7 @@ uint32_t QSPI_FLASH_ReadID(void)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_JEDEC_ID_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
 	  s_command.AddressMode       = QSPI_ADDRESS_NONE;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
@@ -654,7 +690,7 @@ uint32_t QSPI_FLASH_ReadDeviceID(void)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_ID_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = 0x000000;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -709,7 +745,7 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	s_command.Instruction       = READ_STATUS_REG3_CMD;
 	
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = 0x000000;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;

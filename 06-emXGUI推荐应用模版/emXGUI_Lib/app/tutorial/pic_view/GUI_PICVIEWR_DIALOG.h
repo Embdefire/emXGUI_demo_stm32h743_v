@@ -16,7 +16,7 @@
 
 typedef enum 
 {
-  eID_Pic_Name,
+  eID_Pic_Name = 0x1000,
   eID_Pic_EXIT,
   eID_Pic_PREV,
   eID_Pic_NEXT,

@@ -80,7 +80,7 @@ int main(void)
     /*对flash解锁，一般用不上*/
     QSPI_FLASH_WriteStatusReg(1,0X00);
     QSPI_FLASH_WriteStatusReg(2,0X00);
-    QSPI_FLASH_WriteStatusReg(3,0X60);
+//    QSPI_FLASH_WriteStatusReg(3,0X61);
     printf("\r\nFlash Status Reg1 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(1));	
     printf("\r\nFlash Status Reg2 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(2));
     printf("\r\nFlash Status Reg3 is 0x%02X,\r\n", QSPI_FLASH_ReadStatusReg(3));

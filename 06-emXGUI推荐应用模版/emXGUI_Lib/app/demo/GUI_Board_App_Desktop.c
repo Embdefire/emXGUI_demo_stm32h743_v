@@ -63,7 +63,7 @@ extern void	GUI_RES_Writer_Dialog(void *param);
 
 
 
-extern void	GUI_Boot_Interface_Dialog(void*);
+extern void	GUI_Test_DIALOG(void*);
 
 
 
@@ -83,7 +83,7 @@ static const struct __obj_list menu_list_1[] = {
       L"ÉãÏñÍ·",		NULL,	  L"M",RGB_WHITE, 				GUI_Camera_DIALOGTest,
 
       L"Í¼Æ¬ä¯ÀÀÆ÷",	NULL, 	L"G", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
-      L"ÎÂÊª¶È",	NULL,   L"O", RGB_WHITE,				GUI_Boot_Interface_Dialog,
+      L"ÎÂÊª¶È",	NULL,   L"O", RGB_WHITE,				GUI_Test_DIALOG,
       L"µçÑ¹±í",		NULL,	  L"W", RGB_WHITE,				dummy,  
       L"Ä£ÄâUÅÌ",	NULL,	  L"N", RGB_WHITE,				dummy, 
       L"ÍÓÂÝÒÇ",	  NULL,	  L"R", 	RGB_WHITE,			dummy,

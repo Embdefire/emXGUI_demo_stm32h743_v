@@ -72,7 +72,8 @@ typedef struct {
 #define DUAL_OUT_FAST_READ_CMD               0x3B
 #define DUAL_INOUT_FAST_READ_CMD             0xBB
 #define QUAD_OUT_FAST_READ_CMD               0x6B
-#define QUAD_INOUT_FAST_READ_CMD             0xEB
+
+#define QUAD_INOUT_FAST_READ_CMD             0xEC
 
 /* Ð´²Ù×÷ */
 #define WRITE_ENABLE_CMD                     0x06
@@ -90,16 +91,17 @@ typedef struct {
 
 /* ±à³Ì²Ù×÷ */
 #define PAGE_PROG_CMD                        0x02
-#define QUAD_INPUT_PAGE_PROG_CMD             0x32
+#define QUAD_INPUT_PAGE_PROG_CMD             0x34
 #define EXT_QUAD_IN_FAST_PROG_CMD            0x12
 
 /* ²Á³ý²Ù×÷ */
-#define SECTOR_ERASE_CMD                     0xD8
+#define SECTOR_ERASE_CMD                     0xDC 
 #define CHIP_ERASE_CMD                       0xC7
 
 #define PROG_ERASE_RESUME_CMD                0x7A
 #define PROG_ERASE_SUSPEND_CMD               0x75
 
+#define ENTER_4_BYTE_ADDR_MODE_CMD           0xB7
 
 /* ×´Ì¬¼Ä´æÆ÷±êÖ¾ */
 #define W25Q256JV_FSR_BUSY                    ((uint8_t)0x01)    /*!< busy */

@@ -460,8 +460,16 @@ static void App_PlayMusic(void *param)
       }
       //¹Ø±ÕÎÄ¼þ
       f_close(&f_file);	 
-
-      mp3PlayerDemo(music_playlist[MusicDialog.playindex]);
+      if(strstr(music_playlist[MusicDialog.playindex],"wav"))
+      {
+        GUI_DEBUG("wav");
+        wavplayer(music_playlist[MusicDialog.playindex]);
+      }
+      else
+      {
+        GUI_DEBUG("mp3");
+        mp3PlayerDemo(music_playlist[MusicDialog.playindex]);
+      }
       app = 0;
 
 	 

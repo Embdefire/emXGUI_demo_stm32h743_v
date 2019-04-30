@@ -50,6 +50,12 @@ uint8_t inputbuf[INPUTBUF_SIZE]={0};        /* 解码输入缓冲区，1940字节为最大MP3
 short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
 
 
+
+/*wav播放器*/
+uint16_t buffer0[RECBUFFER_SIZE];  /* 数据缓存区1 ，实际占用字节数：RECBUFFER_SIZE*2 */
+uint16_t buffer1[RECBUFFER_SIZE];  /* 数据缓存区2 ，实际占用字节数：RECBUFFER_SIZE*2 */
+static WavHead rec_wav;            /* WAV设备  */
+
 FIL file;											/* file objects */
 FRESULT result; 
 UINT bw;            					/* File R/W count */
@@ -84,7 +90,6 @@ uint32_t mp3_GetID3V2_Size(unsigned char *buf)
   * @param  无
   * @retval 无
   */
-int times = 0;
 void mp3PlayerDemo(const char *mp3file)
 {
 	uint8_t *read_ptr=inputbuf;
@@ -167,8 +172,7 @@ void mp3PlayerDemo(const char *mp3file)
 	read_ptr=inputbuf;
 	bytes_left=bw;
   MusicDialog.angle = 0;
-  x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
-  SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);    
+
 	/* 进入主程序循环体 */
 	while(mp3player.ucStatus == STA_PLAYING)
 	{
@@ -307,7 +311,8 @@ void mp3PlayerDemo(const char *mp3file)
             update = 1;
             x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.alltime/60,MusicDialog.alltime%60);
             SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_ALL_TIME), wbuf);
-              
+            x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
+            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);                  
           }          
                       
           x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.curtime/60,MusicDialog.curtime%60);
@@ -423,6 +428,132 @@ void mp3PlayerDemo(const char *mp3file)
 	mp3player.ucStatus=STA_IDLE;
 	MP3FreeDecoder(Mp3Decoder);
 	f_close(&file);	
+}
+
+
+
+void wavplayer(const char *wavfile)
+{
+	static uint8_t timecount;//记录时间
+  WCHAR wbuf[128];
+  static COLORREF color;
+	mp3player.ucStatus=STA_IDLE;    /* 开始设置为空闲状态  */
+   
+  DWORD pos;//记录文字变量
+  static uint8_t lyriccount=0;//歌词index记录
+  
+	/*  初始化并配置I2S  */
+	SAI_Play_Stop();
+	SAI_GPIO_Config();
+	SAI_DMA_TX_Callback = MusicPlayer_SAI_DMA_TX_Callback;  
+	bufflag=0;
+	Isread=0;
+  if(mp3player.ucStatus == STA_IDLE)
+  {						
+    printf("当前播放文件 -> %s\n",wavfile);
+
+    result=f_open(&file,wavfile,FA_READ);
+    if(result!=FR_OK)
+    {
+       printf("打开音频文件失败!!!->%d\r\n",result);
+       result = f_close (&file);
+       return;
+    }
+    //读取WAV文件头
+    result = f_read(&file,&rec_wav,sizeof(rec_wav),&bw);
+    
+    mp3player.ucFreq =  rec_wav.dwSamplesPerSec;
+    mp3player.ucbps =  mp3player.ucFreq*32;   
+    MusicDialog.alltime=file.fsize*8/mp3player.ucbps;    
+    
+    //先读取音频数据到缓冲区
+    result = f_read(&file,(uint16_t *)buffer0,RECBUFFER_SIZE*2,&bw);
+    result = f_read(&file,(uint16_t *)buffer1,RECBUFFER_SIZE*2,&bw);  
+
+    Delay_ms(10);	/* 延迟一段时间，等待I2S中断结束 */
+    wm8978_Reset();		/* 复位WM8978到复位状态 */	
+
+    mp3player.ucStatus = STA_PLAYING;		/* 放音状态 */
+
+    /* 配置WM8978芯片，输入为DAC，输出为耳机 */
+    wm8978_CfgAudioPath(DAC_ON, EAR_LEFT_ON | EAR_RIGHT_ON);
+    /* 调节音量，左右相同音量 */
+    wm8978_SetOUT1Volume(MusicDialog.power);
+    /* 配置WM8978音频接口为飞利浦标准I2S接口，16bit */
+    wm8978_CfgAudioIF(SAI_I2S_STANDARD, 16);  
+    
+    SAIxA_Tx_Config(SAI_I2S_STANDARD,SAI_PROTOCOL_DATASIZE_16BIT,mp3player.ucFreq);						//根据采样率修改iis速率
+    SAIA_TX_DMA_Init(buffer0,buffer1,RECBUFFER_SIZE); 
+    SAI_Play_Start();        
+  }
+  while(mp3player.ucStatus == STA_PLAYING)
+  {
+    int update = 0;//记录只更新一次的参数
+    if(Isread==1)
+    {
+      Isread=0;
+      if(MusicDialog.chgsch == 0)
+      {
+        if(timecount>=10)      
+        {     
+          MusicDialog.curtime=file.fptr*8/mp3player.ucbps;
+          
+          
+           if(!MusicDialog.mList_State && update == 0)//进入列表界面，不进行更新
+          {
+            update = 1;
+            x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.alltime/60,MusicDialog.alltime%60);
+            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_ALL_TIME), wbuf);
+            x_mbstowcs_cp936(wbuf, music_lcdlist[MusicDialog.playindex], 100);
+            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_MUSIC_ITEM), wbuf);                  
+          }          
+                      
+          x_wsprintf(wbuf, L"%02d:%02d",MusicDialog.curtime/60,MusicDialog.curtime%60);
+          if(!MusicDialog.mList_State && !(SendMessage(MusicDialog.TIME_Hwnd, SBM_GETSTATE,0,0)&SST_THUMBTRACK))//进入列表界面，不进行更新
+          {
+            SendMessage(MusicDialog.TIME_Hwnd, SBM_SETVALUE, TRUE, MusicDialog.curtime*255/MusicDialog.alltime);
+            //InvalidateRect(MusicDialog.TIME_Hwnd, NULL, FALSE); 
+            SetWindowText(GetDlgItem(MusicDialog.MUSIC_Hwnd, eID_CUR_TIME), wbuf);    
+          }                     
+          timecount=0;
+        }
+      }
+      else
+      {
+      
+      }
+      timecount++;
+      if(bufflag==0)
+        result = f_read(&file,buffer0,RECBUFFER_SIZE*2,&bw);	
+      else
+        result = f_read(&file,buffer1,RECBUFFER_SIZE*2,&bw);
+      /* 播放完成或读取出错停止工作 */
+      if((result!=FR_OK)||(file.fptr==file.fsize))
+      {
+        //进入切歌状态
+        mp3player.ucStatus=STA_SWITCH;
+        //播放曲目自增1
+        MusicDialog.playindex++;
+        //printf("%d, %d\n", play_index, music_file_num);
+        //设置为列表循环播放
+        if(MusicDialog.playindex >= MusicDialog.music_file_num) MusicDialog.playindex = 0;
+        if(MusicDialog.playindex < 0) MusicDialog.playindex = MusicDialog.music_file_num - 1;
+        printf("播放完或者读取出错退出...\r\n");
+        SAI_Play_Stop();
+        file.fptr=0;
+        f_close(&file);
+        wm8978_Reset();	/* 复位WM8978到复位状态 */							
+      }	      
+      
+    }
+  }
+  mp3player.ucStatus = STA_SWITCH;		/* 待机状态 */
+  file.fptr=0;
+  f_close(&file);
+  lrc.oldtime=0;
+  lyriccount=0;      
+  SAI_Play_Stop();		/* 停止I2S录音和放音 */
+  wm8978_Reset();	/* 复位WM8978到复位状态 */  
 }
 
 /* DMA发送完成中断回调函数 */
