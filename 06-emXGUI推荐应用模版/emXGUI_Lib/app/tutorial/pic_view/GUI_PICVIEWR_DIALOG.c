@@ -215,7 +215,10 @@ static void PicViewer_TBOX_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 	HDC hdc;
 	RECT rc, rc_tmp;
 	WCHAR wbuf[128];
-
+  if((ds->ID == eID_Pic_Title|| ds->ID == eID_Pic_Def)&& PicViewer.SecMenu_State)
+  {
+    return;
+  }
 	hwnd = ds->hwnd; //button的窗口句柄.
 	hdc = ds->hDC;   //button的绘图上下文句柄.
   GetClientRect(hwnd, &rc_tmp);//得到控件的位置
@@ -837,7 +840,8 @@ static	LRESULT DlgINTFLASH_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         PicViewer.gif_state = 0;
 //        GIF_Close(hgif);
         
-      }         
+      }   
+      PicViewer.SecMenu_State = 0;      
       PicViewer.pic_nums = 0;
       PicViewer.show_index = 0;      
       return PostQuitMessage(hwnd);	
@@ -1356,7 +1360,7 @@ static	LRESULT DlgSDCARD_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       RECT rc;
       PicViewer.cur_type = 0;
       GetClientRect(hwnd, &rc); 
-      CreateWindow(BUTTON, L"图片名称", WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE, 
+      CreateWindow(TEXTBOX, L"图片名称", WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE, 
                    GUI_PicViewer_Icon[0].rc.x, GUI_PicViewer_Icon[0].rc.y, 
                    GUI_PicViewer_Icon[0].rc.w, GUI_PicViewer_Icon[0].rc.h,          
                    hwnd, eID_Pic_Name, NULL, NULL);  
@@ -1419,6 +1423,10 @@ static	LRESULT DlgSDCARD_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       SetTimer(hwnd,2,0,TMR_SINGLE,NULL);//更新文字
       //SetTimer(hwnd,3,0,TMR_SINGLE|TMR_START,NULL);//更新文字
       PicViewer_Init();
+      if(PicViewer.pic_nums == 0)
+      {
+        PostCloseMessage(hwnd);
+      }
       break;
     }
     case WM_TIMER:
@@ -1778,7 +1786,8 @@ static	LRESULT DlgSDCARD_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         PicViewer.gif_state = 0;
         GIF_Close(hgif);
         
-      }        
+      }   
+      PicViewer.SecMenu_State = 0;      
       return PostQuitMessage(hwnd);	
     }      
     default:
@@ -2135,7 +2144,8 @@ static	LRESULT DlgEXTFLASH_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         PicViewer.gif_state = 0;
         GIF_Close(hgif);
         
-      }        
+      } 
+      PicViewer.SecMenu_State = 0;      
       PicViewer.pic_nums = 0;
       PicViewer.show_index = 0;      
       return PostQuitMessage(hwnd);	
@@ -2219,7 +2229,7 @@ static	LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
       if(nm->idx==2&& code==LMN_CLICKED)
       {
-   
+        PicViewer.SecMenu_State = 1;
 //        if(SendMessage(nr->hwndFrom,BM_GETSTATE,0,0)&BST_CHECKED) //获取当前状态
         { //复选框选中.
           WNDCLASS wcex;
@@ -2235,7 +2245,7 @@ static	LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         
           PicViewer.mPicViewer = CreateWindowEx(WS_EX_FRAMEBUFFER,
                                  &wcex,L"SDCARD",
-                                 WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                                 WS_VISIBLE|WS_CLIPCHILDREN,
                                  0,0,800,480,
                                  hwnd,0,NULL,NULL);
 
@@ -2244,7 +2254,7 @@ static	LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if(nm->idx==0&& code==LMN_CLICKED)
       {
         
-
+        PicViewer.SecMenu_State = 1;
 //        if(SendMessage(nr->hwndFrom,BM_GETSTATE,0,0)&BST_CHECKED) //获取当前状态
         { //复选框选中.
           WNDCLASS wcex;
@@ -2269,7 +2279,7 @@ static	LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //      
       if(nm->idx==1&& code==LMN_CLICKED)
       {
-        
+        PicViewer.SecMenu_State = 1;
 //        if(SendMessage(nr->hwndFrom,BM_GETSTATE,0,0)&BST_CHECKED) //获取当前状态
         { //复选框选中.
           WNDCLASS wcex;

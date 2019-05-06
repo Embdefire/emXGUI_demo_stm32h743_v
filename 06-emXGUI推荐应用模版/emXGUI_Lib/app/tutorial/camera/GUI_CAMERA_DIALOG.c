@@ -1593,6 +1593,7 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         x =(GUI_XSIZE-w)>>1;
         y =(GUI_YSIZE-h)>>1;
         MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"消息",&ops); 
+        PostCloseMessage(hwnd);
         break;  
       }
       cam_sem = GUI_SemCreate(0,1);//同步摄像头图像

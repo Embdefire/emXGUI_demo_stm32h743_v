@@ -1039,14 +1039,14 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 
     	hdc =BeginPaint(hwnd,&ps);
-    	SetBrushColor(hdc,MapRGB(hdc,250,0,0));
+    	SetBrushColor(hdc,MapRGB(hdc,0,0,0));
         rc.x =160;
         rc.y =89;
-        rc.w =120;
-        rc.h =80;
+        rc.w =480;
+        rc.h =272;
         FillRect(hdc,&rc);
 
-    //	if(bDrawVideo)
+    	if(VideoDialog.IS_FIND)
     	{
     		HDC hdc_avi;
 
@@ -1089,8 +1089,10 @@ void	GUI_Video_DIALOG(void*param)
 {	
 	WNDCLASS	wcex;
 	MSG msg;
-
+  VideoDialog.IS_FIND = TRUE;
   scan_files(path);
+  if(VideoDialog.avi_file_num == 0)
+    VideoDialog.IS_FIND = FALSE;
 	if (wm8978_Init()==0)
 	{
 		GUI_DEBUG("¼ì²â²»µ½WM8978Ð¾Æ¬!!!\n");

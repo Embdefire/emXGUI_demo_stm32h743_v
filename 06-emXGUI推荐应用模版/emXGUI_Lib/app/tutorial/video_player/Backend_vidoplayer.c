@@ -246,7 +246,15 @@ void AVI_play(char *filename)
         
 
 				//  JPEG_Out(hdc,160,89,Frame_buf,BytesRD);
-				JPEG_Out(hdc1,0,0,Frame_buf,BytesRD);
+        if(VideoDialog.IS_FIND)
+          JPEG_Out(hdc1,0,0,Frame_buf,BytesRD);
+        else
+        {
+          RECT rc = {0,0,480,272};
+          
+          SetBrushColor(hdc1, MapRGB(hdc1, 0,0,0));
+          FillRect(hdc1, &rc);
+        }
 //            ClrDisplay(hdc, &rc0, MapRGB(hdc, 0,0,0));
 //            SetTextColor(hdc, MapRGB(hdc,255,255,255));
 //            DrawText(hdc, buff,-1,&rc0,DT_VCENTER|DT_CENTER);

@@ -52,6 +52,7 @@ typedef struct
   uint8_t avi_file_num;
   int8_t  playindex;
   BOOL LOAD_STATE;
+  BOOL IS_FIND;
   BOOL SWITCH_STATE;
   BOOL LIST_STATE;
   BOOL avi_chl;

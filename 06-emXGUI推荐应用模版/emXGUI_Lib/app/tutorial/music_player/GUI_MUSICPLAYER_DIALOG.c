@@ -1402,6 +1402,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       mp3player.ucStatus = STA_IDLE;		/* ´ý»ú×´Ì¬ */      
       thread_PlayMusic = 0;
       music_icon[2].state = FALSE;
+      music_icon[6].state = FALSE;
       DeleteDC(MusicDialog.hdc_bk);
       DeleteDC(rotate_disk_hdc);
       MusicDialog.Init_State = 0;
