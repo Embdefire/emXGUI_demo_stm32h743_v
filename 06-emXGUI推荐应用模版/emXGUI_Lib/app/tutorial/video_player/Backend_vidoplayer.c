@@ -206,7 +206,8 @@ void AVI_play(char *filename)
    //InvalidateRect(VideoDialog.Video_Hwnd, NULL, FALSE);
    x_wsprintf(buff, L"%02d:%02d:%02d",///%02d:%02d:%02d alltime/3600,(alltime%3600)/60,alltime%60
               VideoDialog.curtime/3600,(VideoDialog.curtime%3600)/60,VideoDialog.curtime%60); 
-   SetWindowText(GetDlgItem(VideoDialog.Video_Hwnd, eID_TEXTBOX_CURTIME), buff);    
+   if(!VideoDialog.LIST_STATE)
+    SetWindowText(GetDlgItem(VideoDialog.Video_Hwnd, eID_TEXTBOX_CURTIME), buff);    
 	 if(Strtype==T_vids)//œ‘ æ÷°
     {    	
 			frame++;
@@ -253,7 +254,8 @@ void AVI_play(char *filename)
 
 //           SetWindowText(GetDlgItem(VideoPlayer_hwnd, ID_TB5), buff);
         x_wsprintf(buff, L"÷°¬ £∫%dFPS/s", avi_fps);
-        SetWindowText(GetDlgItem(VideoDialog.Video_Hwnd, eID_TEXTBOX_FPS), buff);
+        if(!VideoDialog.LIST_STATE)
+          SetWindowText(GetDlgItem(VideoDialog.Video_Hwnd, eID_TEXTBOX_FPS), buff);
 
         bDrawVideo=TRUE;
 //        GUI_msleep(10);

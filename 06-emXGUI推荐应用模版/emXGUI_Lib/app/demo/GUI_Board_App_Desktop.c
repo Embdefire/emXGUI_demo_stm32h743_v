@@ -83,7 +83,7 @@ static const struct __obj_list menu_list_1[] = {
       L"摄像头",		NULL,	  L"M",RGB_WHITE, 				GUI_Camera_DIALOGTest,
 
       L"图片浏览器",	NULL, 	L"G", RGB_WHITE,				GUI_PicViewer_DIALOGTest,
-      L"温湿度",	NULL,   L"O", RGB_WHITE,				GUI_Test_DIALOG,
+      L"温湿度",	NULL,   L"O", RGB_WHITE,				dummy,
       L"电压表",		NULL,	  L"W", RGB_WHITE,				dummy,  
       L"模拟U盘",	NULL,	  L"N", RGB_WHITE,				dummy, 
       L"陀螺仪",	  NULL,	  L"R", 	RGB_WHITE,			dummy,

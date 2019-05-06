@@ -1159,16 +1159,16 @@
               <FileType>5</FileType>
               <FilePath>..\..\emXGUI_Lib\inc\Clist.h</FilePath>
             </File>
+            <File>
+              <FileName>emXGUI_JPEG.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\emXGUI_Lib\inc\emXGUI_JPEG.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>emxgui/libs</GroupName>
           <Files>
-            <File>
-              <FileName>libjpeg_MDK_M7.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M7.lib</FilePath>
-            </File>
             <File>
               <FileName>x_libc_MDK_M7.lib</FileName>
               <FileType>4</FileType>
@@ -1231,6 +1231,11 @@
                 </CommonProperty>
                 <FileArmAds/>
               </FileOption>
+            </File>
+            <File>
+              <FileName>libjpeg_MDK_M7.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M7.lib</FilePath>
             </File>
             <File>
               <FileName>emXGUI100_MDK_M7.lib</FileName>
@@ -1596,11 +1601,6 @@
               <FileName>GUI_PICVIEWR_DIALOG.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\tutorial\pic_view\GUI_PICVIEWR_DIALOG.c</FilePath>
-            </File>
-            <File>
-              <FileName>test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\test.c</FilePath>
             </File>
           </Files>
         </Group>
