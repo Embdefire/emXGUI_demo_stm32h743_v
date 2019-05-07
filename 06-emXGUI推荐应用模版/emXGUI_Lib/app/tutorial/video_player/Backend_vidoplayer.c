@@ -139,7 +139,16 @@ void AVI_play(char *filename)
   SAI_Play_Stop();			/* 停止I2S录音和放音 */
 	wm8978_Reset();		/* 复位WM8978到复位状态 */	
   	/* 配置WM8978芯片，输入为DAC，输出为耳机 */
-	wm8978_CfgAudioPath(DAC_ON, SPK_ON|EAR_LEFT_ON | EAR_RIGHT_ON);
+	/* 配置WM8978芯片，输入为DAC，输出为耳机 */
+  if(avi_icon[1].state == FALSE)
+  {
+    wm8978_CfgAudioPath(DAC_ON,  EAR_LEFT_ON|EAR_RIGHT_ON);
+  }
+  //当音量icon被按下时，设置为静音模式
+  else
+  {                
+    wm8978_CfgAudioPath(DAC_ON,  SPK_ON|EAR_LEFT_ON|EAR_RIGHT_ON);
+  } 
   wm8978_OutMute(0);
 	/* 调节音量，左右相同音量 */
 	wm8978_SetOUT1Volume(VideoDialog.power);
@@ -307,7 +316,7 @@ void AVI_play(char *filename)
 					i=3; 
 
       }while(audiobufflag==i);
-      AVI_DEBUG("S\n");
+     
 
       res = f_read(&fileR,Sound_buf[audiosavebuf],Strsize+8,&BytesRD);//读入整帧+下一数据流ID信息
       if(res != FR_OK)
@@ -338,45 +347,7 @@ void AVI_play(char *filename)
          
           f_lseek(&fileR,pos);
 //      
-      #if 0
-         if(pos == 0)
-            mid=Search_Movi(Frame_buf);//寻找movi ID  判断自己是不是还在数据段
-         else 
-            mid = 0;  
-        int iiii= 0;//计算偏移量
-         while(1)
-         {
-            //每次读512个字节，直到找到数据帧的帧头
-            u16 temptt = 0;//计算数据帧的位置
-            AVI_DEBUG("S\n");
-
-            f_read(&fileR,Frame_buf,512,&BytesRD);
-            AVI_DEBUG("E\n");
-
-            temptt = Search_Fram(Frame_buf,BytesRD);
-            iiii++;
-            if(temptt)
-            {            
-               AVI_DEBUG("S temptt =%d\n",temptt);
-               AVI_DEBUG("S Frame_buf[temptt] =%c %c %c %c\n",
-                                      Frame_buf[temptt],
-                                      Frame_buf[temptt+1],
-                                      Frame_buf[temptt+2],
-                                      Frame_buf[temptt+3]);
-               /* 多读取512数据，防止标志在边界时出错 */
-               f_read(&fileR,(u8*)Frame_buf+BytesRD,512,&BytesRD);
-               AVI_DEBUG("E\n");
-                pbuffer = Frame_buf;
-               Strtype=MAKEWORD(pbuffer+temptt+2);//流类型
-               Strsize=MAKEDWORD(pbuffer+temptt+4);//流大小
-               mid += temptt + 512*iiii-512;//加上偏移量
-//               if(temptt == 16)
-//                  continue;
-               break;
-            }
-
-         }
-         #else
+      #if 1
          f_read(&fileR,Frame_buf,1024*30,&BytesRD);
          AVI_DEBUG("E\n");
          if(pos == 0)
@@ -405,7 +376,8 @@ void AVI_play(char *filename)
 //        
      }
 //  
-// 
+  GUI_SemPost(close_win);   
+  GUI_DEBUG("E");
   GUI_VMEM_Free(Frame_buf);
   DeleteDC(hdc1);
   if(!VideoDialog.SWITCH_STATE)

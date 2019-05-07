@@ -77,7 +77,7 @@ static const struct __obj_list menu_list_1[] = {
 
       L"GUI应用",		NULL, 	L"J", 	RGB_WHITE,			GUI_App_Desktop,
       L"MP3播放器",		NULL,	  L"I", RGB_WHITE,				GUI_MUSIC_DIALOGTest,
-      L"视频播放器",		NULL,	  L"D", RGB_WHITE,				GUI_VIDEO_DIALOGTest,
+      L"视频播放器",		NULL,	  L"D", RGB_WHITE,				GUI_Video_DIALOG,
 
       L"RGB彩灯",		NULL,	  L"L", RGB_WHITE,				GUI_RGBLED_DIALOGTest,
       L"摄像头",		NULL,	  L"M",RGB_WHITE, 				GUI_Camera_DIALOGTest,

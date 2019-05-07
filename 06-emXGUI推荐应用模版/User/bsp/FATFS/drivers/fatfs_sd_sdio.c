@@ -131,8 +131,6 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
   uint32_t i;
   DWORD pbuff[512/4];	
   
-	if((DWORD)buff&3)
-    GUI_DEBUG("不对齐");
 	{
     GUI_MutexLock(mutex_lock,0xffffff);
 	 	for(i=0;i<count;i++)

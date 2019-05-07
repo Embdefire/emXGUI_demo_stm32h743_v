@@ -16,6 +16,9 @@ char lcdlist[20][100];//显示list
 //static char lcdlist[20][100];//显示list
 static SCROLLINFO video_sif_power;/*设置进度条的参数*/
 static char path[100]="0:";//文件根目??
+
+uint32_t mem_size = 0;
+
 //图标管理数组
 ICON_Typedef avi_icon[13] = {
    {"yinliang",         {20, 400,48,48},      FALSE},
@@ -436,7 +439,7 @@ static FRESULT scan_files (char* path)
 					if ((strlen(path)+strlen(fn)<100)&&(VideoDialog.avi_file_num<20))
 					{
 						sprintf(file_name, "%s/%s", path, fn);
-            printf("%s%s\r\n", path, fn);	
+            
 						memcpy(avi_playlist[VideoDialog.avi_file_num],file_name,strlen(file_name));
             memcpy(lcdlist[VideoDialog.avi_file_num],fn,strlen(fn));
 //						memcpy(lcdlist[VideoDialog.avi_file_num],fn,strlen(fn));						
@@ -450,7 +453,7 @@ static FRESULT scan_files (char* path)
   return res; 
 }
 static int thread_PlayVideo = 0;
-#if 1
+#if 0
 
 static void App_PlayVideo(void *param)
 {
@@ -469,6 +472,7 @@ static void App_PlayVideo(void *param)
 		{
 			app=1;    
       AVI_play(avi_playlist[VideoDialog.playindex]);
+      GUI_DEBUG("Before app = 0");
       app = 0;
 
 		}
@@ -481,16 +485,18 @@ static void App_PlayVideo(void *param)
 #else
 static void App_PlayVideo(void *param)
 {
- 
-  while(1)
+  thread_PlayVideo =1;
+  while(thread_PlayVideo)
   {
     AVI_play(avi_playlist[VideoDialog.playindex]);
     GUI_msleep(10);
   }
-
+  
+  //GUI_Thread_Delete(GUI_GetCurThreadHandle());
 
 }
 #endif
+uint8_t CPU_RunInfo[400];
 static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   static struct __obj_list *menu_list = NULL;
@@ -666,11 +672,13 @@ static LRESULT Dlg_VideoList_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
   }
   return WM_NULL;
 }
-
+TaskStatus_t TaskStatus;
+char * pcWriteBuffer;
+TaskHandle_t  task_play;
 extern u8 Frame_buf[];
 extern UINT BytesRD;
 extern volatile BOOL bDrawVideo;
-
+GUI_SEM *close_win = NULL;
 SURFACE *pSurf1;
 u16 *vbuf;
 static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -792,8 +800,20 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
        vbuf =GUI_GRAM_Alloc(800*480*2);
        pSurf1 =CreateSurface(SURF_SCREEN,800,480,800*2,vbuf);
 
-       App_PlayVideo(NULL);
-       //GUI_Thread_Create(App_PlayVideo,"App_PlayVideo",16*1024,NULL,6,5);
+      xTaskCreate((TaskFunction_t )App_PlayVideo,  /* 任务入口函数 */
+                            (const char*    )"App_PlayVideo",/* 任务名字 */
+                            (uint16_t       )16*1024/4,  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
+                            (void*          )NULL,/* 任务入口函数参数 */
+                            (UBaseType_t    )5, /* 任务的优先级 */
+                            (TaskHandle_t*  )&task_play);/* 任务控制块指针 */
+       //App_PlayVideo(NULL);
+//       GUI_Thread_Create(App_PlayVideo,"App_PlayVideo",16*1024,NULL,6,5);
+//       vTaskGetInfo((TaskHandle_t  )task_play,        //任务句柄
+//                   (TaskStatus_t* )&TaskStatus,       //任务信息结构体
+//                   (BaseType_t    )pdTRUE,            //允许统计任务堆栈历史最小剩余大小
+//                   (eTaskState    )eInvalid);         //函数自己获取任务运行壮态      
+       //GUI_DEBUG("%s", pcWriteBuffer);
+       
        break;
     }
     case WM_NOTIFY:
@@ -1036,8 +1056,11 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     	PAINTSTRUCT ps;
     	HDC hdc;
     	RECT rc;
-
-
+//      memset(CPU_RunInfo,0,400);
+//      vTaskList((char *)&CPU_RunInfo);
+//      printf("任务名 任务状态 优先级 剩余栈 任务序号\r\n");
+//      printf("%s", CPU_RunInfo);
+      //
     	hdc =BeginPaint(hwnd,&ps);
     	SetBrushColor(hdc,MapRGB(hdc,0,0,0));
         rc.x =160;
@@ -1053,8 +1076,8 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     		hdc_avi =CreateDC(pSurf1,NULL);
 
     		OffsetRect(&rc,rc.w+4,0);
-    		SetBrushColor(hdc,MapRGB(hdc,0,250,0));
-    		FillRect(hdc,&rc);
+//    		SetBrushColor(hdc,MapRGB(hdc,0,250,0));
+//    		FillRect(hdc,&rc);
 
     		//JPEG_Out(hdc,160,89,Frame_buf,BytesRD);
     		BitBlt(hdc,160,89,480,272,hdc_avi,0,0,SRCCOPY);
@@ -1066,16 +1089,38 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     	EndPaint(hwnd,&ps);
     	return TRUE;
     }
-
-    case WM_DESTROY:
-    {      
-      thread_PlayVideo = 0;
+    case WM_CLOSE:
+    {
+      close_win = GUI_SemCreate(0, 1);     
+      GUI_DEBUG("De");
+          
       
-      VideoDialog.SWITCH_STATE = 1;
+      //VideoDialog.SWITCH_STATE = 1;
+      SAI_Play_Stop();		/* 停止I2S录音和放音 */ 
+      wm8978_Reset();	/* 复位WM8978到复位状态 */       
+      vTaskDelete(task_play);
+      thread_PlayVideo = 0;
+     
+      DestroyWindow(hwnd); //调用DestroyWindow函数来销毁窗口（该函数会产生WM_DESTROY消息）。
+      return TRUE; //关闭窗口返回TRUE。      
+    }
+    
+    
+    case WM_DESTROY:
+    {  
+
+      avi_icon[1].state = FALSE;
+
+      
       VideoDialog.playindex = 0;
+  
       DeleteDC(VideoDialog.hdc_bk);
+  
       GUI_GRAM_Free(vbuf);
+   
       DeleteSurface(pSurf1);
+   
+
       return PostQuitMessage(hwnd);	
     }  
     default:
@@ -1125,6 +1170,7 @@ void	GUI_Video_DIALOG(void*param)
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+  printf("Delete Win\n");
 }
 
 
@@ -1133,10 +1179,11 @@ void GUI_VIDEO_DIALOGTest(void *param)
 {
   static int thread = 0;
   int app = 0;
-  
+
   if(thread == 0)
   {
      GUI_Thread_Create(GUI_VIDEO_DIALOGTest,"VIDEO_DIALOG",16*1024,NULL,5,3);
+     
      thread = 1;
      return;
   }
@@ -1146,10 +1193,11 @@ void GUI_VIDEO_DIALOGTest(void *param)
 		{
 			app=1;
 			GUI_Video_DIALOG(NULL);
-      
+      printf("Delete Win\n");
       
 			app=0;
 			thread=0;
+      
       GUI_Thread_Delete(GUI_GetCurThreadHandle());
 		}    
   }

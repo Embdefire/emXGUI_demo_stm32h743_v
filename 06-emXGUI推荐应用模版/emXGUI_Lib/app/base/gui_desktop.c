@@ -26,7 +26,7 @@ BOOL Load_state = FALSE;
 extern void	GUI_Boot_Interface_Dialog(void *param);
 extern void GUI_AppMain(void);
 
-
+extern TaskHandle_t  task_play;
 void	gui_app_thread(void *p)
 {
     #if(GUI_TOUCHSCREEN_EN & GUI_TOUCHSCREEN_CALIBRATE)
@@ -53,6 +53,7 @@ void	gui_app_thread(void *p)
     while(1)
     {
 //      GUI_DEBUG("gui_app_thread");
+      
       GUI_msleep(500);
     }
 }
@@ -211,6 +212,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           id =LOWORD(wParam);
           if(id==1)
           {
+            //printf("任务壮态:              %d\r\n",eTaskGetState(task_play));
             GUI_InputHandler(); //处理输入设备
           }
         }

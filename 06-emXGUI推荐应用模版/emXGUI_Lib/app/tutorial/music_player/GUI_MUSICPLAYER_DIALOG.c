@@ -1399,7 +1399,9 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }      
     case WM_DESTROY:
     {      
-      mp3player.ucStatus = STA_IDLE;		/* ´ý»ú×´Ì¬ */      
+      mp3player.ucStatus = STA_IDLE;		/* ´ý»ú×´Ì¬ */ 
+      SAI_Play_Stop();		/* Í£Ö¹I2SÂ¼ÒôºÍ·ÅÒô */
+      wm8978_Reset();	/* ¸´Î»WM8978µ½¸´Î»×´Ì¬ */         
       thread_PlayMusic = 0;
       music_icon[2].state = FALSE;
       music_icon[6].state = FALSE;
@@ -1411,8 +1413,7 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       MusicDialog.power = 20;
       MusicDialog.angle = 0;
       MusicDialog.mLRC_State = 0;
-      SAI_Play_Stop();		/* Í£Ö¹I2SÂ¼ÒôºÍ·ÅÒô */
-      wm8978_Reset();	/* ¸´Î»WM8978µ½¸´Î»×´Ì¬ */        
+     
       return PostQuitMessage(hwnd);	
     }     
 		default:

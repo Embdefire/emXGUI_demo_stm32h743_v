@@ -53,13 +53,14 @@ typedef struct
   int8_t  playindex;
   BOOL LOAD_STATE;
   BOOL IS_FIND;
-  BOOL SWITCH_STATE;
+  __IO BOOL SWITCH_STATE;
   BOOL LIST_STATE;
   BOOL avi_chl;
 }VIDEO_DIALOG_Typedef;
 extern VIDEO_DIALOG_Typedef VideoDialog;
 extern char lcdlist[20][100];//œ‘ ælis
 extern SURFACE *pSurf1;
+extern GUI_SEM *close_win;
 extern ICON_Typedef avi_icon[13];
 #endif
 

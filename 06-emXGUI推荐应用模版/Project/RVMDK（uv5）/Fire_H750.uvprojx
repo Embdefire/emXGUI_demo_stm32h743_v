@@ -1209,6 +1209,16 @@
               </FileOption>
             </File>
             <File>
+              <FileName>libjpeg_MDK_M7.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M7.lib</FilePath>
+            </File>
+            <File>
+              <FileName>emXGUI100_MDK_M7.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\emXGUI_Lib\libs\emXGUI100_MDK_M7.lib</FilePath>
+            </File>
+            <File>
               <FileName>emXGUI100_MDK_M4.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\emXGUI_Lib\libs\emXGUI100_MDK_M4.lib</FilePath>
@@ -1231,16 +1241,6 @@
                 </CommonProperty>
                 <FileArmAds/>
               </FileOption>
-            </File>
-            <File>
-              <FileName>libjpeg_MDK_M7.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\emXGUI_Lib\libs\libjpeg_MDK_M7.lib</FilePath>
-            </File>
-            <File>
-              <FileName>emXGUI100_MDK_M7.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\emXGUI_Lib\libs\emXGUI100_MDK_M7.lib</FilePath>
             </File>
           </Files>
         </Group>

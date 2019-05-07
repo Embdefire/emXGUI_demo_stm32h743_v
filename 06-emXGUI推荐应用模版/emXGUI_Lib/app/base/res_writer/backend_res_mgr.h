@@ -52,7 +52,7 @@ typedef struct
 /*=========================================================================================*/
 
 /*ÐÅÏ¢Êä³ö*/
-#define BURN_DEBUG_ON         1
+#define BURN_DEBUG_ON         0
 #define BURN_DEBUG_FUNC_ON    0
 
 #define BURN_INFO(fmt,arg...)           printf("<<-BURN-INFO->> "fmt"\n",##arg)

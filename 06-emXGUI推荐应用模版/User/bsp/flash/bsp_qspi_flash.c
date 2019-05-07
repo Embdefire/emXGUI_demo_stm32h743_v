@@ -368,12 +368,12 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	{
 		return QSPI_ERROR;
 	}
-  QSPI_FLASH_Wait_Busy();
+//  QSPI_FLASH_Wait_Busy();
 	/* 配置自动轮询模式等待擦除结束 */  
-//	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
-//	{
-//		return QSPI_ERROR;
-//	}
+	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
+	{
+		return QSPI_ERROR;
+	}
   
 	return QSPI_OK;
 }
