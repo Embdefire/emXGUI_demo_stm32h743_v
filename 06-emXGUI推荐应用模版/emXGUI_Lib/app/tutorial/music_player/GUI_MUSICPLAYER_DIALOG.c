@@ -10,7 +10,7 @@
 #include "./wm8978/bsp_wm8978.h" 
 #include "MP3_Player.h"
 #include "./sai/bsp_sai.h" 
-
+#define LRC_CLOSE WM_USER+1
 //歌词结构体
 LYRIC lrc;
 SCROLLINFO g_sif_power;//音量滑动条
@@ -944,6 +944,10 @@ static LRESULT Dlg_LRC_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 //      }
 //      return FALSE;
 //    }
+    case LRC_CLOSE:
+    {
+      PostCloseMessage(hwnd);
+    }
     case WM_DRAWITEM:
     {
       DRAWITEM_HDR *ds;
@@ -961,7 +965,7 @@ static LRESULT Dlg_LRC_WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 }
 static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  
+  static int touch_lrc = 0;
 	switch (msg)
 	{
       
@@ -1296,37 +1300,45 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       if(id==eID_BUTTON_LRC && code==BN_CLICKED)
       {
+        
         if(!MusicDialog.mLRC_State)
         {
           MusicDialog.mLRC_State = 1;
-          WNDCLASS wcex;
-
-
-          wcex.Tag	 		= WNDCLASS_TAG;
-          wcex.Style			= CS_HREDRAW | CS_VREDRAW;
-          wcex.lpfnWndProc	= (WNDPROC)Dlg_LRC_WinProc;
-          wcex.cbClsExtra		= 0;
-          wcex.cbWndExtra		= 0;
-          wcex.hInstance		= NULL;
-          wcex.hIcon			= NULL;
-          wcex.hCursor		= NULL;
-          if(1)
+          if(touch_lrc == 0)
           {
-            RECT rc;
+            touch_lrc = 1;
+            WNDCLASS wcex;
+            wcex.Tag	 		= WNDCLASS_TAG;
+            wcex.Style			= CS_HREDRAW | CS_VREDRAW;
+            wcex.lpfnWndProc	= (WNDPROC)Dlg_LRC_WinProc;
+            wcex.cbClsExtra		= 0;
+            wcex.cbWndExtra		= 0;
+            wcex.hInstance		= NULL;
+            wcex.hIcon			= NULL;
+            wcex.hCursor		= NULL;
+            if(1)
+            {
+              RECT rc;
 
-            GetClientRect(hwnd,&rc);
+              GetClientRect(hwnd,&rc);
 
-            MusicDialog.LRC_Hwnd = CreateWindowEx(NULL,
-                                                      &wcex,L"MusicList",
-                                                      WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
-                                                      0,80,800,290,
-                                                      hwnd,0,NULL,NULL);
+              MusicDialog.LRC_Hwnd = CreateWindowEx(NULL,
+                                                        &wcex,L"MusicList",
+                                                        WS_OVERLAPPED|WS_CLIPCHILDREN|WS_VISIBLE,
+                                                        0,80,800,290,
+                                                        hwnd,0,NULL,NULL);
+            }
           }
+          else
+            ShowWindow(MusicDialog.LRC_Hwnd, SW_SHOW);
         }
+        
         else
         {
           MusicDialog.mLRC_State = 0;
-          PostCloseMessage(MusicDialog.LRC_Hwnd);
+          //PostCloseMessage(MusicDialog.LRC_Hwnd);
+          //SendMessage(MusicDialog.LRC_Hwnd, LRC_CLOSE, NULL, NULL);
+          ShowWindow(MusicDialog.LRC_Hwnd, SW_HIDE);
         }
       }     
       
@@ -1399,9 +1411,9 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }      
     case WM_DESTROY:
     {      
-      mp3player.ucStatus = STA_IDLE;		/* 待机状态 */ 
-      SAI_Play_Stop();		/* 停止I2S录音和放音 */
-      wm8978_Reset();	/* 复位WM8978到复位状态 */         
+      touch_lrc = 0;
+      SendMessage(MusicDialog.LRC_Hwnd, LRC_CLOSE, NULL, NULL);
+      mp3player.ucStatus = STA_IDLE;		/* 待机状态 */      
       thread_PlayMusic = 0;
       music_icon[2].state = FALSE;
       music_icon[6].state = FALSE;
@@ -1413,7 +1425,8 @@ static LRESULT music_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       MusicDialog.power = 20;
       MusicDialog.angle = 0;
       MusicDialog.mLRC_State = 0;
-     
+      SAI_Play_Stop();		/* 停止I2S录音和放音 */
+      wm8978_Reset();	/* 复位WM8978到复位状态 */        
       return PostQuitMessage(hwnd);	
     }     
 		default:
