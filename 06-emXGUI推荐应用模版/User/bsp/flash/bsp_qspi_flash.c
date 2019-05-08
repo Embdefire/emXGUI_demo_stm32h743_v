@@ -325,9 +325,13 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 			return QSPI_ERROR;
 		}
 
+		/* 配置自动轮询模式等待程序结束 */
+    QSPI_FLASH_Wait_Busy();    
 		/* 配置自动轮询模式等待程序结束 */  
-    QSPI_FLASH_Wait_Busy();
-
+//		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+//		{
+//			return QSPI_ERROR;
+//		}
 		/* 更新下一页编程的地址和大小变量 */
 		current_addr += current_size;
 		pData += current_size;
@@ -368,12 +372,14 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	{
 		return QSPI_ERROR;
 	}
-//  QSPI_FLASH_Wait_Busy();
+  
+  QSPI_FLASH_Wait_Busy();
+  
 	/* 配置自动轮询模式等待擦除结束 */  
-	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
-	{
-		return QSPI_ERROR;
-	}
+//	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
+//	{
+//		return QSPI_ERROR;
+//	}
   
 	return QSPI_OK;
 }
@@ -731,10 +737,10 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	{
 		printf("something wrong ....\r\n");
 		/* 用户可以在这里添加一些代码来处理这个错误 */
-		while(1)
-		{
-			
-		}
+//		while(1)
+//		{
+//			
+//		}
 	}
 
 	//单flash时读取的字节数为pData[0]，pData[1]
@@ -844,7 +850,7 @@ void QSPI_Set_WP_TO_QSPI_IO(void)
 //等待空闲
 void QSPI_FLASH_Wait_Busy(void)   
 {   
-	while((QSPI_FLASH_ReadStatusReg(1)&0x01)==0x01);   // 等待BUSY位清空
+	while((QSPI_FLASH_ReadStatusReg(1)&0x01)==0x01);
 }   
 extern HWND wnd_res_writer_progbar;
 #define ESTIMATE_ERASING_TIME (58*1000)

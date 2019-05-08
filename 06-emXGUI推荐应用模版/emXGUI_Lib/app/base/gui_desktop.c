@@ -212,7 +212,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           id =LOWORD(wParam);
           if(id==1)
           {
-            //printf("任务壮态:              %d\r\n",eTaskGetState(task_play));
+            
             GUI_InputHandler(); //处理输入设备
           }
         }

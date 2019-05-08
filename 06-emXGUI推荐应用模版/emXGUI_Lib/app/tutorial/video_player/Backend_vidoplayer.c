@@ -376,8 +376,7 @@ void AVI_play(char *filename)
 //        
      }
 //  
-  GUI_SemPost(close_win);   
-  GUI_DEBUG("E");
+
   GUI_VMEM_Free(Frame_buf);
   DeleteDC(hdc1);
   if(!VideoDialog.SWITCH_STATE)
@@ -392,6 +391,11 @@ void AVI_play(char *filename)
 	wm8978_Reset();	/* 复位WM8978到复位状态 */
   HAL_TIM_Base_Stop_IT(&TIM3_Handle); //允许定时器3更新中断
   f_close(&fileR);
+  if(VideoDialog.SWITCH_STATE == 2)
+  {
+    GUI_SemPost(close_win);   
+    GUI_DEBUG("E");
+  }  
 }
 
 void MUSIC_SAI_DMA_TX_Callback(void)

@@ -156,24 +156,7 @@
           <Name>-T0</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint>
-        <Bp>
-          <Number>0</Number>
-          <Type>0</Type>
-          <LineNumber>213</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134335776</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>H:\emXGUI\demo_code_stm32h743\06-emXGUI鎺ㄨ崘搴旂敤妯＄増\Project\emXGUI_Lib\app\tutorial\pic_view\GUI_PICVIEWR_DIALOG.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Fire_emxgui\../../emXGUI_Lib/app/tutorial/pic_view/GUI_PICVIEWR_DIALOG.c\213</Expression>
-        </Bp>
-      </Breakpoint>
+      <Breakpoint/>
       <WatchWindow1>
         <Ww>
           <count>0</count>
@@ -195,6 +178,26 @@
           <WinNumber>1</WinNumber>
           <ItemText>ds-&gt;ID</ItemText>
         </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>VideoDialog</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>VideoDialog</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>mem_size,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>task_play</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
@@ -206,6 +209,11 @@
           <count>1</count>
           <WinNumber>2</WinNumber>
           <ItemText>ds</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>uSdHandle</ItemText>
         </Ww>
       </WatchWindow2>
       <MemoryWindow1>
@@ -272,16 +280,8 @@
       <pMultCmds></pMultCmds>
       <SystemViewers>
         <Entry>
-          <Name>System Viewer\AXI</Name>
+          <Name>System Viewer\DMA1</Name>
           <WinId>35905</WinId>
-        </Entry>
-        <Entry>
-          <Name>System Viewer\FMC</Name>
-          <WinId>35902</WinId>
-        </Entry>
-        <Entry>
-          <Name>System Viewer\SAI1</Name>
-          <WinId>35903</WinId>
         </Entry>
         <Entry>
           <Name>System Viewer\SDMMC1</Name>
@@ -339,7 +339,7 @@
 
   <Group>
     <GroupName>STM32H7xx_HAL_Driver</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1259,7 +1259,7 @@
 
   <Group>
     <GroupName>USER</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1339,7 +1339,7 @@
 
   <Group>
     <GroupName>BSP</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1719,7 +1719,7 @@
 
   <Group>
     <GroupName>emxgui/arch</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1787,7 +1787,7 @@
 
   <Group>
     <GroupName>emxgui/resource</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1891,7 +1891,7 @@
 
   <Group>
     <GroupName>emxgui/drv</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2147,7 +2147,7 @@
 
   <Group>
     <GroupName>emxgui/libs</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2403,7 +2403,7 @@
 
   <Group>
     <GroupName>emxgui/res</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2443,7 +2443,7 @@
 
   <Group>
     <GroupName>Fafts</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2547,7 +2547,7 @@
 
   <Group>
     <GroupName>tutorial/rgb_led</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2579,7 +2579,7 @@
 
   <Group>
     <GroupName>tutorial/musci_player</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2831,7 +2831,7 @@
 
   <Group>
     <GroupName>tutorial/video_player</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

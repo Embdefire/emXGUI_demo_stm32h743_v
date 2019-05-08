@@ -16,9 +16,9 @@ char lcdlist[20][100];//显示list
 //static char lcdlist[20][100];//显示list
 static SCROLLINFO video_sif_power;/*设置进度条的参数*/
 static char path[100]="0:";//文件根目??
-
+eTaskState taskstate;
 uint32_t mem_size = 0;
-
+extern FIL       fileR ;
 //图标管理数组
 ICON_Typedef avi_icon[13] = {
    {"yinliang",         {20, 400,48,48},      FALSE},
@@ -472,14 +472,14 @@ static void App_PlayVideo(void *param)
 		{
 			app=1;    
       AVI_play(avi_playlist[VideoDialog.playindex]);
-      GUI_DEBUG("Before app = 0");
+//      GUI_DEBUG("Before app = 0");
       app = 0;
 
 		}
 	  //
    }
-   GUI_DEBUG("Delete");
-   GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
+//   GUI_DEBUG("Delete");
+//   GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
 
 }
 #else
@@ -492,7 +492,7 @@ static void App_PlayVideo(void *param)
     GUI_msleep(10);
   }
   
-  //GUI_Thread_Delete(GUI_GetCurThreadHandle());
+  GUI_Thread_Delete(GUI_GetCurThreadHandle());
 
 }
 #endif
@@ -799,21 +799,22 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
        RES_Release_Content((char **)&jpeg_buf);         
        vbuf =GUI_GRAM_Alloc(800*480*2);
        pSurf1 =CreateSurface(SURF_SCREEN,800,480,800*2,vbuf);
-
+//       vTaskResume(xTaskGetHandle("App_PlayVideo"));
       xTaskCreate((TaskFunction_t )App_PlayVideo,  /* 任务入口函数 */
                             (const char*    )"App_PlayVideo",/* 任务名字 */
                             (uint16_t       )16*1024/4,  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
                             (void*          )NULL,/* 任务入口函数参数 */
                             (UBaseType_t    )5, /* 任务的优先级 */
                             (TaskHandle_t*  )&task_play);/* 任务控制块指针 */
+      taskstate = eTaskGetState(xTaskGetHandle("App_PlayVideo"));
        //App_PlayVideo(NULL);
-//       GUI_Thread_Create(App_PlayVideo,"App_PlayVideo",16*1024,NULL,6,5);
+       
 //       vTaskGetInfo((TaskHandle_t  )task_play,        //任务句柄
 //                   (TaskStatus_t* )&TaskStatus,       //任务信息结构体
 //                   (BaseType_t    )pdTRUE,            //允许统计任务堆栈历史最小剩余大小
 //                   (eTaskState    )eInvalid);         //函数自己获取任务运行壮态      
        //GUI_DEBUG("%s", pcWriteBuffer);
-       
+       //vTaskResume(xTaskGetHandle("App_PlayVideo"));
        break;
     }
     case WM_NOTIFY:
@@ -1060,7 +1061,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //      vTaskList((char *)&CPU_RunInfo);
 //      printf("任务名 任务状态 优先级 剩余栈 任务序号\r\n");
 //      printf("%s", CPU_RunInfo);
-      //
+      taskstate = eTaskGetState(xTaskGetHandle("App_PlayVideo"));
     	hdc =BeginPaint(hwnd,&ps);
     	SetBrushColor(hdc,MapRGB(hdc,0,0,0));
         rc.x =160;
@@ -1093,14 +1094,21 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
       close_win = GUI_SemCreate(0, 1);     
       GUI_DEBUG("De");
-          
       
-      //VideoDialog.SWITCH_STATE = 1;
-      SAI_Play_Stop();		/* 停止I2S录音和放音 */ 
-      wm8978_Reset();	/* 复位WM8978到复位状态 */       
-      vTaskDelete(task_play);
+      VideoDialog.SWITCH_STATE = 2;//关闭状态
+      taskstate = eTaskGetState(xTaskGetHandle("App_PlayVideo"));
+      //GUI_SemWait(close_win,0xfffff);      
+      SAI_Play_Stop();
+      wm8978_Reset();	/* 复位WM8978到复位状态 */          
+      f_close(&fileR);
+
+      //(xTaskGetHandle("App_PlayVideo"));
+//      taskstate = eTaskGetState(task_play);
       thread_PlayVideo = 0;
-     
+      vTaskDelete(task_play);
+      taskstate = eTaskGetState(task_play);
+      
+      GUI_SemDelete(close_win);
       DestroyWindow(hwnd); //调用DestroyWindow函数来销毁窗口（该函数会产生WM_DESTROY消息）。
       return TRUE; //关闭窗口返回TRUE。      
     }
@@ -1152,7 +1160,10 @@ void	GUI_Video_DIALOG(void*param)
 	wcex.hInstance = NULL;//hInst;
 	wcex.hIcon = NULL;//LoadIcon(hInstance, (LPCTSTR)IDI_WIN32_APP_TEST);
 	wcex.hCursor = NULL;//LoadCursor(NULL, IDC_ARROW);
-
+//  
+//  App_PlayVideo(NULL); 
+//  vTaskSuspend(xTaskGetHandle("App_PlayVideo"));
+  
 	//创建主窗口
 	VideoDialog.Video_Hwnd = CreateWindowEx(WS_EX_NOFOCUS|WS_EX_FRAMEBUFFER,
                                     &wcex,
@@ -1183,7 +1194,7 @@ void GUI_VIDEO_DIALOGTest(void *param)
   if(thread == 0)
   {
      GUI_Thread_Create(GUI_VIDEO_DIALOGTest,"VIDEO_DIALOG",16*1024,NULL,5,3);
-     
+      
      thread = 1;
      return;
   }
