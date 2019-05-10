@@ -19,7 +19,7 @@
 #include "./usart/bsp_usart.h"
 //#include "./flash/bsp_spi_flash.h"
 //#include "./font/fonts.h"
-
+#include "./wm8978/bsp_wm8978.h"  
 #include "./tim/bsp_basic_tim.h"
 
 /*

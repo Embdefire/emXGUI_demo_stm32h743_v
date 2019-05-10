@@ -3,7 +3,7 @@
 
 #include	"emXGUI.h"
 #include	"gui_drv_cfg.h"
-#include "ff.h"
+
 
 
 #ifdef __cplusplus

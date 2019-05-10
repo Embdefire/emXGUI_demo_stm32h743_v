@@ -349,9 +349,10 @@ BlockLink_t *pxLink;
 	}
 }
 /*-----------------------------------------------------------*/
-
+size_t remain = 0;
 size_t xPortGetFreeHeapSize( void )
 {
+  remain = xFreeBytesRemaining;
 	return xFreeBytesRemaining;
 }
 /*-----------------------------------------------------------*/

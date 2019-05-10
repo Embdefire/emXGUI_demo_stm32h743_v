@@ -16,7 +16,8 @@
   */
   
 #include "./flash/bsp_qspi_flash.h"
-
+#include "backend_res_mgr.h"
+#include "emXGUI.h"
 QSPI_HandleTypeDef QSPIHandle;
 
 /**
@@ -68,37 +69,40 @@ uint8_t QSPI_FLASH_Init(void)
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO3_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO3_PORT, &GPIO_InitStruct);
 
+  HAL_QSPI_DeInit(&QSPIHandle);
 	/*!< 配置 SPI_FLASH_SPI 引脚: NCS */
 	GPIO_InitStruct.Pin = QSPI_FLASH_CS_PIN;
 	GPIO_InitStruct.Alternate = QSPI_FLASH_CS_GPIO_AF;
 	HAL_GPIO_Init(QSPI_FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI;
-  PeriphClkInitStruct.PLL2.PLL2M = 25;
-  PeriphClkInitStruct.PLL2.PLL2N = 200;
-  PeriphClkInitStruct.PLL2.PLL2P = 1;
-  PeriphClkInitStruct.PLL2.PLL2Q = 1;
-  PeriphClkInitStruct.PLL2.PLL2R = 1;
-  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
+    //QSPI freq = osc/PLL2M*PLL2N/PLL2R/（ClockPrescaler+1）
+  PeriphClkInitStruct.PLL2.PLL2M = 5;
+  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 3;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_2;
   PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
   PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
   PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL2;
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
 	/* QSPI_FLASH 模式配置 */
 	QSPIHandle.Instance = QUADSPI;
-	/*二分频，时钟为216/(1+1)=108MHz */
-	QSPIHandle.Init.ClockPrescaler = 2;
+	/*二分频，时钟为200/(1+1)=100MHz */
+	QSPIHandle.Init.ClockPrescaler = 1;
 	/*FIFO 阈值为 4 个字节*/
-	QSPIHandle.Init.FifoThreshold = 4;
+	QSPIHandle.Init.FifoThreshold = 24;
 	/*采样移位半个周期*/
 	QSPIHandle.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
 	/*Flash大小为16M字节，2^24，所以取权值24-1=23*/
-	QSPIHandle.Init.FlashSize = 23;
+	QSPIHandle.Init.FlashSize = 24;
 	/*片选高电平保持时间，至少50ns，对应周期数6*9.2ns =55.2ns*/
 	QSPIHandle.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
 	/*时钟模式选择模式0，nCS为高电平（片选释放）时，CLK必须保持低电平*/
-	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_0;
+	QSPIHandle.Init.ClockMode = QSPI_CLOCK_MODE_3;
 	/*根据硬件连接选择第一片Flash*/
 	QSPIHandle.Init.FlashID = QSPI_FLASH_ID_1;
+//  QSPIHandle.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
 	HAL_QSPI_Init(&QSPIHandle);
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
@@ -107,20 +111,58 @@ uint8_t QSPI_FLASH_Init(void)
 
 
 /**
+  * @brief  设置QSPI存储器为4-byte地址模式
+  * @param  无
+  * @retval 返回状态
+  */
+uint8_t QSPI_EnterFourBytesAddress(void)
+{
+  QSPI_CommandTypeDef s_command;
+
+  /* Initialize the command */
+  s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
+  s_command.Instruction       = ENTER_4_BYTE_ADDR_MODE_CMD;
+  s_command.AddressMode       = QSPI_ADDRESS_NONE;
+  s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+  s_command.DataMode          = QSPI_DATA_NONE;
+  s_command.DummyCycles       = 0;
+  s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
+  s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
+  s_command.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
+
+  /* 使能写操作 */
+  QSPI_WriteEnable();
+  
+  /* 传输命令 */
+  if (HAL_QSPI_Command(&QSPIHandle, &s_command,HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+  {
+    return QSPI_ERROR;
+  }
+
+	/* 自动轮询模式等待存储器就绪 */  
+	if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+	{
+		return QSPI_ERROR;
+	}
+	return QSPI_OK;
+
+}
+
+/**
   * @brief  初始化QSPI存储器
   * @retval QSPI存储器状态
   */
 uint8_t BSP_QSPI_Init(void)
 { 
 	QSPI_CommandTypeDef s_command;
-	uint8_t value = W25Q256JV_FSR_QE;
+	uint8_t value = 0x06;
 	
 	/* QSPI存储器复位 */
 	if (QSPI_ResetMemory() != QSPI_OK)
 	{
 		return QSPI_NOT_SUPPORTED;
 	}
-	
+	QSPI_EnterFourBytesAddress();
 	/* 使能写操作 */
 	if (QSPI_WriteEnable() != QSPI_OK)
 	{
@@ -128,7 +170,7 @@ uint8_t BSP_QSPI_Init(void)
 	}	
 	/* 设置四路使能的状态寄存器，使能四通道IO2和IO3引脚 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
-	s_command.Instruction       = WRITE_STATUS_REG2_CMD;
+	s_command.Instruction       = WRITE_STATUS_REG1_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_NONE;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -165,11 +207,18 @@ uint8_t BSP_QSPI_Init(void)
 uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
+  
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_Read Size = 0");
+    return QSPI_OK;
+  }
+
 	/* 初始化读命令 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = ReadAddr;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -181,15 +230,13 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 
 	/* 配置命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-	{
-    printf("C Err\n\r");
+	{      
 		return QSPI_ERROR;
 	}
 
 	/* 接收数据 */
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-    printf("R Err\n\r");
 		return QSPI_ERROR;
 	}
 	return QSPI_OK;
@@ -204,11 +251,17 @@ uint8_t BSP_QSPI_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
+
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_FastRead Size = 0");
+    return QSPI_OK;
+  }
 	/* 初始化读命令 */
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INOUT_FAST_READ_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_4_LINES;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = ReadAddr;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_4_LINES;
@@ -231,53 +284,6 @@ uint8_t BSP_QSPI_FastRead(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 	}
 	return QSPI_OK;
 }
-
-static uint8_t BSP_QSPI_WritePage(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
-{
-	QSPI_CommandTypeDef s_command;
-
-
-	/* 初始化程序命令 */
-	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
-	s_command.Instruction       = QUAD_INPUT_PAGE_PROG_CMD;
-	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
-	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
-	s_command.DataMode          = QSPI_DATA_4_LINES;
-	s_command.DummyCycles       = 0;
-	s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
-	s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
-	s_command.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
-  s_command.Address           = WriteAddr;
-  s_command.NbData            = Size;
-  
-  /* 启用写操作 */
-  if (QSPI_WriteEnable() != QSPI_OK)
-  {
-    return QSPI_ERROR;
-  }
-
-  /* 配置命令 */
-  if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-  {
-    return QSPI_ERROR;
-  }
-
-  /* 传输数据 */
-  if (HAL_QSPI_Transmit(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-  {
-    return QSPI_ERROR;
-  }
-
-  /* 配置自动轮询模式等待程序结束 */  
-  if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
-  {
-    return QSPI_ERROR;
-  }
-
-	return QSPI_OK;
-}
-#if 0
 /**
   * @brief  将大量数据写入QSPI存储器
   * @param  pData: 指向要写入数据的指针
@@ -289,6 +295,13 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 {
 	QSPI_CommandTypeDef s_command;
 	uint32_t end_addr, current_size, current_addr;
+  
+  if(Size == 0)
+  {
+    BURN_DEBUG("BSP_QSPI_Write Size = 0");
+    return QSPI_OK;
+  }
+
 	/* 计算写入地址和页面末尾之间的大小 */
 	current_addr = 0;
 
@@ -312,7 +325,7 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = QUAD_INPUT_PAGE_PROG_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_4_LINES;
 	s_command.DummyCycles       = 0;
@@ -324,6 +337,12 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 	do
 	{
 		s_command.Address = current_addr;
+    if(current_size == 0)   
+    {
+      BURN_DEBUG("BSP_QSPI_Write current_size = 0");
+      return QSPI_OK;
+    }
+
 		s_command.NbData  = current_size;
 
 		/* 启用写操作 */
@@ -344,106 +363,19 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 			return QSPI_ERROR;
 		}
 
+		/* 配置自动轮询模式等待程序结束 */
+    QSPI_FLASH_Wait_Busy();    
 		/* 配置自动轮询模式等待程序结束 */  
-		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
-		{
-			return QSPI_ERROR;
-		}
-
+//		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+//		{
+//			return QSPI_ERROR;
+//		}
 		/* 更新下一页编程的地址和大小变量 */
 		current_addr += current_size;
 		pData += current_size;
 		current_size = ((current_addr + W25Q256JV_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : W25Q256JV_PAGE_SIZE;
 	} while (current_addr < end_addr);
 	return QSPI_OK;
-}
-#endif
-
-void BSP_QSPI_Write(uint8_t* pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite)
-{
-  uint8_t NumOfPage = 0, NumOfSingle = 0, Addr = 0, count = 0, temp = 0;
-	
-	/*mod运算求余，若writeAddr是W25Q256JV_PAGE_SIZE整数倍，运算结果Addr值为0*/
-  Addr = WriteAddr % W25Q256JV_PAGE_SIZE;
-	
-	/*差count个数据值，刚好可以对齐到页地址*/
-  count = W25Q256JV_PAGE_SIZE - Addr;	
-	/*计算出要写多少整数页*/
-  NumOfPage =  NumByteToWrite / W25Q256JV_PAGE_SIZE;
-	/*mod运算求余，计算出剩余不满一页的字节数*/
-  NumOfSingle = NumByteToWrite % W25Q256JV_PAGE_SIZE;
-
-	 /* Addr=0,则WriteAddr 刚好按页对齐 aligned  */
-  if (Addr == 0) 
-  {
-		/* NumByteToWrite < W25Q256JV_PAGE_SIZE */
-    if (NumOfPage == 0) 
-    {
-      BSP_QSPI_WritePage(pBuffer, WriteAddr, NumByteToWrite);
-    }
-    else /* NumByteToWrite > W25Q256JV_PAGE_SIZE */
-    {
-			/*先把整数页都写了*/
-      while (NumOfPage--)
-      {
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, W25Q256JV_PAGE_SIZE);
-        WriteAddr +=  W25Q256JV_PAGE_SIZE;
-        pBuffer += W25Q256JV_PAGE_SIZE;
-      }
-			if(NumOfSingle != 0)
-        /*若有多余的不满一页的数据，把它写完*/
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumOfSingle);
-    }
-  }
-	/* 若地址与 W25Q256JV_PAGE_SIZE 不对齐  */
-  else 
-  {
-		/* NumByteToWrite < W25Q256JV_PAGE_SIZE */
-    if (NumOfPage == 0) 
-    {
-			/*当前页剩余的count个位置比NumOfSingle小，写不完*/
-      if (NumOfSingle > count) 
-      {
-        temp = NumOfSingle - count;
-				
-				/*先写满当前页*/
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, count);
-        WriteAddr +=  count;
-        pBuffer += count;
-				
-				/*再写剩余的数据*/
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, temp);
-      }
-      else /*当前页剩余的count个位置能写完NumOfSingle个数据*/
-      {				
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumByteToWrite);
-      }
-    }
-    else /* NumByteToWrite > W25Q256JV_PAGE_SIZE */
-    {
-			/*地址不对齐多出的count分开处理，不加入这个运算*/
-      NumByteToWrite -= count;
-      NumOfPage =  NumByteToWrite / W25Q256JV_PAGE_SIZE;
-      NumOfSingle = NumByteToWrite % W25Q256JV_PAGE_SIZE;
-
-      BSP_QSPI_WritePage(pBuffer, WriteAddr, count);
-      WriteAddr +=  count;
-      pBuffer += count;
-			
-			/*把整数页都写了*/
-      while (NumOfPage--)
-      {
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, W25Q256JV_PAGE_SIZE);
-        WriteAddr +=  W25Q256JV_PAGE_SIZE;
-        pBuffer += W25Q256JV_PAGE_SIZE;
-      }
-			/*若有多余的不满一页的数据，把它写完*/
-      if (NumOfSingle != 0)
-      {
-        BSP_QSPI_WritePage(pBuffer, WriteAddr, NumOfSingle);
-      }
-    }
-  }
 }
 
 /**
@@ -458,7 +390,7 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = SECTOR_ERASE_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = BlockAddress;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_NONE;
@@ -472,18 +404,21 @@ uint8_t BSP_QSPI_Erase_Block(uint32_t BlockAddress)
 	{
 		return QSPI_ERROR;
 	}
-
+  //QSPI_FLASH_Wait_Busy();
 	/* 发送命令 */
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
 		return QSPI_ERROR;
 	}
-
+  
+  QSPI_FLASH_Wait_Busy();
+  
 	/* 配置自动轮询模式等待擦除结束 */  
-	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
-	{
-		return QSPI_ERROR;
-	}
+//	if (QSPI_AutoPollingMemReady(W25Q256JV_SUBSECTOR_ERASE_MAX_TIME) != QSPI_OK)
+//	{
+//		return QSPI_ERROR;
+//	}
+  
 	return QSPI_OK;
 }
 
@@ -516,10 +451,10 @@ uint8_t BSP_QSPI_Erase_Chip(void)
 		return QSPI_ERROR;
 	} 
 	/* 配置自动轮询模式等待擦除结束 */  
-	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
-	{
-		return QSPI_ERROR;
-	}
+//	if (QSPI_AutoPollingMemReady(W25Q256JV_BULK_ERASE_MAX_TIME) != QSPI_OK)
+//	{
+//		return QSPI_ERROR;
+//	}
 	return QSPI_OK;
 }
 
@@ -592,8 +527,8 @@ static uint8_t QSPI_ResetMemory()
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = RESET_ENABLE_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_NONE;
-	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;//跳过交替字节阶段
-	s_command.DataMode          = QSPI_DATA_NONE;//跳过数据阶段
+	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	s_command.DataMode          = QSPI_DATA_NONE;
 	s_command.DummyCycles       = 0;
 	s_command.DdrMode           = QSPI_DDR_MODE_DISABLE;
 	s_command.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
@@ -665,7 +600,7 @@ static uint8_t QSPI_WriteEnable()
 }
 
 /**
-  * @brief  读取存储器的SR
+  * @brief  读取存储器的SR并等待EOP
   * @param  QSPIHandle: QSPI句柄
   * @param  Timeout 超时
   * @retval 无
@@ -687,14 +622,9 @@ static uint8_t QSPI_AutoPollingMemReady(uint32_t Timeout)
 
 	s_config.Match           = 0x00;
 	s_config.Mask            = W25Q256JV_FSR_BUSY;
-  
-  //此处只需要匹配一位，所以AND或者OR模式均可；
-  //若有多个标志位需要配置时，AND模式：必须全部满足；OR模式：只满足其中一个即可
 	s_config.MatchMode       = QSPI_MATCH_MODE_AND;
-  //SPI_FLASH有三个状态寄存器，返回值为1个字节
 	s_config.StatusBytesSize = 1;
 	s_config.Interval        = 0x10;
-  //发生匹配时，自动轮询模式停止。
 	s_config.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
 	if (HAL_QSPI_AutoPolling(&QSPIHandle, &s_command, &s_config, Timeout) != HAL_OK)
@@ -718,7 +648,7 @@ uint32_t QSPI_FLASH_ReadID(void)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_JEDEC_ID_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
 	  s_command.AddressMode       = QSPI_ADDRESS_NONE;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
@@ -767,7 +697,7 @@ uint32_t QSPI_FLASH_ReadDeviceID(void)
 	s_command.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
 	s_command.Instruction       = READ_ID_CMD;
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = 0x000000;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -822,7 +752,7 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	s_command.Instruction       = READ_STATUS_REG3_CMD;
 	
 	s_command.AddressMode       = QSPI_ADDRESS_1_LINE;
-	s_command.AddressSize       = QSPI_ADDRESS_24_BITS;
+	s_command.AddressSize       = QSPI_ADDRESS_32_BITS;
 	s_command.Address           = 0x000000;
 	s_command.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
 	s_command.DataMode          = QSPI_DATA_1_LINE;
@@ -845,10 +775,10 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	{
 		printf("something wrong ....\r\n");
 		/* 用户可以在这里添加一些代码来处理这个错误 */
-		while(1)
-		{
-			
-		}
+//		while(1)
+//		{
+//			
+//		}
 	}
 
 	//单flash时读取的字节数为pData[0]，pData[1]
@@ -937,7 +867,7 @@ void QSPI_Set_WP_High(void)
 	/*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
 	HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);	
 	
-	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOF,GPIO_PIN_7,1);
 }
 void QSPI_Set_WP_TO_QSPI_IO(void)
 {
@@ -953,5 +883,71 @@ void QSPI_Set_WP_TO_QSPI_IO(void)
 	GPIO_InitStruct.Pin = QSPI_FLASH_BK1_IO2_PIN;
 	GPIO_InitStruct.Alternate = QSPI_FLASH_BK1_IO2_AF;
 	HAL_GPIO_Init(QSPI_FLASH_BK1_IO2_PORT, &GPIO_InitStruct);
+}
+
+//等待空闲
+void QSPI_FLASH_Wait_Busy(void)   
+{   
+	while((QSPI_FLASH_ReadStatusReg(1)&0x01)==0x01);
+}   
+extern HWND wnd_res_writer_progbar;
+#define ESTIMATE_ERASING_TIME (58*1000)
+
+/**
+  * @brief  擦除FLASH扇区，整片擦除，带GUI
+  * @param  无
+  * @retval 无
+  */
+void SPI_FLASH_BulkErase_GUI(void)
+{
+  
+  /* 重置进度条 */
+  u32 progbar_val = 0;
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
+  SetWindowText(wnd_res_writer_progbar,L"擦除Flash中");
+
+  /* 设置最大值，擦除大概需要30s */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_RANGLE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
+  
+  BSP_QSPI_Erase_Chip(); 
+
+  GUI_msleep(10);
+  /* 等待擦除完毕*/
+  {
+    u8 FLASH_Status = 0;
+
+    progbar_val = 0;
+    /* 若FLASH忙碌，则等待 */
+    do
+    {
+      /* 读取FLASH芯片的状态寄存器 */
+      FLASH_Status = QSPI_FLASH_ReadStatusReg(1)&0x01;	 
+      
+      progbar_val += 120;
+      /* 超过40*1000ms没完成，继续等*/
+//      if(progbar_val >= ESTIMATE_ERASING_TIME - 10*1000)
+//          progbar_val =ESTIMATE_ERASING_TIME - 10*1000;
+
+      SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,progbar_val);
+      /* 让出cpu */
+      GUI_msleep(100);
+
+      {
+        /* 大于2倍预估时间，跳出 */
+        if(progbar_val > 2*ESTIMATE_ERASING_TIME) 
+        {
+//          SPI_TIMEOUT_UserCallback(4);
+          return;
+        }
+      } 
+    }
+    while ((FLASH_Status & 0x01)==0x01); /* 正在写入标志 */
+
+  }
+  
+  /* 完成 */
+  SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
+  GUI_msleep(10);
 }
 /*********************************************END OF FILE**********************/

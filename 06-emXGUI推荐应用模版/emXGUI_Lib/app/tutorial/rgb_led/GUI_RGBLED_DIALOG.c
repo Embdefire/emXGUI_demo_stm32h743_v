@@ -24,7 +24,7 @@ struct leddlg
    int colB_ctr;//硬件RGB灯控制位
 }leddlg_S={255, 165, 208, 255, 165, 208, 1, 1, 1};
 
-icon_S GUI_RGBLED_Icon[18] = 
+ICON_Typedef GUI_RGBLED_Icon[18] = 
 {
       {"tuichu",           {730,0,70,70},       FALSE},//退出按键
       {"biaotilan",        {100,0,600,80},      FALSE},//APP标题栏
@@ -46,7 +46,7 @@ icon_S GUI_RGBLED_Icon[18] =
       {"Bshuzhi",          {356, 355, 72, 72}, FALSE},//文字-B数值
 };
 
-RGBLED_DIALOG_s RGBLED_DIALOG =
+RGBLED_DIALOG_Typedef RGBLED_DIALOG =
 {
    .RGBLED_Hwnd = NULL,
    .State = TRUE,
@@ -792,7 +792,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void	GUI_LED_DIALOG(void *param)
+void	GUI_LED_DIALOG(void)
 {
 	HWND	hwnd;
 	WNDCLASS	wcex;
@@ -834,30 +834,31 @@ void	GUI_LED_DIALOG(void *param)
 
 }
 
-//void GUI_PicViewer_DIALOGTest(void *param)
-//{
-//  static int thread = 0;
-//  int app = 0;
-//  
-//  if(thread == 0)
-//  {
-//     GUI_Thread_Create(GUI_PicViewer_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
-//     thread = 1;
-//     return;
-//  }
-//  if(thread == 1)
-//  {
-//		if(app==0)
-//		{
-//			app=1;
-//			GUI_LED_DIALOG();
-//      
-//      
-//			app=0;
-//			thread=0;
-//		}    
-//  }
-//}
+void GUI_RGBLED_DIALOGTest(void *param)
+{
+  static int thread = 0;
+  int app = 0;
+  
+  if(thread == 0)
+  {
+     GUI_Thread_Create(GUI_RGBLED_DIALOGTest,"GUI_PicViewer",8*1024,NULL,5,5);
+     thread = 1;
+     return;
+  }
+  if(thread == 1)
+  {
+		if(app==0)
+		{
+			app=1;
+			GUI_LED_DIALOG();
+      
+      
+			app=0;
+			thread=0;
+      GUI_Thread_Delete(GUI_GetCurThreadHandle());
+		}    
+  }
+}
 
 
 

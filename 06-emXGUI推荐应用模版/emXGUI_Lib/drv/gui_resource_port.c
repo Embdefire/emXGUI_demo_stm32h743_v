@@ -25,7 +25,7 @@
 /*=========================================================================================*/
 /*访问资源设备的互斥信号量*/
 static GUI_MUTEX *mutex_lock=NULL;
-
+uint8_t Rx_Buffer[256];
 /**
   * @brief  初始化资源设备（外部FLASH）
   * @param  无
@@ -43,11 +43,11 @@ BOOL RES_DevInit(void)
   {
     QSPI_FLASH_WriteStatusReg(1,0X00);
     QSPI_FLASH_WriteStatusReg(2,0X00);
-    QSPI_FLASH_WriteStatusReg(3,0X60);
+//    QSPI_FLASH_WriteStatusReg(3,0X60);
     GUI_DEBUG("\r\nFlash Status Reg1 is 0x%02X", QSPI_FLASH_ReadStatusReg(1));	
     GUI_DEBUG("\r\nFlash Status Reg2 is 0x%02X", QSPI_FLASH_ReadStatusReg(2));
     GUI_DEBUG("\r\nFlash Status Reg3 is 0x%02X", QSPI_FLASH_ReadStatusReg(3));    
-    //RES_DevTest();
+    BSP_QSPI_FastRead(Rx_Buffer, 16*1024*1024, 256);
 #endif
     return TRUE;
   }
@@ -110,7 +110,7 @@ BOOL RES_DevRead(u8 *buf,u32 addr,u32 size)
 #if defined(STM32F429_439xx)
 	SPI_FLASH_BufferRead(buf,addr,size);
 #elif defined(STM32H743xx)
-  BSP_QSPI_Read(buf,addr,size);
+  BSP_QSPI_FastRead(buf,addr,size);
 #endif      
 	GUI_MutexUnlock(mutex_lock);
 	return TRUE;
@@ -329,7 +329,7 @@ BOOL RES_Load_Content(char *file_name, char** buf, u32* size)
     return result;
 }
 
-#if(GUI_RES_FS_EN)
+#if 1
 /**
   * @brief  从文件系统加载内容
   * @param  file_name[in]: 文件路径

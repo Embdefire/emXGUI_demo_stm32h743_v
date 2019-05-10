@@ -22,7 +22,6 @@
 #define QSPI_SUSPENDED     ((uint8_t)0x08)
 
 
-
 /* W25Q128FV Micron memory */
 /* Size of the flash */
 #define QSPI_FLASH_SIZE            23     /* Address bus width to access whole memory space */
@@ -142,8 +141,8 @@ typedef struct {
 #define QSPI_FLASH_BK1_IO3_AF              GPIO_AF9_QUADSPI
 
 #define QSPI_FLASH_CS_PIN                 GPIO_PIN_6               
-#define QSPI_FLASH_CS_GPIO_PORT           GPIOB                   
-#define QSPI_FLASH_CS_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOB_CLK_ENABLE()
+#define QSPI_FLASH_CS_GPIO_PORT           GPIOG                   
+#define QSPI_FLASH_CS_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOG_CLK_ENABLE()
 #define QSPI_FLASH_CS_GPIO_AF             GPIO_AF10_QUADSPI
 
 

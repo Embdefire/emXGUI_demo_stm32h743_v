@@ -26,7 +26,7 @@ BOOL Load_state = FALSE;
 extern void	GUI_Boot_Interface_Dialog(void *param);
 extern void GUI_AppMain(void);
 
-
+extern TaskHandle_t  task_play;
 void	gui_app_thread(void *p)
 {
     #if(GUI_TOUCHSCREEN_EN & GUI_TOUCHSCREEN_CALIBRATE)
@@ -53,6 +53,7 @@ void	gui_app_thread(void *p)
     while(1)
     {
 //      GUI_DEBUG("gui_app_thread");
+      
       GUI_msleep(500);
     }
 }
@@ -87,7 +88,7 @@ static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 
 	SetTextColor(hdc,MapRGB(hdc,255,255,255));
   rc.y +=20;
-  DrawText(hdc,L"emXGUI@Embedfire STM32H743X ",-1,&rc,DT_CENTER);
+  DrawText(hdc,L"emXGUI@embedFire STM32H743X ",-1,&rc,DT_CENTER);
     
   /* 背景 */
   GetClientRect(hwnd,&rc);
@@ -185,7 +186,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           
          GUI_Thread_Create(GUI_Boot_Interface_Dialog,  /* 任务入口函数 */
                               "Boot_Interface",/* 任务名字 */
-                              8*1024,  /* 任务栈大小 */
+                              4*1024,  /* 任务栈大小 */
                               NULL, /* 任务入口函数参数 */
                               5,    /* 任务的优先级 */
                               10); /* 任务时间片，部分任务不支持 */
@@ -211,6 +212,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           id =LOWORD(wParam);
           if(id==1)
           {
+            
             GUI_InputHandler(); //处理输入设备
           }
         }

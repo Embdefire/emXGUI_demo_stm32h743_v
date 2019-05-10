@@ -59,7 +59,7 @@ typedef struct {
 
 #define ENTER_QPI_MODE_CMD                   0x38
 #define EXIT_QPI_MODE_CMD                    0xFF
-
+#define ENTER_4_BYTE_ADDR_MODE_CMD           0xB7
 /* Ê¶±ð²Ù×÷ */
 #define READ_ID_CMD                          0x90
 #define DUAL_READ_ID_CMD                     0x92

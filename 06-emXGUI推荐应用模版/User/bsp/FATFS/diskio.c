@@ -1,216 +1,160 @@
+/*-----------------------------------------------------------------------*/
+/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2014        */
+/*                                                                       */
+/*   Portions COPYRIGHT 2015 STMicroelectronics                          */
+/*   Portions Copyright (C) 2014, ChaN, all right reserved               */
+/*-----------------------------------------------------------------------*/
+/* If a working storage control module is available, it should be        */
+/* attached to the FatFs via a glue function rather than modifying it.   */
+/* This is an example of glue functions to attach various exsisting      */
+/* storage control modules to the FatFs module with a defined API.       */
+/*-----------------------------------------------------------------------*/
+
 /**
   ******************************************************************************
-  * @file    bsp_sdio_sd.c
-  * @author  fire
-  * @version V1.0
-  * @date    2018-xx-xx
-  * @brief   SDIO sd卡测试驱动（不含文件系统）
+  * @file    diskio.c 
+  * @author  MCD Application Team
+  * @version V1.3.0
+  * @date    08-May-2015
+  * @brief   FatFs low level disk I/O module.
   ******************************************************************************
   * @attention
   *
-  * 实验平台:秉火  STM32 H743 开发板  
-  * 论坛    :http://www.firebbs.cn
-  * 淘宝    :http://firestm32.taobao.com
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
   *
   ******************************************************************************
   */
-#include "./drivers/fatfs_sd_sdio.h"
-#include <stdio.h>
-#include <string.h>
-#include "./sd_card/bsp_sdio_sd.h"
+
+/* Includes ------------------------------------------------------------------*/
+#include "diskio.h"
 #include "ff_gen_drv.h"
-#include "./led/bsp_led.h" 
-/* Disk status */
-static volatile DSTATUS Stat = STA_NOINIT;
 
-extern SD_HandleTypeDef uSdHandle;
-//发送标志位
-extern volatile uint8_t TX_Flag;
-//接受标志位
-extern volatile uint8_t RX_Flag; 
-const Diskio_drvTypeDef  SD_Driver =
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+extern Disk_drvTypeDef  disk;
+
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
+
+/**
+  * @brief  Gets Disk Status 
+  * @param  pdrv: Physical drive number (0..)
+  * @retval DSTATUS: Operation status
+  */
+DSTATUS disk_status (
+	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+)
 {
-  disk_initialize,
-  disk_status,
-  disk_read, 
-#if  _USE_WRITE == 1
-  disk_write,
-#endif /* _USE_WRITE == 1 */
+  DSTATUS stat;
   
-#if  _USE_IOCTL == 1
-  disk_ioctl,
-#endif /* _USE_IOCTL == 1 */
-};
-DSTATUS disk_initialize(BYTE lun)
-{
-    Stat = STA_NOINIT;
-    if(BSP_SD_Init() == HAL_OK)
-    {    
-        Stat &= ~STA_NOINIT;
-    }
-    return Stat;
+  stat = disk.drv[pdrv]->disk_status(disk.lun[pdrv]);
+  return stat;
 }
 
-DSTATUS disk_status(BYTE lun){
-
-    Stat = STA_NOINIT;
-    if(HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
-    {
-        Stat &= ~STA_NOINIT;
-    }
-    return Stat;
-}
-DRESULT disk_read(BYTE lun,//物理扇区，多个设备时用到(0...)
-                BYTE *buff,//数据缓存区 
-                DWORD sector, //扇区首地址
-                UINT count)//扇区个数(1..128)
+/**
+  * @brief  Initializes a Drive
+  * @param  pdrv: Physical drive number (0..)
+  * @retval DSTATUS: Operation status
+  */
+DSTATUS disk_initialize (
+	BYTE pdrv				/* Physical drive nmuber to identify the drive */
+)
 {
-  DRESULT res = RES_ERROR;
-  uint32_t timeout;
-  uint32_t alignedAddr;
-
-  RX_Flag = 0;
+  DSTATUS stat = RES_OK;
   
-  //alignedAddr = (uint32_t)buff & ~0x1F;
-  //更新相应的DCache
-  if(HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t*)buff,
-                           (uint32_t) (sector),
-                           count) == HAL_OK)
-  {
-    /* Wait that the reading process is completed or a timeout occurs */
-    timeout = HAL_GetTick();
-    while((RX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
-    {
-    }
-    /* incase of a timeout return error */
-    if (RX_Flag == 0)
-    {
-      res = RES_ERROR;
-    }
-    else
-    {
-      RX_Flag = 0;
-      timeout = HAL_GetTick();
-
-      while((HAL_GetTick() - timeout) < SD_TIMEOUT)
-      {
-        if (HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
-        {
-          res = RES_OK;
-
-          /*
-             the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
-             adjust the address and the D-Cache size to invalidate accordingly.
-           */
-          alignedAddr = (uint32_t)buff & ~0x1F;
-          //使相应的DCache无效
-          SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-
-           break;
-        }
-      }
-    }
+  if(disk.is_initialized[pdrv] == 0)
+  { 
+    disk.is_initialized[pdrv] = 1;
+    stat = disk.drv[pdrv]->disk_initialize(disk.lun[pdrv]);
   }
+  return stat;
+}
 
+/**
+  * @brief  Reads Sector(s) 
+  * @param  pdrv: Physical drive number (0..)
+  * @param  *buff: Data buffer to store read data
+  * @param  sector: Sector address (LBA)
+  * @param  count: Number of sectors to read (1..128)
+  * @retval DRESULT: Operation result
+  */
+DRESULT disk_read (
+	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
+	BYTE *buff,		/* Data buffer to store read data */
+	DWORD sector,	        /* Sector address in LBA */
+	UINT count		/* Number of sectors to read */
+)
+{
+  DRESULT res;
+ 
+  res = disk.drv[pdrv]->disk_read(disk.lun[pdrv], buff, sector, count);
   return res;
 }
-  
-DRESULT disk_write(BYTE lun,//物理扇区，多个设备时用到(0...)
-                 const BYTE *buff,//数据缓存区 
-                 DWORD sector, //扇区首地址
-                 UINT count)//扇区个数(1..128)
+
+/**
+  * @brief  Writes Sector(s)  
+  * @param  pdrv: Physical drive number (0..)
+  * @param  *buff: Data to be written
+  * @param  sector: Sector address (LBA)
+  * @param  count: Number of sectors to write (1..128)
+  * @retval DRESULT: Operation result
+  */
+#if _USE_WRITE == 1
+DRESULT disk_write (
+	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
+	const BYTE *buff,	/* Data to be written */
+	DWORD sector,		/* Sector address in LBA */
+	UINT count        	/* Number of sectors to write */
+)
 {
-    DRESULT res = RES_ERROR;
-    uint32_t timeout;
-//    uint32_t alignedAddr;
+  DRESULT res;
   
-    TX_Flag = 0;
-//    alignedAddr = (uint32_t)buff & ~0x1F;
-    //更新相应的DCache
-    //SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-    if(HAL_SD_WriteBlocks_DMA(&uSdHandle, (uint8_t*)buff,
-                             (uint32_t) (sector),
-                             count) == HAL_OK)
-    {
-      /* Wait that the reading process is completed or a timeout occurs */
-      timeout = HAL_GetTick();
-      while((TX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
-      {
-      }
-      /* incase of a timeout return error */
-      if (TX_Flag == 0)
-      {
-        res = RES_ERROR;
-      }
-      else
-      {
-        TX_Flag = 0;
-        timeout = HAL_GetTick();
-
-        while((HAL_GetTick() - timeout) < SD_TIMEOUT)
-        {
-          if (HAL_SD_GetCardState(&uSdHandle) == HAL_SD_CARD_TRANSFER)
-          {
-            res = RES_OK;
-            //使相应的DCache无效
-            //SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-
-             break;
-          }
-        }
-      }
-    }
-    return res;
+  res = disk.drv[pdrv]->disk_write(disk.lun[pdrv], buff, sector, count);
+  return res;
 }
-DRESULT disk_ioctl(BYTE lun,BYTE cmd, void *buff){
-    DRESULT res = RES_ERROR;
-    HAL_SD_CardInfoTypeDef CardInfo;
+#endif /* _USE_WRITE == 1 */
 
-    if (Stat & STA_NOINIT) return RES_NOTRDY;
+/**
+  * @brief  I/O control operation  
+  * @param  pdrv: Physical drive number (0..)
+  * @param  cmd: Control code
+  * @param  *buff: Buffer to send/receive control data
+  * @retval DRESULT: Operation result
+  */
+#if _USE_IOCTL == 1
+DRESULT disk_ioctl (
+	BYTE pdrv,		/* Physical drive nmuber (0..) */
+	BYTE cmd,		/* Control code */
+	void *buff		/* Buffer to send/receive control data */
+)
+{
+  DRESULT res;
 
-    switch (cmd)
-    {
-    /* Make sure that no pending write process */
-    case CTRL_SYNC :
-      res = RES_OK;
-      break;
+  res = disk.drv[pdrv]->disk_ioctl(disk.lun[pdrv], cmd, buff);
+  return res;
+}
+#endif /* _USE_IOCTL == 1 */
 
-    /* Get number of sectors on the disk (DWORD) */
-    case GET_SECTOR_COUNT :
-      HAL_SD_GetCardInfo(&uSdHandle, &CardInfo);
-      *(DWORD*)buff = CardInfo.LogBlockNbr;
-      res = RES_OK;
-      break;
-
-    /* Get R/W sector size (WORD) */
-    case GET_SECTOR_SIZE :
-      HAL_SD_GetCardInfo(&uSdHandle, &CardInfo);
-      *(WORD*)buff = CardInfo.LogBlockSize;
-      res = RES_OK;
-      break;
-
-    /* Get erase block size in unit of sector (DWORD) */
-    case GET_BLOCK_SIZE :
-      HAL_SD_GetCardInfo(&uSdHandle, &CardInfo);
-      *(DWORD*)buff = CardInfo.LogBlockSize / BLOCK_SIZE;
-      res = RES_OK;
-      break;
-
-    default:
-      res = RES_PARERR;
-    }
-    return res;
+/**
+  * @brief  Gets Time from RTC 
+  * @param  None
+  * @retval Time in DWORD
+  */
+__weak DWORD get_fattime (void)
+{
+  return 0;
 }
 
-__weak DWORD get_fattime(void) {
-	/* 返回当前时间戳 */
-	return	  ((DWORD)(2015 - 1980) << 25)	/* Year 2015 */
-			| ((DWORD)1 << 21)				/* Month 1 */
-			| ((DWORD)1 << 16)				/* Mday 1 */
-			| ((DWORD)0 << 11)				/* Hour 0 */
-			| ((DWORD)0 << 5)				  /* Min 0 */
-			| ((DWORD)0 >> 1);				/* Sec 0 */
-}
-
-/*****************************END OF FILE****************************/
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

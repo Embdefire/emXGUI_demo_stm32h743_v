@@ -27,7 +27,7 @@
 #include "board.h"
 #include "string.h"
 #include <cm_backtrace.h>
-
+#include "./bsp/mpu/bsp_mpu.h" 
 
 #include "Backend_RGBLED.h" 
 
@@ -60,7 +60,6 @@
  * 当我们在写应用程序的时候，可能需要用到一些全局变量。
  */
 
-
 /*
 *************************************************************************
 *                             函数声明
@@ -70,7 +69,6 @@ static void GUI_Thread_Entry(void* pvParameters);/* Test_Task任务实现 */
 
 static void SystemClock_Config(void);
 static void BSP_Init(void);/* 用于初始化板载相关资源 */
-static void MPU_Config(void);
 
 /***********************************************************************
   * @ 函数名  ： BSP_Init
@@ -80,25 +78,29 @@ static void MPU_Config(void);
   *********************************************************************/
 static void BSP_Init(void)
 {
-    /* Enable I-Cache */
-  SCB_EnableICache();
 
-  /* Enable D-Cache */
-  SCB_EnableDCache();
-  
-  SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
+
+  //SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
 
   /* 系统时钟初始化成400MHz */
 	SystemClock_Config();
- 
-  MPU_Config();
+	
+  /* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
+	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
+	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
+	Board_MPU_Config(1,MPU_Normal_WT,0x24000000,MPU_512KB);
+
+  /* Enable I-Cache */
+  SCB_EnableICache(); 
+  /* Enable D-Cache */
+  SCB_EnableDCache();
   /*
 	 * STM32中断优先级分组为4，即4bit都用来表示抢占优先级，范围为：0~15
 	 * 优先级分组只需要分组一次即可，以后如果有其他的任务需要用到中断，
 	 * 都统一用这个优先级分组，千万不要再分组，切忌。
 	 */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-  
+
 	/* 硬件BSP初始化统统放在这里，比如LED，串口，LCD等 */
   SDRAM_Init();
 	/* LED 端口初始化 */
@@ -106,12 +108,11 @@ static void BSP_Init(void)
 	
 	/* usart 端口初始化 */
   UARTx_Config();
-  
   /* 基本定时器初始化	*/
 	TIM_Basic_Init();  
   /*hardfault 跟踪器初始化*/ 
   cm_backtrace_init("Fire_emxgui", HARDWARE_VERSION, SOFTWARE_VERSION);
- 
+  
 }
 
 
@@ -255,36 +256,6 @@ static void GUI_Thread_Entry(void* parameter)
 //    vTaskDelay(500);   /* 延时500个tick */
 //    
   }
-}
-static void MPU_Config(void)
-{
-  
-  MPU_Region_InitTypeDef MPU_Region_Init;
-  
-	MPU_Region_Init.Enable=MPU_REGION_ENABLE;			              //使能region
-	MPU_Region_Init.Number=0;			                              //region号
-	MPU_Region_Init.BaseAddress=((uint32_t)0xD0000000);	        //SDRAM基地址            
-	MPU_Region_Init.Size=MPU_REGION_SIZE_32MB;				          //32MB大小          
-	MPU_Region_Init.SubRegionDisable=0X00;                      //不使能
-	MPU_Region_Init.TypeExtField=MPU_TEX_LEVEL0;                //
-	MPU_Region_Init.AccessPermission=MPU_REGION_FULL_ACCESS  ;	//用户级RW
-	MPU_Region_Init.DisableExec=MPU_INSTRUCTION_ACCESS_ENABLE;	//
-	MPU_Region_Init.IsShareable=MPU_ACCESS_NOT_SHAREABLE  ;     //
-  MPU_Region_Init.IsCacheable=MPU_ACCESS_CACHEABLE;       //  
-	MPU_Region_Init.IsBufferable=MPU_ACCESS_NOT_BUFFERABLE;     //
-	HAL_MPU_ConfigRegion(&MPU_Region_Init);                     //
-  
-  
-  MPU_Region_Init.Number=1;
-  MPU_Region_Init.BaseAddress=((uint32_t)0x20000000);	        //SDRAM基地址 
-  MPU_Region_Init.Size=MPU_REGION_SIZE_512KB;				          //32MB大小
-  MPU_Region_Init.IsShareable=MPU_ACCESS_NOT_SHAREABLE  ;     //
-  MPU_Region_Init.IsCacheable=MPU_ACCESS_CACHEABLE;       //  
-	MPU_Region_Init.IsBufferable=MPU_ACCESS_BUFFERABLE;     //
-	HAL_MPU_ConfigRegion(&MPU_Region_Init);                     //
-	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);			                //
-  
-    
 }
 
 /********************************END OF FILE****************************/

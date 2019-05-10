@@ -11,18 +11,18 @@
 #endif
 #include	"emXGUI.h"
 #include	"gui_drv_cfg.h"
-
+#include "backend_res_mgr.h"
 #ifdef __cplusplus
 extern "C" {
 #endif  
   
-/* 目录信息类型 */
-typedef struct 
-{
-	char 	name[40];  /* 资源的名字 */
-	u32  	size;      /* 资源的大小 */ 
-	u32 	offset;    /* 资源相对于基地址的偏移 */
-}CatalogTypeDef;
+///* 目录信息类型 */
+//typedef struct 
+//{
+//	char 	name[40];  /* 资源的名字 */
+//	u32  	size;      /* 资源的大小 */ 
+//	u32 	offset;    /* 资源相对于基地址的偏移 */
+//}CatalogTypeDef;
 
 
 /* 用于标记是否有资源文件无法找到 */

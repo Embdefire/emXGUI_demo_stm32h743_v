@@ -365,7 +365,7 @@ static	LRESULT	WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     SetTextColor(hdc, MapRGB(hdc, 255, 255, 255));
     rc.y += 20;
    
-    DrawText(hdc, L"emXGUI@Embedfire STM32H743X", -1, &rc, DT_CENTER);
+    DrawText(hdc, L"emXGUI@embedFire STM32H743X", -1, &rc, DT_CENTER);
 
 		EndPaint(hwnd, &ps);
 		////
