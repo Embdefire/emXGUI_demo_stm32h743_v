@@ -19,7 +19,7 @@
 #include "backend_res_mgr.h"
 #include "emXGUI.h"
 QSPI_HandleTypeDef QSPIHandle;
-
+__IO uint8_t StatusMatch;
 /**
   * @brief  QSPI_FLASH引脚初始化
   * @param  无
@@ -326,12 +326,12 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		}
 
 		/* 配置自动轮询模式等待程序结束 */
-    QSPI_FLASH_Wait_Busy();    
+    //QSPI_FLASH_Wait_Busy();    
 		/* 配置自动轮询模式等待程序结束 */  
-//		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
-//		{
-//			return QSPI_ERROR;
-//		}
+		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+		{
+			return QSPI_ERROR;
+		}
 		/* 更新下一页编程的地址和大小变量 */
 		current_addr += current_size;
 		pData += current_size;
@@ -589,9 +589,10 @@ static uint8_t QSPI_AutoPollingMemReady(uint32_t Timeout)
 	s_config.Interval        = 0x10;
 	s_config.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
-	if (HAL_QSPI_AutoPolling(&QSPIHandle, &s_command, &s_config, Timeout) != HAL_OK)
+	if (HAL_QSPI_AutoPolling_IT(&QSPIHandle, &s_command, &s_config) == HAL_OK)
 	{
-		return QSPI_ERROR;
+		//return QSPI_ERROR;
+    
 	}
 	return QSPI_OK;
 }
@@ -726,7 +727,7 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 
 	if (HAL_QSPI_Command(&QSPIHandle, &s_command, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-		printf("something wrong ....\r\n");
+		printf("1 %d something wrong ....\r\n", QSPIHandle.State);
 		/* 用户可以在这里添加一些代码来处理这个错误 */
 		while(1)
 		{
@@ -735,7 +736,7 @@ uint32_t QSPI_FLASH_ReadStatusReg(uint8_t reg)
 	}
 	if (HAL_QSPI_Receive(&QSPIHandle, pData, HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
 	{
-		printf("something wrong ....\r\n");
+		printf("2 %d something wrong ....\r\n", QSPIHandle.State);
 		/* 用户可以在这里添加一些代码来处理这个错误 */
 //		while(1)
 //		{
@@ -849,8 +850,10 @@ void QSPI_Set_WP_TO_QSPI_IO(void)
 
 //等待空闲
 void QSPI_FLASH_Wait_Busy(void)   
-{   
+{  
+  taskENTER_CRITICAL();
 	while((QSPI_FLASH_ReadStatusReg(1)&0x01)==0x01);
+  taskEXIT_CRITICAL();
 }   
 extern HWND wnd_res_writer_progbar;
 #define ESTIMATE_ERASING_TIME (58*1000)
@@ -911,5 +914,25 @@ void SPI_FLASH_BulkErase_GUI(void)
   /* 完成 */
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
   GUI_msleep(10);
+}
+
+
+/**
+  * @brief  Status Match callbacks
+  * @param  hqspi: QSPI handle
+  * @retval None
+  */
+void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
+{
+  StatusMatch++;
+}
+/**
+  * @brief  This function handles QUADSPI interrupt request.
+  * @param  None
+  * @retval None
+  */
+void QUADSPI_IRQHandler(void)
+{
+  HAL_QSPI_IRQHandler(&QSPIHandle);
 }
 /*********************************************END OF FILE**********************/
