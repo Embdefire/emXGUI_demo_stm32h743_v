@@ -19,7 +19,7 @@
 #include "backend_res_mgr.h"
 #include "emXGUI.h"
 QSPI_HandleTypeDef QSPIHandle;
-
+__IO uint8_t StatusMatch = 0;
 /**
   * @brief  QSPI_FLASH引脚初始化
   * @param  无
@@ -104,8 +104,13 @@ uint8_t QSPI_FLASH_Init(void)
 	QSPIHandle.Init.FlashID = QSPI_FLASH_ID_1;
 //  QSPIHandle.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
 	HAL_QSPI_Init(&QSPIHandle);
+  HAL_NVIC_SetPriority(QUADSPI_IRQn,0x0,0);  //配置SDMMC1中断
+  HAL_NVIC_EnableIRQ(QUADSPI_IRQn);   
 	/*初始化QSPI接口*/
 	BSP_QSPI_Init();
+  
+
+  
   return 0;
 }
 
@@ -364,12 +369,12 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 		}
 
 		/* 配置自动轮询模式等待程序结束 */
-    QSPI_FLASH_Wait_Busy();    
+    //QSPI_FLASH_Wait_Busy();    
 		/* 配置自动轮询模式等待程序结束 */  
-//		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
-//		{
-//			return QSPI_ERROR;
-//		}
+		if (QSPI_AutoPollingMemReady(HAL_QPSI_TIMEOUT_DEFAULT_VALUE) != QSPI_OK)
+		{
+			return QSPI_ERROR;
+		}
 		/* 更新下一页编程的地址和大小变量 */
 		current_addr += current_size;
 		pData += current_size;
@@ -627,10 +632,15 @@ static uint8_t QSPI_AutoPollingMemReady(uint32_t Timeout)
 	s_config.Interval        = 0x10;
 	s_config.AutomaticStop   = QSPI_AUTOMATIC_STOP_ENABLE;
 
-	if (HAL_QSPI_AutoPolling(&QSPIHandle, &s_command, &s_config, Timeout) != HAL_OK)
+	if (HAL_QSPI_AutoPolling_IT(&QSPIHandle, &s_command, &s_config) == HAL_OK)
 	{
-		return QSPI_ERROR;
+		while(!StatusMatch);
 	}
+  while(!StatusMatch)
+  {
+  
+  }
+  StatusMatch = 0;
 	return QSPI_OK;
 }
 
@@ -950,4 +960,24 @@ void SPI_FLASH_BulkErase_GUI(void)
   SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,ESTIMATE_ERASING_TIME);
   GUI_msleep(10);
 }
+
+/**
+  * @brief  Status Match callbacks
+  * @param  hqspi: QSPI handle
+  * @retval None
+  */
+void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
+{
+  StatusMatch++;
+}
+/**
+  * @brief  This function handles QUADSPI interrupt request.
+  * @param  None
+  * @retval None
+  */
+void QUADSPI_IRQHandler(void)
+{
+  HAL_QSPI_IRQHandler(&QSPIHandle);
+}
+
 /*********************************************END OF FILE**********************/
