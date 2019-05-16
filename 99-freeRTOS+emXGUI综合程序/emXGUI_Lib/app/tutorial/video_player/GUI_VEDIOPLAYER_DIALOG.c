@@ -1118,10 +1118,10 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {  
 
       avi_icon[1].state = FALSE;
-
-      
+//      memset(avi_playlist, 0, sizeof(avi_playlist));
+//      memset(lcdlist, 0, sizeof(lcdlist));
       VideoDialog.playindex = 0;
-  
+      VideoDialog.avi_file_num = 0;
       DeleteDC(VideoDialog.hdc_bk);
   
       GUI_GRAM_Free(vbuf);
