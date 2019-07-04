@@ -1,5 +1,3 @@
-
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,14 +13,7 @@
 //#include "x_commdlg.h"
 //
 #include	"CListMenu.h"
-extern "C"
-{
-#include "host_gamepad.h"
-#include "usb_host_app.h"
-#include "InfoNES.h"
-extern int AudioTest();
-extern const uint8_t music[];
-}
+
 /*============================================================================*/
 #define vmalloc GUI_GRAM_Alloc
 #define vfree   GUI_GRAM_Free
@@ -42,7 +33,7 @@ GUI_SEM* sai_complete_sem = NULL;
 #endif
 char file_list[50][100];
 int file_nums = 0;
-int cur_index = 1;
+static int cur_index = 1;
 /*============================================================================*/
 typedef enum
 {
@@ -639,12 +630,13 @@ void InfoNES_LoadFrame(void)
 /*             InfoNES_PadState() : Get a joypad state               */
 /*                                                                   */
 /*===================================================================*/
-extern uint8_t Gamepad_Val[2];
+
+//extern uint8_t Gamepad_Val[2];
 void InfoNES_PadState( DWORD *pdwPad1, DWORD *pdwPad2, DWORD *pdwSystem )
 {
 
-	*pdwPad1 = Gamepad_Val[0];
-	*pdwPad2 = Gamepad_Val[1];
+//	*pdwPad1 = Gamepad_Val[0];
+//	*pdwPad2 = Gamepad_Val[1];
 #if 0
 /*
  *  Get a joypad state
@@ -808,12 +800,9 @@ void InfoNES_SoundInit( void )
 /*                                                                   */
 /*===================================================================*/
 //char buf0[16*8192];
-extern "C"
-{
-#include "fsl_sai_edma.h"
-extern sai_edma_handle_t txHandle;
-extern volatile bool isFinished;
-}
+
+#if 0
+
 #if 1
 AT_NONCACHEABLE_SECTION_ALIGN(WORD Abuf1[736], 4);
 AT_NONCACHEABLE_SECTION_ALIGN(WORD Abuf2[736], 4);
@@ -822,9 +811,10 @@ WORD *Abuf1;
 WORD *Abuf2;
 #endif
 __IO uint8_t Soundcount;
+#endif
 int InfoNES_SoundOpen( int samples_per_sync, int sample_rate ) 
 {
-#if 1
+#if 0
   sai_transfer_t xfer;
 //	APU->Soundcount=0;
   Soundcount = 1;
@@ -846,12 +836,12 @@ int InfoNES_SoundOpen( int samples_per_sync, int sample_rate )
 void InfoNES_SoundClose( void ) 
 {
   //GUI_DEBUG("3");
-	
+#if 0
   SAI_TransferAbortSendEDMA(SAI1, &txHandle);
   
   return;
 	
-#if 0
+
   lpSndDevice->SoundClose();
   delete lpSndDevice;
 #endif
@@ -871,11 +861,12 @@ void InfoNES_SoundClose( void )
 
 void InfoNES_SoundOutput( int samples,WORD *wave )
 {
+#if 0
   sai_transfer_t xfer = {0};
 
 //  int i;	
 //  int count = 0;
-#if 1
+
   //GUI_DEBUG("Wait");
 //  t0 = GUI_GetTickCount();
 
@@ -1753,6 +1744,7 @@ static	long def_win_style;
 
 static FRESULT f_readdir_gui(char* dir,DIR* directory,FILINFO* fileInformation)
 {
+  #if 0
   FRESULT error = FR_OK;
   DIR* g_directory = directory; /* Directory object */
   FILINFO* g_fileInformation = fileInformation;
@@ -1790,11 +1782,14 @@ static FRESULT f_readdir_gui(char* dir,DIR* directory,FILINFO* fileInformation)
      
     }  
   }
+  
   return error;
+  #endif
+  return FR_OK;
 }
 
 
-
+#if 0
 bool usb_HostTask_run = TRUE;
 bool usb_HostTask_state = TRUE;
 static void USB_HostTask(void *param)
@@ -1822,6 +1817,9 @@ static void USB_HostApplicationMouseTask(void *param)
     PostCloseMessage(hwnd_UI);
     GUI_Thread_Delete(GUI_GetCurThreadHandle());
 }
+#endif
+
+
 DIR dir_object;    //目录对象结构�?
 FILINFO file_info; //文件信息描述结构�?
 static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
@@ -1842,10 +1840,10 @@ static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 				SYS_KeyVal =0;
 
 				MenuRet		=0;
-        usb_HostTask_run = TRUE;
-        usb_HostTask_state = TRUE;
-        usb_HostApplicationMouse_run = TRUE;
-        usb_HostApplicationMouse_state = TRUE;
+//        usb_HostTask_run = TRUE;
+//        usb_HostTask_state = TRUE;
+//        usb_HostApplicationMouse_run = TRUE;
+//        usb_HostApplicationMouse_state = TRUE;
 //				rom_path[0]	=0;
 				nes_cmd		=NES_NULL;
 				
@@ -1877,15 +1875,15 @@ static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 				sprintf(buf,"%s\\ROM",cur_dir);
 				scan_files_to_list(GetDlgItem(hwnd,ID_LIST),buf);
 				*/
-    if (xTaskCreate(USB_HostTask, "usb host task", 2000L / sizeof(portSTACK_TYPE), g_HostHandle, 4, NULL) != pdPASS)
-    {
-        usb_echo("create host task error\r\n");
-    }
-    if (xTaskCreate(USB_HostApplicationMouseTask, "mouse task", 2000L / sizeof(portSTACK_TYPE), &g_HostHidGamepad1, 3,
-                    NULL) != pdPASS)
-    {
-        usb_echo("create mouse task error\r\n");
-    }          
+//    if (xTaskCreate(USB_HostTask, "usb host task", 2000L / sizeof(portSTACK_TYPE), g_HostHandle, 4, NULL) != pdPASS)
+//    {
+//        usb_echo("create host task error\r\n");
+//    }
+//    if (xTaskCreate(USB_HostApplicationMouseTask, "mouse task", 2000L / sizeof(portSTACK_TYPE), &g_HostHidGamepad1, 3,
+//                    NULL) != pdPASS)
+//    {
+//        usb_echo("create mouse task error\r\n");
+//    }          
     NMHDR nm;
     nm.code = BN_CLICKED;//HIWORD(wParam);
     nm.idFrom = ID_FULLSCREEN;//LOWORD(wParam);        
@@ -2198,9 +2196,9 @@ static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 		NES->PAD_System = PAD_SYS_QUIT;
 		nes_cmd		= NES_QUIT;     //设置nes_cmd 标志,让NES线程结束.
 		MenuRet		=-1;
-    usb_HostApplicationMouse_run = FALSE;
-    usb_HostTask_run = FALSE;
-		if(nes_thread_run==FALSE&& usb_HostApplicationMouse_state == FALSE && usb_HostTask_state == FALSE)
+//    usb_HostApplicationMouse_run = FALSE;
+//    usb_HostTask_run = FALSE;
+		if(nes_thread_run==FALSE)
 		{ 
       file_nums = 0;
       cur_index = 0;
@@ -2318,8 +2316,8 @@ extern "C" int	InfoNES_WinMain(HANDLE hInstance,void *argv)
 //    GUI_GRAM_Free(Abuf2);
 
    	vfree(WorkFrame);
-    SAI_TransferAbortSendEDMA(SAI1, &txHandle);
-    SAI_Deinit(SAI1);  
+//    SAI_TransferAbortSendEDMA(SAI1, &txHandle);
+//    SAI_Deinit(SAI1);  
 	return TRUE;
 }
 
@@ -2338,7 +2336,6 @@ void	GUI_NES_DIALOG(void *param)
   wcex.hCursor		= NULL;
   if(1)
   {
-    AudioTest();
     f_readdir_gui("nes",&dir_object,&file_info);
     hwnd_List = CreateWindowEx(WS_EX_NOFOCUS,
                           &wcex,L"GameList",
@@ -2407,6 +2404,8 @@ extern "C" void NES_Simulator(void* param)
 //const void *pWinMainPtr =(void*)__main;;
 const void *pWinMainPtr =(void*)win_thread;;
 #endif
+
+
 
 /*============================================================================*/
 
