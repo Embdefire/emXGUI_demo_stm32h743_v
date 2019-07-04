@@ -1592,7 +1592,9 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         h =200;
         x =(GUI_XSIZE-w)>>1;
         y =(GUI_YSIZE-h)>>1;
-        MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"消息",&ops); 
+//        MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"消息",&ops); 
+        
+        
         PostCloseMessage(hwnd);
         break;  
       }
@@ -1686,15 +1688,15 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       WCHAR wbuf[128];
       hdc = BeginPaint(hwnd,&ps);
       GetClientRect(hwnd,&rc);
-      if(state==0)
-      {
-        SetTextColor(hdc,MapRGB(hdc,250,250,250));
-        SetBrushColor(hdc,MapRGB(hdc,50,0,0));
-        SetPenColor(hdc,MapRGB(hdc,250,0,0));
+//      if(state==0)
+//      {
+//        SetTextColor(hdc,MapRGB(hdc,250,250,250));
+//        SetBrushColor(hdc,MapRGB(hdc,50,0,0));
+//        SetPenColor(hdc,MapRGB(hdc,250,0,0));
 
-        DrawText(hdc,L"正在初始化摄像头\r\n\n请等待...",-1,&rc,DT_VCENTER|DT_CENTER|DT_BKGND);
+//        DrawText(hdc,L"正在初始化摄像头\r\n\n请等待...",-1,&rc,DT_VCENTER|DT_CENTER|DT_BKGND);
 
-      }   
+//      }   
 //      if(state == 2)
 //      {}
       if(state == 2)
@@ -1746,11 +1748,11 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //        cur_index++;
         
       }
-      if(state == 3)
-      {
-        switch_res = 1;
-        state = 2;
-      }
+//      if(state == 3)
+//      {
+//        switch_res = 1;
+//        state = 2;
+//      }
 
       EndPaint(hwnd,&ps);
       break;

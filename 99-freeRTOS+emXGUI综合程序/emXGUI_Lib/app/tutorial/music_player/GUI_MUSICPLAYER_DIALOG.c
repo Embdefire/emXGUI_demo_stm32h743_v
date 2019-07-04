@@ -215,7 +215,6 @@ static void _music_textbox_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
   if(ds->ID == eID_TEXTBOX_LRC3)
     SetTextColor(hdc, MapRGB(hdc, 255, 0, 0));
   DrawText(hdc, wbuf, -1, &rc, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
-
 }
 static void _music_ExitButton_OwnerDraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 {

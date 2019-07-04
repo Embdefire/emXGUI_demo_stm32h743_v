@@ -1433,6 +1433,11 @@
           <GroupName>tutorial/rgb_led</GroupName>
           <Files>
             <File>
+              <FileName>buffers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\mp3\real\buffers.c</FilePath>
+            </File>
+            <File>
               <FileName>Backend_RGBLED.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\emXGUI_Lib\app\tutorial\rgb_led\Backend_RGBLED.c</FilePath>
@@ -1526,11 +1531,6 @@
               <FileName>bitstream.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\mp3\real\bitstream.c</FilePath>
-            </File>
-            <File>
-              <FileName>buffers.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp\mp3\real\buffers.c</FilePath>
             </File>
             <File>
               <FileName>dct32.c</FileName>
