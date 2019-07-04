@@ -34,12 +34,13 @@
 /* VMEM内存管理 */
 /* 互斥信号量 */
 static GUI_MUTEX *mutex_vmem = NULL;
-
+static GUI_MUTEX *mutex_gram = NULL;
 /* 内存堆管理句柄 */
 heap_t heap_vmem;
-
+heap_t heap_gram;
 /* VMEM缓冲区 */
 static uint8_t buff_vmem[VMEM_SIZE] __attribute__((at(VMEM_BASE)));
+static uint8_t buff_gram[GRAM_SIZE] __attribute__((at(GRAM_BASE)));
 #endif
 
 /* GUI_CORE内存管理 */
@@ -163,7 +164,16 @@ void	GUI_MEM_Free(void *p)
 }
 
 /*===================================================================================*/
-
+void GUI_GRAM_Init(void)
+{
+#if(GUI_VMEM_EN)      
+	mutex_gram = GUI_MutexCreate();
+	x_heap_init(&heap_gram,
+                (void*)buff_gram,
+                  GRAM_SIZE,
+                  GRAM_ALLOC_UNIT);	 /* 创建一个内存堆 */
+#endif
+}
 /**
 * @brief  显示动态内存申请(用于GUI显示器缓存)
 * @param  size 要申请的内存大小
@@ -171,7 +181,17 @@ void	GUI_MEM_Free(void *p)
 */
 void*	GUI_GRAM_Alloc(U32 size)
 {
-	return GUI_VMEM_Alloc(size);
+	u8 *p;
+	
+	GUI_MutexLock(mutex_gram,5000);
+	p =x_heap_alloc(&heap_gram,size);
+	GUI_MutexUnlock(mutex_gram);
+  if(p==NULL)
+	{
+	    GUI_ERROR("GUI_GRAM_Alloc,no enough space(for %d byte)",size);
+	}
+  
+	return p;
 }
 
 /*===================================================================================*/
@@ -183,7 +203,9 @@ void*	GUI_GRAM_Alloc(U32 size)
 */
 void	GUI_GRAM_Free(void *p)
 {
-	GUI_VMEM_Free(p);
+	GUI_MutexLock(mutex_gram,5000);
+	x_heap_free(&heap_gram,p);
+	GUI_MutexUnlock(mutex_gram);
 }
 
 

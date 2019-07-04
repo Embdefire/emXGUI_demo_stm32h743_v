@@ -93,12 +93,16 @@
  * 剩余的空间作为VMEM动态分配使用
 */
 /* 内存堆的基地址，可以为内部SRAM、外扩的SDRAM等 */  
-#define	VMEM_BASE	        (0xD0000000 + LCD_FRAME_SIZE)
+#define	VMEM_BASE	        (0xD1000000)
 /* 内存堆的总大小，单位为字节 */ 
 #define	VMEM_SIZE	        ((16*1024*1024))     
 /* 最小分配粒度，单位为字节*/  
 #define	VMEM_ALLOC_UNIT   (64)         //64字节   
 
+
+#define	GRAM_BASE         (0xD0000000 + LCD_FRAME_SIZE)
+#define	GRAM_SIZE	        ((8*1024*1024)) 
+#define	GRAM_ALLOC_UNIT   (64)         //64字节  
 /*===========字体配置===gui_font_port.c===============================================*/
 /* 默认字体使用XFT，保留，这个宏不起作用 */
 #define	GUI_FONT_XFT_EN		      1
