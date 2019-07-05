@@ -207,7 +207,7 @@
             <Ra1Chk>0</Ra1Chk>
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
-            <Im1Chk>0</Im1Chk>
+            <Im1Chk>1</Im1Chk>
             <Im2Chk>1</Im2Chk>
             <OnChipMemories>
               <Ocm1>
@@ -310,8 +310,8 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
-            <oTime>0</oTime>
+            <Optim>4</Optim>
+            <oTime>1</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
             <Strict>0</Strict>
@@ -357,7 +357,7 @@
             </VariousControls>
           </Aads>
           <LDads>
-            <umfTarg>1</umfTarg>
+            <umfTarg>0</umfTarg>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
             <noStLib>0</noStLib>
@@ -366,7 +366,7 @@
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>..\..\Output\Fire_H7.sct</ScatterFile>
+            <ScatterFile>..\..\Output\Fire_emxgui.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -1641,6 +1641,36 @@
               <FileName>ov5640_AF.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\camera\ov5640_AF.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tutorial/nes</GroupName>
+          <Files>
+            <File>
+              <FileName>InfoNES_Mapper.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES_Mapper.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>K6502.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\K6502.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>InfoNES.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>InfoNES_pAPU.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES_pAPU.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>GUI_NES_Dialog.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\GUI_NES_Dialog.cpp</FilePath>
             </File>
           </Files>
         </Group>

@@ -316,7 +316,7 @@
 
   <Group>
     <GroupName>STARTUP</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1276,7 +1276,7 @@
 
   <Group>
     <GroupName>USER</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1356,7 +1356,7 @@
 
   <Group>
     <GroupName>BSP</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1908,7 +1908,7 @@
 
   <Group>
     <GroupName>emxgui/drv</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2929,6 +2929,74 @@
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\User\bsp\camera\ov5640_AF.c</PathWithFileName>
       <FilenameWithoutPath>ov5640_AF.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>tutorial/nes</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>24</GroupNumber>
+      <FileNumber>204</FileNumber>
+      <FileType>8</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES_Mapper.cpp</PathWithFileName>
+      <FilenameWithoutPath>InfoNES_Mapper.cpp</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>24</GroupNumber>
+      <FileNumber>205</FileNumber>
+      <FileType>8</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\K6502.cpp</PathWithFileName>
+      <FilenameWithoutPath>K6502.cpp</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>24</GroupNumber>
+      <FileNumber>206</FileNumber>
+      <FileType>8</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES.cpp</PathWithFileName>
+      <FilenameWithoutPath>InfoNES.cpp</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>24</GroupNumber>
+      <FileNumber>207</FileNumber>
+      <FileType>8</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\InfoNES_pAPU.cpp</PathWithFileName>
+      <FilenameWithoutPath>InfoNES_pAPU.cpp</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>24</GroupNumber>
+      <FileNumber>208</FileNumber>
+      <FileType>8</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\..\emXGUI_Lib\app\tutorial\nes\InfoNes\InfoNES_v0.97J_RC1\GUI_NES_Dialog.cpp</PathWithFileName>
+      <FilenameWithoutPath>GUI_NES_Dialog.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

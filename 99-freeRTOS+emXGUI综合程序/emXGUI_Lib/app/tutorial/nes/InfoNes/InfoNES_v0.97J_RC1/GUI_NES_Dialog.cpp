@@ -15,13 +15,11 @@
 #include	"CListMenu.h"
 
 /*============================================================================*/
-#define vmalloc GUI_GRAM_Alloc
-#define vfree   GUI_GRAM_Free
+#define vmalloc GUI_VMEM_Alloc
+#define vfree   GUI_VMEM_Free
 #define SYS_msleep GUI_msleep
 
 
-//游戏不进行限速是66FPS
-//      进行限速是23FPS
 
 GUI_SEM* sai_complete_sem = NULL;
 
@@ -31,6 +29,7 @@ GUI_SEM* sai_complete_sem = NULL;
 #define	kfree	vfree
 
 #endif
+static char path[100]="0:";//文件根目??
 char file_list[50][100];
 int file_nums = 0;
 static int cur_index = 1;
@@ -801,30 +800,10 @@ void InfoNES_SoundInit( void )
 /*===================================================================*/
 //char buf0[16*8192];
 
-#if 0
 
-#if 1
-AT_NONCACHEABLE_SECTION_ALIGN(WORD Abuf1[736], 4);
-AT_NONCACHEABLE_SECTION_ALIGN(WORD Abuf2[736], 4);
-#else
-WORD *Abuf1;
-WORD *Abuf2;
-#endif
-__IO uint8_t Soundcount;
-#endif
 int InfoNES_SoundOpen( int samples_per_sync, int sample_rate ) 
 {
-#if 0
-  sai_transfer_t xfer;
-//	APU->Soundcount=0;
-  Soundcount = 1;
-	NES->APU_Mute=0;
-  GUI_DEBUG("2");
-  xfer.data = (uint8_t *)Abuf1;
-  xfer.dataSize = 367*2+2;  
-  SAI_TransferSendEDMA(SAI1, &txHandle, &xfer);
-  Soundcount=0;  
-#endif  
+
 	return 1;
 }
 
@@ -835,18 +814,6 @@ int InfoNES_SoundOpen( int samples_per_sync, int sample_rate )
 /*===================================================================*/
 void InfoNES_SoundClose( void ) 
 {
-  //GUI_DEBUG("3");
-#if 0
-  SAI_TransferAbortSendEDMA(SAI1, &txHandle);
-  
-  return;
-	
-
-  lpSndDevice->SoundClose();
-  delete lpSndDevice;
-#endif
-//??	waveOutClose(0);
-	//vfree(buf0);
 }
 
 /*===================================================================*/
@@ -861,51 +828,7 @@ void InfoNES_SoundClose( void )
 
 void InfoNES_SoundOutput( int samples,WORD *wave )
 {
-#if 0
-  sai_transfer_t xfer = {0};
 
-//  int i;	
-//  int count = 0;
-
-  //GUI_DEBUG("Wait");
-//  t0 = GUI_GetTickCount();
-
-//   GUI_DEBUG("Wait over");
-  if(Soundcount)
-  for(int i=0,t=0;i<samples;i++,t+=2)
-  {     
-    Abuf1[t] = wave[i]<<5;
-    Abuf1[t+1] = wave[i]<<5;
-  }
-  else 
-    for(int i=0,t=0;i<samples;i++,t+=2)
-    {       
-      Abuf2[t]= wave[i]<<5; 
-      Abuf2[t+1]= wave[i]<<5; 
-    }
-#if Limit_Speed  
-  GUI_SemWait(sai_complete_sem, 0x2000);
-#endif    
-//	while(!isFinished);     
-//  isFinished = false;  
-#if Limit_Speed    
-  if(Soundcount)
-  {
-      xfer.data = (uint8_t *)Abuf1;
-      xfer.dataSize = 367*2+2;  
-      SAI_TransferSendEDMA(SAI1, &txHandle, &xfer);
-      Soundcount=0;
-  }
-  else
-  {
-			/*  xfer structure */
-      xfer.data = (uint8_t *)Abuf2;
-      xfer.dataSize = 367*2+2;  
-      SAI_TransferSendEDMA(SAI1, &txHandle, &xfer);
-      Soundcount=1;
-  }
-#endif  
-#endif  
 }
 
 void InfoNES_MessageBox( char *pszMsg, ... )
@@ -1029,7 +952,7 @@ extern u16 sms_fb[];
 static void draw_frame(HDC hdc)
 {
 //	LONG xx,yy,x,y,r,g,b;
-//  	RECT rc;
+//  	
 
   	BITMAP bm;
   	////
@@ -1058,15 +981,15 @@ static void draw_frame(HDC hdc)
 	if(1)
   	{
   	  	
-
-//  	  	rc.x	=0;
-//  	  	rc.y	=0;
-//  	  	rc.w	=200;
-//  	  	rc.h	=16;
-//  	  	x_wsprintf(buf,L"FPS: %d/%d",nes_fps,screen_fps);
-//        GUI_DEBUG("%d", nes_fps);
-//        SetTextColor(hdc_NES,MapRGB(hdc,255,0,0));
-//  	  	TextOut(hdc_NES,1,1,buf,-1);
+        RECT rc;
+  	  	rc.x	=0;
+  	  	rc.y	=0;
+  	  	rc.w	=200;
+  	  	rc.h	=16;
+  	  	x_wsprintf(buf,L"FPS: %d/%d",nes_fps,screen_fps);
+        
+        SetTextColor(hdc_NES,MapRGB(hdc,255,0,0));
+  	  	TextOut(hdc_NES,1,1,buf,-1);
 
   	}
 
@@ -1386,167 +1309,7 @@ static void MusicList_Button_OwnerDraw(DRAWITEM_HDR *ds) //缁樺埗涓�涓寜閽
 
 /*============================================================================*/
 /*============================================================================*/
-#if 0
-static	struct	scan_dir_data s_data;
-static	char	scan_file_path[512];
-static	char	scan_file_name_buf[256];
 
-static	LRESULT	LoadProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
-{
-	int x,y;
-	RECT rc;
-	
-	switch(msg)
-	{
-		case	WM_CREATE:
-		
-				x=0;
-				y=0;
-
-				GetClientRect(hwnd,&rc);
-
-				hListWnd=CreateWindow(LISTBOX,L"list",WS_VISIBLE,x,y,rc.w-x,rc.h-32,hwnd,ID_LIST,hInst,0);
-
-				//x_sprintf(scan_file_path,"%s\\ROM",cur_dir);
-				x_strcpy(scan_file_path,rom_dir);
-
-				if(1)
-				{
-					struct dir_info d_info;
-
-					d_info.name_buf =scan_file_name_buf;
-					d_info.name_buf_size =sizeof(scan_file_name_buf);
-
-					__scan_file(scan_file_path,&d_info);
-				}
-
-				x=0;
-				y=rc.h-32;
-				CreateWindow(BUTTON,L"鍙栨秷",WS_BORDER|WS_VISIBLE,x,y,rc.w>>1,32,hwnd,ID_CANCEL,hInst,0);
-
-				x=rc.w>>1;
-				CreateWindow(BUTTON,L"纭畾",WS_BORDER|WS_VISIBLE,x,y,rc.w>>1,32,hwnd,ID_LOAD,hInst,0);
-		
-				break;
-				/////
-				
-		case	WM_NOTIFY:
-				{
-					U16	code,id;
-					
-					code	=HIWORD(wParam);
-					id		=LOWORD(wParam);
-					
-					if(id==ID_CANCEL )
-					{
-						PostCloseMessage(hwnd);
-					}
-					
-					if(id==ID_LOAD)
-					{
-						int i;
-						WCHAR text_buf[128];
-						WCHAR wbuf[128];
-						CHAR  buf[128];
-																				
-						i=SendMessage(GetDlgItem(hwnd,ID_LIST),LB_GETCURSEL,0,0);
-						SendMessage(GetDlgItem(hwnd,ID_LIST),LB_GETTEXT,i,(LPARAM)wbuf);
-							
-						x_wcstombs_cp936(buf,wbuf,128);
-							
-							
-						x_sprintf(rom_path,"%s/%s",rom_dir,buf);
-										
-						//	DebugPuts("Load ROM: ");
-						//	DebugPuts(rom_path);
-						//	DebugPuts("\r\n");
-								
-						SYS_KeyVal	|=PAD_SYS_QUIT;
-						nes_cmd=NES_LOAD;
-						////
-							
-						x_wsprintf(text_buf,L"%s:%s",__Name,wbuf);
-						SetWindowText(hwnd_UI,text_buf);
-						PostMessage(hwnd_UI,WM_NCPAINT,0,0);
-							
-						SendMessage(hwnd,WM_CLOSE,0,0);
-					}
-					
-					
-				}
-				break;
-				////////
-				
-				
-		default:
-				return	DefWindowProc(hwnd,msg,wParam,lParam);
-	
-	}
-	return	WM_NULL;
-}
-
-/*============================================================================*/
-
-static	int	DlgLoadFile(HWND hParent)
-{
-
-	HWND hwnd;
-	MSG msg;
-	WNDCLASS wcex;
-	RECT rc;
-	POINT pt;
-	
-	////
-
-	//hInst	=hInstance;
-	
-
-//	EnableWindow(hParent,FALSE);
-	
-	wcex.Tag 	= WNDCLASS_TAG;
-
-	wcex.Style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= (WNDPROC)LoadProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInst;
-	wcex.hIcon			= 0;//LoadIcon(hInstance, (LPCTSTR)IDI_WIN32_APP_TEST);
-	wcex.hCursor		= 0;//LoadCursor(NULL, IDC_ARROW);
-
-//	RegisterClassEx(&wcex);
-
-	GetClientRect(hParent,&rc);
-	pt.x=0;
-	pt.y=0;
-	ClientToScreen(hParent,&pt,1);
-	rc.x	=pt.x;
-	rc.y	=pt.y;
-	
-	InflateRectEx(&rc,-20,-20,-20,-40);
-
-	DialogWindow(
-			&wcex,L"Load NES/SMS File",WS_BORDER|WS_DLGFRAME|WS_VISIBLE,
-			rc.x,rc.y,rc.w,rc.h,
-			hParent,0,hInst,NULL);
-
-#if 0
-	hwnd	=CreateWindowEx(	WS_EX_NODRAG,&wcex,L"Load NES File",WS_BORDER|WS_DLGFRAME|WS_VISIBLE,
-								rc.x,rc.y,rc.w,rc.h,
-								NULL,0,hInst,NULL);
-							
-	ShowWindow(hwnd,SW_SHOW);
-	UpdateWindow(hwnd);
-	while(GetMessage(&msg,hwnd))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}	
-#endif
-//	EnableWindow(hParent,TRUE);
-//	ShowWindow(hParent,SW_SHOW);
-	return	TRUE;
-}
-#endif
 /*============================================================================*/
 /*
 void	Load(HWND hParent)
@@ -1742,50 +1505,63 @@ static LRESULT Dlg_Load_WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 static	RECT def_win_rc;
 static	long def_win_style;
 
-static FRESULT f_readdir_gui(char* dir,DIR* directory,FILINFO* fileInformation)
+static FRESULT f_readdir_gui(char* path)
 {
-  #if 0
-  FRESULT error = FR_OK;
-  DIR* g_directory = directory; /* Directory object */
-  FILINFO* g_fileInformation = fileInformation;
-  
-  
-  error = f_opendir(g_directory, dir);
-  if (error)
-  {
-    PRINTF("鎵撳紑璺緞澶辫触\r\n");
-    return error;
-  }
-  
-  for (;;)
-  {
-    error = f_readdir(g_directory, g_fileInformation);
-    
-    /* To the end. */
-    if ((error != FR_OK) || (g_fileInformation->fname[0U] == 0U))
-    {
-      break;
-    }
-    if (g_fileInformation->fname[0] == '.')
-    {
-      continue;
-    }
-    if (g_fileInformation->fattrib & AM_DIR)
-    {
-      PRINTF("鏂囦欢澶?: %s\r\n", g_fileInformation->fname);
-    }
-    else
-    {
-      x_sprintf(file_list[file_nums],"%s/%s", dir, g_fileInformation->fname);
-//      GUI_DEBUG("%s", file_list[file_nums]);
-      file_nums++;
-     
-    }  
-  }
-  
-  return error;
-  #endif
-  return FR_OK;
+  FRESULT res; 		//部分在递归过程被修改的变量，不用全局变量	
+  FILINFO fno; 
+  DIR dir; 
+  int i; 
+  char *fn; 
+  char file_name[100];	
+	
+#if _USE_LFN 
+  static char lfn[_MAX_LFN * (0x81 ? 2 : 1) + 1]; 	//长文件名支持
+  fno.lfname = lfn; 
+  fno.lfsize = sizeof(lfn); 
+#endif  
+  res = f_opendir(&dir, path); //打开目录
+  if (res == FR_OK) 
+  { 
+    i = strlen(path); 
+    for (;;) 
+    { 
+      res = f_readdir(&dir, &fno); 										//读取目录下的内容
+     if (res != FR_OK || fno.fname[0] == 0) break; 	//为空时表示所有项目读取完毕，跳出
+#if _USE_LFN 
+      fn = *fno.lfname ? fno.lfname : fno.fname; 
+#else 
+      fn = fno.fname; 
+#endif 
+      if(strstr(path,"recorder")!=NULL)continue;       //逃过录音文件
+      if (*fn == '.') continue; 											//点表示当前目录，跳过			
+      if (fno.fattrib & AM_DIR) 
+			{ 																							//目录，递归读取
+        sprintf(&path[i], "/%s", fn); 							//合成完整目录??
+        res = f_readdir_gui(path);											//递归遍历 
+        if (res != FR_OK) 
+					break; 																		//打开失败，跳出循??
+        path[i] = 0; 
+      } 
+      else 
+		{ 
+											//输出文件??
+				if(strstr(fn,".nes")||strstr(fn,".NES"))//判断是否AVI文件
+				{
+					if ((strlen(path)+strlen(fn)<100))
+					{
+						sprintf(file_name, "%s/%s", path, fn);
+            
+						memcpy(file_list[file_nums],file_name,strlen(file_name));
+//            memcpy(lcdlist[VideoDialog.avi_file_num],fn,strlen(fn));
+//						memcpy(lcdlist[VideoDialog.avi_file_num],fn,strlen(fn));						
+						//memcpy(lcdlist1[avi_file_num],fn,strlen(fn));lcdlist_wnd
+					}
+               file_nums++;//记录文件个数
+				}//if 
+      }//else
+     } //for
+  } 
+  return res;
 }
 
 
@@ -1888,7 +1664,7 @@ static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
     nm.code = BN_CLICKED;//HIWORD(wParam);
     nm.idFrom = ID_FULLSCREEN;//LOWORD(wParam);        
     SendMessage(hwnd, WM_NOTIFY, NULL, (LPARAM)&nm);
-//    SetTimer(hwnd,1,1000,TMR_START,NULL);
+    SetTimer(hwnd,1,1000,TMR_START,NULL);
     break;
 				////////
 		
@@ -2271,7 +2047,7 @@ extern "C" int	InfoNES_WinMain(HANDLE hInstance,void *argv)
 
   
 //  wave_buffers =(WORD*)GUI_VMEM_Alloc(1470);
-  WorkFrame =(WORD*)GUI_GRAM_Alloc(256*240*2);
+  WorkFrame =(WORD*)GUI_VMEM_Alloc(256*240*2);
 
 	hInst	=hInstance;
 	
@@ -2336,7 +2112,7 @@ void	GUI_NES_DIALOG(void *param)
   wcex.hCursor		= NULL;
   if(1)
   {
-    f_readdir_gui("nes",&dir_object,&file_info);
+    f_readdir_gui(path);
     hwnd_List = CreateWindowEx(WS_EX_NOFOCUS,
                           &wcex,L"GameList",
                           WS_OVERLAPPED|WS_VISIBLE,
@@ -2388,7 +2164,7 @@ extern "C" void NES_Simulator(void* param)
 	run =TRUE;
   
 //	SYS_thread_create(win_thread,NULL,10*1024,NULL,0);
-  GUI_Thread_Create(win_thread, "NES_WIN", 12*1024, NULL, 6, 5);
+  GUI_Thread_Create(win_thread, "NES_WIN", 12*1024, NULL, 5, 5);
   GUI_Thread_Create(list_thread, "LIST_WIN", 12*1024, NULL, 6, 5);
 //	sms_load(NULL);
 	while(run==TRUE)

@@ -101,7 +101,7 @@
 
 
 #define	GRAM_BASE         (0xD0000000 + LCD_FRAME_SIZE)
-#define	GRAM_SIZE	        ((8*1024*1024)) 
+#define	GRAM_SIZE	        ((6*1024*1024)) 
 #define	GRAM_ALLOC_UNIT   (64)         //64字节  
 /*===========字体配置===gui_font_port.c===============================================*/
 /* 默认字体使用XFT，保留，这个宏不起作用 */
