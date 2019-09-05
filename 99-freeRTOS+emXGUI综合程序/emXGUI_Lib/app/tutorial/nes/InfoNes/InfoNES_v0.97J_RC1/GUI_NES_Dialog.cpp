@@ -1664,10 +1664,8 @@ static	LRESULT	WinProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
     nm.code = BN_CLICKED;//HIWORD(wParam);
     nm.idFrom = ID_FULLSCREEN;//LOWORD(wParam);        
     SendMessage(hwnd, WM_NOTIFY, NULL, (LPARAM)&nm);
-    SetTimer(hwnd,1,1000,TMR_START,NULL);
+//    SetTimer(hwnd,1,1000,TMR_START,NULL);
     break;
-				////////
-		
 		case	WM_TIMER:
 		{
 			//NES_Execu();

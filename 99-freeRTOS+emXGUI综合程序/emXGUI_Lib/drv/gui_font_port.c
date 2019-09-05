@@ -85,8 +85,18 @@ const FONT_PARAM_TypeDef gui_font_param[GUI_LCD_TYPE_NUM] = {
   },
   /* 7寸屏 */
   {   
-    .default_en = ASCII_24_4BPP,                /* 默认英文字体，内部flash */
+    .default_en = GB2312_16_2BPP,                /* 默认英文字体，内部flash */
     .default_extern_cn = "GB2312_24_4BPP.xft", /* 默认中文字体，外部 */
+    .default_extern_logo50 = "LOGO_50_4BPP.xft",
+    .default_extern_logo100 = "APP_ICON_100_100_4BPP.xft",
+    .default_extern_logo252 = "APP_ICON_252_252_4BPP.xft",
+    
+    
+    .default_extern_ctrl32 = "CONTROL_ICON_32_32_4BPP.xft",
+    .default_extern_ctrl48 = "CONTROL_ICON_48_48_4BPP.xft", 
+    .default_extern_ctrl64 = "CONTROL_ICON_64_64_4BPP.xft",    
+    .default_extern_ctrl72 = "CONTROL_ICON_72_72_4BPP.xft",
+    .default_extern_ctrl100 = "CONTROL_ICON_100_100_4BPP.xft",
   },
   /* 4.3寸屏 */
   {   
