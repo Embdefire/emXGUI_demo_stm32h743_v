@@ -16,12 +16,9 @@ void	GUI_MEM_Init(void);
 void*	GUI_MEM_Alloc(U32 size);
 void	GUI_MEM_Free(void *p);
 
-void GUI_GRAM_Init(void);
 void*	GUI_GRAM_Alloc(U32 size);
 void	GUI_GRAM_Free(void *p);
- 
-
 #ifdef __cplusplus
 }
-#endif    
+#endif   
 #endif /* end of __GUI_MEM_PORT_H__ */

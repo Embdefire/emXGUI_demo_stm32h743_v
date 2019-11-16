@@ -31,6 +31,7 @@ uint32_t cpu_usage_get(char* task)
       }
     }
   }
+	vPortFree(TaskStatus);
   return 0;
 }  
 

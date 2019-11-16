@@ -82,7 +82,7 @@ BOOL	GPU_DrawBitmap(const SURFACE *pSurf,int x,int y,int w,int h,const U8 *bits,
 			return	DMA2D_DrawBitmap_RGB565(pSurf,x,y,w,h,width_bytes,bits);
 
 		case BM_ARGB8888:
-			return	DMA2D_DrawBitmap_ARGB(pSurf,x,y,w,h,width_bytes,bits,DMA2D_OUTPUT_ARGB8888);
+			return	DMA2D_DrawBitmap_ARGB(pSurf,x,y,w,h,width_bytes,bits,CM_ARGB8888);
 
 		default:
 			return FALSE;

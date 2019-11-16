@@ -37,8 +37,17 @@
 /* FreeRTOS头文件 */
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "./sai/bsp_sai.h" 
+#include "bsp_mpu_exti.h"
+#include "emXGUI.h"
+//#include "./JPEG./decode_dma.h"
+extern RTC_HandleTypeDef hrtc;
 extern SD_HandleTypeDef uSdHandle;
+extern volatile uint8_t video_timeout;//视频播放引入
+extern __IO uint32_t LocalTime;//以太网提供tick
+extern void gyro_data_ready_cb(void);
+extern DCMI_HandleTypeDef DCMI_Handle;
+extern DMA_HandleTypeDef DMA_Handle_dcmi;
 /* External variables --------------------------------------------------------*/
 
 /******************************************************************************/
@@ -66,8 +75,10 @@ void NMI_Handler(void)
 //  /* USER CODE BEGIN HardFault_IRQn 0 */
 
 //  /* USER CODE END HardFault_IRQn 0 */
+//	GUI_ERROR("****************Hard Fault!***************\r\n");
 //  while (1)
 //  {
+//		
 //  }
 //  /* USER CODE BEGIN HardFault_IRQn 1 */
 
@@ -171,7 +182,6 @@ void SysTick_Handler(void)
 
 volatile uint32_t CPU_RunTime = 0UL;
 extern TIM_HandleTypeDef TIM_Base;
-extern volatile uint8_t timeout;
 void BASIC_TIM_IRQHandler(void)
 {
     HAL_TIM_IRQHandler(&TIM_Base);
@@ -185,22 +195,90 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if(htim->Instance == TIM6)
       xPortGetFreeHeapSize(); 
-    //CPU_RunTime++;
+      CPU_RunTime++;
     if(htim->Instance == TIM3)
     {
-      timeout = 1;
+        video_timeout = 1;
+//			  LocalTime+=10;
 //      LED1_TOGGLE;
     }
 }
 
-void DMA1_Stream2_IRQHandler(void)
+//void DMA1_Stream2_IRQHandler(void)
+//{
+////  uint32_t ulReturn;
+////  /* 进入临界段，临界段可以嵌套 */
+////  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
+//  I2Sx_TX_DMA_STREAM_IRQFUN();
+////  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+//}
+void RTC_Alarm_IRQHandler(void)
 {
-//  uint32_t ulReturn;
-//  /* 进入临界段，临界段可以嵌套 */
-//  ulReturn = taskENTER_CRITICAL_FROM_ISR(); 
-  I2Sx_TX_DMA_STREAM_IRQFUN();
-//  taskEXIT_CRITICAL_FROM_ISR( ulReturn );  
+  HAL_RTC_AlarmIRQHandler(&Rtc_Handle);
 }
 
+void DMA1_Stream2_IRQHandler(void)
+{
+  SAI_TX_DMA_STREAM_IRQFUN();
+}
+void DMA1_Stream3_IRQHandler(void)
+{
+  SAI_RX_DMA_STREAM_IRQFUN();
+}
 
+void EXTI3_IRQHandler(void)
+{
+	if (__HAL_GPIO_EXTI_GET_IT(MPU_INT_GPIO_PIN) != RESET) //确保是否产生了EXTI Line中断
+	{
+		/* Handle new gyro*/
+		gyro_data_ready_cb();
 
+		__HAL_GPIO_EXTI_CLEAR_IT(MPU_INT_GPIO_PIN);     //清除中断标志位
+	}
+}
+
+/**
+  * @brief  DMA中断服务函数
+  * @param  None
+  * @retval None
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&DMA_Handle_dcmi);
+  
+}
+
+/**
+  * @brief  DCMI中断服务函数
+  * @param  None
+  * @retval None
+  */
+void DCMI_IRQHandler(void)
+{
+  HAL_DCMI_IRQHandler(&DCMI_Handle);
+  
+}
+
+///**
+//  * @brief  This function handles JPEG interrupt request.
+//  * @param  None
+//  * @retval None
+//  */
+
+//void JPEG_IRQHandler(void)
+//{
+////  HAL_JPEG_IRQHandler(&JPEG_Handle);
+//}
+
+///**
+//  * @brief  This function handles MDMA interrupt request.
+//  * @param  None
+//  * @retval None
+//  */
+
+//void MDMA_IRQHandler()
+//{
+//  /* Check the interrupt and clear flag */
+////  HAL_MDMA_IRQHandler(JPEG_Handle.hdmain);
+////  HAL_MDMA_IRQHandler(JPEG_Handle.hdmaout);  
+//}

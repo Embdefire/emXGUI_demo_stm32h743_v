@@ -21,10 +21,9 @@
 #include "ff.h" 
 #include "./mp3Player/mp3Player.h"
 #include "mp3dec.h"
-#include "GUI_MUSICPLAYER_DIALOG.h"
 #include "./sai/bsp_sai.h" 
 #include "x_libc.h"
-#include "GUI_MUSICPLAYER_DIALOG.h"
+#include "./mp3_player/GUI_MUSICPLAYER_DIALOG.h"
 /* 推荐使用以下格式mp3文件：
  * 采样率：44100Hz
  * 声  道：2

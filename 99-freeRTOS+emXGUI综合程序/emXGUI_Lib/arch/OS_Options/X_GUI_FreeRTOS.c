@@ -86,7 +86,7 @@ GUI_SEM*	GUI_SemCreate(int init,int max)
 
 /*===================================================================================*/
 /*
-函数功能: 信号量等待
+函数功能: 信号量等待(任务)
 参数: hsem(由GUI_SemCreate返回的句柄); 
       time 最长等待毫秒数,0立既返回,0xFFFFFFFF,一直等待
 返回: TRUE:成功;FALSE:失败或超时
@@ -101,10 +101,25 @@ BOOL	GUI_SemWait(GUI_SEM *hsem,U32 time)
 	}
 	return FALSE;
 }
+/*
+函数功能: 信号量等待(中断)
+参数: hsem(由GUI_SemCreate返回的句柄); 
+      time 最长等待毫秒数,0立既返回,0xFFFFFFFF,一直等待
+返回: TRUE:成功;FALSE:失败或超时
+说明: .
+*/
+BOOL	GUI_SemWaitISR(GUI_SEM *hsem,U32 time)
+{
 
+	if(xSemaphoreTakeFromISR((SemaphoreHandle_t)hsem,NULL)== pdTRUE)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
 /*===================================================================================*/
 /*
-函数功能: 信号量发送
+函数功能: 信号量发送(任务)
 参数: hsem(由GUI_SemCreate返回的句柄);  
 返回: 无
 说明: .
@@ -113,12 +128,18 @@ void	GUI_SemPost(GUI_SEM *hsem)
 {
 	xSemaphoreGive((SemaphoreHandle_t)hsem);
 }
+
+/*
+函数功能: 信号量发送(中断)
+参数: hsem(由GUI_SemCreate返回的句柄);  
+返回: 无
+说明: 在中断中发送信号量必须调用该函数
+*/
 void GUI_SemPostISR(GUI_SEM *hsem)
 {
    
   BaseType_t pxHigherPriorityTaskWoken;
-  
-  
+   
 	xSemaphoreGiveFromISR((SemaphoreHandle_t)hsem, &pxHigherPriorityTaskWoken);
   
   portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);

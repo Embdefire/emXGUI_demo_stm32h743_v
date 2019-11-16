@@ -131,7 +131,29 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
   uint32_t i;
   DWORD pbuff[512/4];	
   
-	{
+  uint32_t alignedAddr; 
+	
+	RX_Flag = 0;
+	
+  if((DWORD)buff&3)
+  {
+    DRESULT res = RES_OK;
+    DWORD scratch[BLOCKSIZE / 4];
+
+    while (count--) 
+    {
+      res = disk_read(0,(void *)scratch, sector++, 1);
+
+      if (res != RES_OK) 
+      {
+        break;
+      }
+      memcpy(buff, scratch, BLOCKSIZE);
+      buff += BLOCKSIZE;
+    }
+    return res;
+  }
+  
     GUI_MutexLock(mutex_lock,0xffffff);
 	 	for(i=0;i<count;i++)
 		{
@@ -142,7 +164,7 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
       taskEXIT_CRITICAL();
 			buff+=512;
 		} 
-	}
+	
 //  else 
 //  {
 ////    GUI_msleep(2);
@@ -163,6 +185,23 @@ DRESULT SD_write(BYTE lun,//物理扇区，多个设备时用到(0...)
 
   
     TX_Flag = 0;
+	if((DWORD)buff&3)
+    {
+      DRESULT res = RES_OK;
+      DWORD scratch[BLOCKSIZE / 4];
+
+      while (count--) 
+      {
+        memcpy( scratch,buff,BLOCKSIZE);
+        res = disk_write(0,(void *)scratch, sector++, 1);
+        if (res != RES_OK) 
+        {
+          break;
+        }					
+        buff += BLOCKSIZE;
+      }
+      return res;
+    }	
 //    alignedAddr = (uint32_t)buff & ~0x1F;
 //    //更新相应的DCache
 //    SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
@@ -247,15 +286,14 @@ DRESULT SD_ioctl(BYTE lun,BYTE cmd, void *buff){
 void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
 {
   //GUI_SemPostISR(sem_sd);
-    TX_Flag=1; //标记写完成
+  TX_Flag=1; //标记写完成
 }
 
 //SDMMC1接受完成回调函数
 void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
 {
-    GUI_SemPostISR(sem_sd);
-    //SCB_InvalidateDCache_by_Addr((uint32_t*)Buffer_Block_Rx, MULTI_BUFFER_SIZE/4);
-    RX_Flag=1;
+  GUI_SemPostISR(sem_sd);
+  RX_Flag=1;
 }
 /*****************************END OF FILE****************************/
 

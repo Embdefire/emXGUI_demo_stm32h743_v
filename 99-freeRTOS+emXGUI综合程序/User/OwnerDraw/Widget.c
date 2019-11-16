@@ -1,6 +1,6 @@
 #include <emXGUI.h>
 #include "GUI_AppDef.h" 
-#include "./OwnerDraw/Widget.h"
+#include "Widget.h"
 /*
  * @brief  绘制主界面按钮
  * @param  hwnd:   滚动条的句柄值
@@ -32,10 +32,10 @@ void home_owner_draw(DRAWITEM_HDR *ds)
 	}
   FillCircle(hdc, rc.x+rc.w, rc.y, rc.w);
    /* 使用控制图标字体 */
-	SetFont(hdc, ctrlFont64);
+	SetFont(hdc, controlFont_64);
 	GetWindowText(hwnd, wbuf, 128); //获得按钮控件的文字
-  rc.y = -10;
-  rc.x = 16;
+   rc.y = -10;
+   rc.x = 16;
 	DrawText(hdc, wbuf, -1, &rc, NULL);//绘制文字(居中对齐方式)
 
 

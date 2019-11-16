@@ -13,7 +13,7 @@ extern "C"{
 #endif    
   
 
-  
+#include "gui_resource_port.h"
   
 #include "ff.h"
   
@@ -41,13 +41,13 @@ extern "C"{
 #define IGNORE_NAME_FULL      (RESOURCE_DIR "/" IGNORE_NAME)
 
 /*=========================================================================================*/
-/* 目录信息类型 */
-typedef struct 
-{
-	char 	name[40];  /* 资源的名字 */
-	uint32_t  	size;      /* 资源的大小 */ 
-	uint32_t 	offset;    /* 资源相对于基地址的偏移 */
-}CatalogTypeDef;
+///* 目录信息类型 */
+//typedef struct 
+//{
+//	char 	name[40];  /* 资源的名字 */
+//	u32  	size;      /* 资源的大小 */ 
+//	u32 	offset;    /* 资源相对于基地址的偏移 */
+//}CatalogTypeDef;
 
 /*=========================================================================================*/
 
