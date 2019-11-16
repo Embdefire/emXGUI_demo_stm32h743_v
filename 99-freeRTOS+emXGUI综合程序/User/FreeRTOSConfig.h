@@ -220,7 +220,7 @@
  * 大于0时启用堆栈溢出检测功能，如果使用此功能 
  * 用户必须提供一个栈溢出钩子函数，如果使用的话
  * 此值可以为1或者2，因为有两种栈溢出检测方法 */
-#define configCHECK_FOR_STACK_OVERFLOW			0   
+#define configCHECK_FOR_STACK_OVERFLOW			1
 
 
 /********************************************************************
@@ -278,8 +278,8 @@ extern volatile uint32_t CPU_RunTime;
 #define INCLUDE_vTaskDelay				           1
 #define INCLUDE_eTaskGetState			           1
 #define INCLUDE_xTimerPendFunctionCall	     0
-//#define INCLUDE_xTaskGetCurrentTaskHandle       1
-//#define INCLUDE_uxTaskGetStackHighWaterMark     0
+#define INCLUDE_xTaskGetCurrentTaskHandle       1
+#define INCLUDE_uxTaskGetStackHighWaterMark     1
 //#define INCLUDE_xTaskGetIdleTaskHandle          0
 
 

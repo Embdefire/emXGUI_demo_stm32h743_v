@@ -81,18 +81,18 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	//static RECT rc_R, rc_G, rc_B;//RGB分量指示框
   
-  const WCHAR no_res_info[] = L"FLASH中找不到某个资源文件.\r\n\
-请按照以下说明进行操作:\r\n\r\n\
-1.插入带有srcdata文件夹的SD卡.\r\n\
-2.重新给板子上电.\r\n\
-3.单击下面的按钮以加载资源.";
+  const WCHAR no_res_info[] = L"Some resources not found in the FLASH.\r\n\
+Follow the instructions below:\r\n\r\n\
+1.Use an SD card with [srcdata] resource.\r\n\
+2.Use computer to copy resource from SD card to the board.\r\n\
+3.Insert SD card to board and Restart your board.";
   
-  const WCHAR normal_res_info[] = L"如果您不知道该怎么办,请按退出!!!\r\n\
-此应用程序用于重新加载资源\r\n\
-如果您想重新加载资源:\r\n\
-1.插入带有srcdata文件夹的SD卡.\r\n\
-2.重新给板子上电.\r\n\
-3.单击下面的按钮以加载资源.";
+  const WCHAR normal_res_info[] = L"Please [Exit] if you don't know what to do!!!\r\n\
+This app is use to reload resources\r\n\
+If you really want to reload resources:\r\n\
+1.Use an SD card with [srcdata] resource.\r\n\
+2.Use computer to copy resource from SD card to the board.\r\n\
+3.Insert SD card to board and Restart your board.";
   
   /* 默认显示信息 */
   const WCHAR *pStr = normal_res_info;
@@ -119,8 +119,8 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           rc0.w = rc.w;
           rc0.h = rc.h/5;
           
-          wnd = CreateWindow(TEXTBOX,L"FLASH烧录程序" ,WS_VISIBLE,
-                                rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_TITLE, NULL, NULL); //FLASH烧录程序
+          wnd = CreateWindow(TEXTBOX,L"GUI FLASH INFO" ,WS_VISIBLE,
+                                rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_TITLE, NULL, NULL); 
 
           SendMessage(wnd,TBM_SET_TEXTFLAG,0,DT_SINGLELINE|DT_CENTER|DT_VCENTER|DT_BKGND);          
 
@@ -130,10 +130,10 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             /* 退出按钮 */
             rc0.w = 60;
             rc0.x = rc.w - rc0.w - 5*2;
-            rc0.h = 40;
-            CreateWindow(BUTTON,L"退出",WS_VISIBLE,rc.w-100,8,80,48,hwnd,ID_EXIT,NULL,NULL);
-//            CreateWindow(BUTTON, L"退出",BS_FLAT | WS_VISIBLE,
-//                          /*rc0.x, rc0.y, rc0.w, rc0.h,*/rc.w-100,8,80,48, hwnd, ID_EXIT, NULL, NULL); 
+            rc0.h = 30;
+
+            CreateWindow(BUTTON, L"退出",BS_FLAT | WS_VISIBLE,
+                          rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_EXIT, NULL, NULL); 
           }
           
           /* 提示信息 */
@@ -148,7 +148,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           /* 进度条 */
           rc0.x = 5;
           rc0.w = rc.w - rc0.x*2;
-          rc0.h = 36;
+          rc0.h = 30;
           rc0.y = 4*rc.h/5 - rc0.h-10;
  
           //PROGRESSBAR_CFG结构体的大小
@@ -156,33 +156,33 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           //开启所有的功能
 					cfg.fMask    = PB_CFG_ALL;
           //文字格式水平，垂直居中
-					cfg.TextFlag = DT_VCENTER | DT_CENTER;  
-          cfg.Rangle = 58000;
-					wnd_res_writer_progbar = CreateWindow(PROGRESSBAR,L"",
-                                  PBS_TEXT|PBS_ALIGN_LEFT,
-                                  rc0.x, rc0.y, rc0.w, rc0.h,hwnd,ID_PROGBAR,NULL,NULL);
+					cfg.TextFlag = DT_VCENTER|DT_CENTER;  
 
-          //SendMessage(wnd_res_writer_progbar,PBM_GET_CFG,TRUE,(LPARAM)&cfg);
-          SendMessage(wnd_res_writer_progbar,PBM_SET_CFG,TRUE,(LPARAM)&cfg);
-          SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,48000);
+//					wnd_res_writer_progbar = CreateWindow(PROGRESSBAR,L"",
+//                                  PBS_TEXT|PBS_ALIGN_LEFT,
+//                                  rc0.x, rc0.y, rc0.w, rc0.h,hwnd,ID_PROGBAR,NULL,NULL);
+
+//          SendMessage(wnd_res_writer_progbar,PBM_GET_CFG,TRUE,(LPARAM)&cfg);
+//          SendMessage(wnd_res_writer_progbar,PBM_SET_CFG,TRUE,(LPARAM)&cfg);
+//          SendMessage(wnd_res_writer_progbar,PBM_SET_VALUE,TRUE,0);
 
           /* 烧录按钮 */
           rc0.x = 5;
           rc0.w = rc.w/2- rc0.x*2;
           rc0.h = 45;
-          rc0.y = rc.h - rc0.h;
+          rc0.y = rc.h - rc0.h - 10;
 
-          CreateWindow(BUTTON, L"单击此处进行烧录资源",BS_FLAT | WS_VISIBLE,
-                        rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_BURN, NULL, NULL); 
+//          CreateWindow(BUTTON, L"Click me to load resources",BS_FLAT | WS_VISIBLE,
+//                        rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_BURN, NULL, NULL); 
 
           /* 复位按钮 */
           rc0.x = rc.w/2 +5;
           rc0.w = rc.w/2 - 5*2;
           rc0.h = 45;
-          rc0.y = rc.h - rc0.h;
+          rc0.y = rc.h - rc0.h - 10;
           
-          CreateWindow(BUTTON, L"单击此处复位系统",BS_FLAT ,
-                        rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_RESET, NULL, NULL); 
+//          CreateWindow(BUTTON, L"Click me to reset system",BS_FLAT ,
+//                        rc0.x, rc0.y, rc0.w, rc0.h, hwnd, ID_RESET, NULL, NULL); 
           break;
 	}
     
@@ -203,7 +203,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ShowWindow(GetDlgItem(hwnd,ID_BURN),SW_HIDE);
         ShowWindow(GetDlgItem(hwnd,ID_PROGBAR),SW_HIDE);
 
-        SetWindowText(wnd_res_writer_info_textbox,L"烧录资源成功!\r\n\r\n单击下面的按钮以复位系统!");
+        SetWindowText(wnd_res_writer_info_textbox,L"Load resources success!\r\n\r\nClick the button below to reset system!");
 
       }  
       
@@ -327,7 +327,7 @@ static	LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void	GUI_RES_Writer_Dialog(void *param)
+void	GUI_RES_Writer_Dialog(void )
 {
 	HWND	hwnd;
 	WNDCLASS	wcex;

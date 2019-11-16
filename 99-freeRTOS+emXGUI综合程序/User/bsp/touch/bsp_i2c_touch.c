@@ -26,7 +26,7 @@
 /* 这个地址只要与STM32外挂的I2C器件地址不一样即可 */
 #define I2C_OWN_ADDRESS7      0x0A
 
-I2C_HandleTypeDef  I2C_Handle; 
+static I2C_HandleTypeDef  I2C_Handle; 
 
 static void Delay(__IO uint32_t nCount)	 //简单的延时函数
 {

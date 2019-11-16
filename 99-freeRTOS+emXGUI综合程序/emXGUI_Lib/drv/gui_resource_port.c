@@ -20,12 +20,13 @@
 #include "gui_resource_port.h"
 #include "gui_mem_port.h"
 
-
-
+#if defined(CPU_MIMXRT1052DVL6B)
+#define QSPIFLASH_ADDR 0x60000000         //外部FLASH的映射地址
+#endif
 /*=========================================================================================*/
 /*访问资源设备的互斥信号量*/
 static GUI_MUTEX *mutex_lock=NULL;
-uint8_t Rx_Buffer[256];
+u8 buf[100];
 /**
   * @brief  初始化资源设备（外部FLASH）
   * @param  无
@@ -38,23 +39,42 @@ BOOL RES_DevInit(void)
 #if defined(STM32F429_439xx)
 	if(SPI_FLASH_Init() == 0)
   {
-#elif defined(STM32H743xx)
-  if(QSPI_FLASH_Init() == 0)
-  {
-    QSPI_FLASH_WriteStatusReg(1,0X00);
-    QSPI_FLASH_WriteStatusReg(2,0X00);
-//    QSPI_FLASH_WriteStatusReg(3,0X60);
-    GUI_DEBUG("\r\nFlash Status Reg1 is 0x%02X", QSPI_FLASH_ReadStatusReg(1));	
-    GUI_DEBUG("\r\nFlash Status Reg2 is 0x%02X", QSPI_FLASH_ReadStatusReg(2));
-    GUI_DEBUG("\r\nFlash Status Reg3 is 0x%02X", QSPI_FLASH_ReadStatusReg(3));    
-    BSP_QSPI_FastRead(Rx_Buffer, 16*1024*1024, 256);
-#endif
     return TRUE;
   }
+#elif defined(STM32H743xx)
+	
+	#if defined(Fire_H7_InFlash)
+	{
+	if(1)
+	{	  
+    QSPI_FLASH_Init();
+//	    QSPI_FLASH_WriteStatusReg(1,0X00);
+//	    QSPI_FLASH_WriteStatusReg(2,0X00);
+//	    QSPI_FLASH_WriteStatusReg(3,0X60);
+//	    GUI_DEBUG("\r\nFlash Status Reg1 is 0x%02X", QSPI_FLASH_ReadStatusReg(1));	
+//	    GUI_DEBUG("\r\nFlash Status Reg2 is 0x%02X", QSPI_FLASH_ReadStatusReg(2));
+//	    GUI_DEBUG("\r\nFlash Status Reg3 is 0x%02X", QSPI_FLASH_ReadStatusReg(3));    
+			//RES_DevTest();
+			return TRUE;
+	}
+	#else
+	if(1){}
+	#endif
+
+#elif defined(CPU_MIMXRT1052DVL6B)
+    if(1)
+    {
+      //外部FLASH已经初始化过了，这里不需要再进行初始化
+      //直接返回TRUE即可
+      RES_DevRead(buf,16*1024*1024, 100);
+      GUI_DEBUG("%s", buf);
+      return TRUE;
+    }
+#endif  
   else
     return FALSE;
 
-	
+  }
 }
 
 /**
@@ -69,7 +89,11 @@ U32 RES_DevGetID(void)
 #if defined(STM32F429_439xx)
 	id =SPI_FLASH_ReadID();
 #elif defined(STM32H743xx)
+	#if defined(Fire_H7_InFlash)
+	//不读取
+	#else
   id = QSPI_FLASH_ReadID();
+	#endif
 #endif  
   
 	GUI_MutexUnlock(mutex_lock);
@@ -90,7 +114,11 @@ BOOL RES_DevWrite(u8 *buf,u32 addr,u32 size)
 #if defined(STM32F429_439xx)
 	SPI_FLASH_BufferWrite(buf,addr,size);
 #elif defined(STM32H743xx)
+	#if defined(Fire_H7_InFlash)
+	//映射模式无法进行写操作
+	#else
   BSP_QSPI_Write(buf,addr,size);
+	#endif
 #endif    
 	GUI_MutexUnlock(mutex_lock);
 	return TRUE;
@@ -105,15 +133,44 @@ BOOL RES_DevWrite(u8 *buf,u32 addr,u32 size)
   */
 BOOL RES_DevRead(u8 *buf,u32 addr,u32 size)
 {
+#if 0//defined(Fire_H7_InFlash)	
 	GUI_MutexLock(mutex_lock,5000);
 	
 #if defined(STM32F429_439xx)
 	SPI_FLASH_BufferRead(buf,addr,size);
 #elif defined(STM32H743xx)
-  BSP_QSPI_FastRead(buf,addr,size);
+  BSP_QSPI_Read(buf,addr,size);
+#elif defined(CPU_MIMXRT1052DVL6B)
+  
+   
+  
+  memcpy(buf, (void *)(QSPIFLASH_ADDR+addr), size);
+  
 #endif      
 	GUI_MutexUnlock(mutex_lock);
 	return TRUE;
+#else
+		GUI_MutexLock(mutex_lock,5000);
+		__IO uint8_t *qspi_addr = (__IO uint8_t *)(0x90000000+addr);
+	//#if defined(STM32F429_439xx)
+	//	SPI_FLASH_BufferRead(buf,addr,size);
+	//#elif defined(STM32H743xx)
+	//  BSP_QSPI_FastRead(buf,addr,size);
+	//#endif 
+		//memcpy(buf, (u8*)addr,size);
+	#if 1  
+		for(int i = 0; i < size; i ++)
+		{
+			buf[i] = *qspi_addr;
+			qspi_addr++;
+		}
+	#else 
+		memcpy(buf, (u8*)qspi_addr,size);
+	#endif  
+		
+		GUI_MutexUnlock(mutex_lock);
+		return TRUE;
+#endif
 }
 
 /**
@@ -189,7 +246,7 @@ void RES_DevTest(void)
 
 #if 0
 #define countof(a)      (sizeof(a) / sizeof(*(a)))
-#define  BufferSize     (countof(Tx_Buffer)-1)
+#define  BufferSize     (countof(Tx_Buffer123)-1)
 typedef enum { FAILED = 0, PASSED = !FAILED} TestStatus;
 uint8_t Tx_Buffer[] = "好stm32开发板\r\nhttp://firestm32.taobao.c感谢您选用野火stm32开发板\r\nhttp://firestm32.taobao.com感谢您选用野火stm32开发板\r\nhttp://firestm32.taobao.com感谢您选用野火stm32开发板\r\nhttp://firestm32.taobao.com感谢您选用野火stm32开发板\r\nhttp://firestm32.taobao.com";
 uint8_t Rx_Buffer[BufferSize];
@@ -198,7 +255,7 @@ uint8_t Rx_Buffer[BufferSize];
 #define  FLASH_SectorToErase    FLASH_WriteAddress
 __IO TestStatus TransferStatus1 = FAILED;
 
-TestStatus Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength)
+TestStatus Buffercmp1(uint8_t* pBuffer1, uint8_t* pBuffer2, uint32_t BufferLength)
 {
   while(BufferLength--)
   {
@@ -216,25 +273,24 @@ CatalogTypeDef dir;
 int font_base; 
 void RES_DevTest(void)
 {
-  u8 Rx_Buffer[23288];
-//  BSP_QSPI_Erase_Block(FLASH_SectorToErase);
+  u8 *Rx_Buffer = (u8*)GUI_VMEM_Alloc(BufferSize);
+  //BSP_QSPI_Erase_Chip();
 //  HAL_InitTick(5);
-  BSP_QSPI_Write(Tx_Buffer, FLASH_WriteAddress, BufferSize);
-//  HAL_InitTick(5);
-//  BSP_QSPI_FastRead(Rx_Buffer, FLASH_ReadAddress, BufferSize);
-//  TransferStatus1 = Buffercmp(Tx_Buffer, Rx_Buffer, BufferSize);
-//  if( PASSED == TransferStatus1 )
-//  {    
-//    LED_GREEN;
-//    GUI_DEBUG("\r\n16M串行flash(W25Q256)测试成功!\n\r");
-//  }
-//  else
-//  {        
-//    LED_RED;
-//    GUI_DEBUG("\r\n16M串行flash(W25Q256)测试失败!\n\r");
-//  }
-  font_base = RES_GetInfo_AbsAddr("GB2312_24_4BPP.xft", &dir);
-  RES_DevRead(Rx_Buffer, font_base, dir.size);
+  BSP_QSPI_Write(Tx_Buffer123, FLASH_WriteAddress, BufferSize);
+  HAL_InitTick(5);
+  BSP_QSPI_Read(Rx_Buffer, FLASH_ReadAddress, BufferSize);
+  TransferStatus1 = Buffercmp1(Tx_Buffer123, Rx_Buffer, BufferSize);
+  if( PASSED == TransferStatus1 )
+  {    
+    LED_GREEN;
+    GUI_DEBUG("\r\n16M串行flash(W25Q256)测试成功!\n\r");
+  }
+  else
+  {        
+    LED_RED;
+    GUI_DEBUG("\r\n16M串行flash(W25Q256)测试失败!\n\r");
+  }
+  GUI_VMEM_Free(Rx_Buffer);  
 }
 #endif
 
@@ -307,17 +363,35 @@ BOOL RES_Load_Content(char *file_name, char** buf, u32* size)
     int content_offset;
     CatalogTypeDef dir;
     BOOL result = TRUE;
-  
+//{
+//	FRESULT fresult;
+//	FIL     *file;
+//	char file_name2[30];
+//	memset(file_name2,0,sizeof(file_name2));
+//	strcat(file_name2,"0:/srcdata/");
+//	strcat(file_name2,file_name);
+//	fresult = f_open(file,file_name2, FA_OPEN_EXISTING | FA_READ );
+//	if(fresult == FR_OK)
+//	{
+//		uint16_t fatsize = f_size(file);
+//		printf("fafts: %s **** Size:%d \r\n",file_name2,fatsize);
+//	}
+
+//}
     content_offset = RES_GetInfo_AbsAddr(file_name, &dir);
+
     if(content_offset > 0)
     {    
       /* 文件内容空间 */
       *buf = (char *)GUI_VMEM_Alloc(dir.size);
+#if JPEGDEBUG
+			printf("rests: %s **** Size:%d \r\n\r\n",file_name,dir.size);
+#endif
       if(*buf != NULL)
       {
         /* 加载数据*/
         RES_DevRead((u8 *)*buf,content_offset,dir.size); 
-          
+				
         *size = dir.size;
       }
       else
@@ -329,7 +403,7 @@ BOOL RES_Load_Content(char *file_name, char** buf, u32* size)
     return result;
 }
 
-#if 1
+#if(GUI_RES_FS_EN)
 /**
   * @brief  从文件系统加载内容
   * @param  file_name[in]: 文件路径

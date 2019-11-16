@@ -44,19 +44,32 @@ extern const char ASCII_24_4BPP[];
 extern const char ASCII_32_4BPP[];
 
 
+
 /* 默认字体 */
 HFONT defaultFont =NULL;
-HFONT logoFont50 =NULL;
-HFONT logoFont100 =NULL;
-HFONT logoFont252 =NULL;
 
-HFONT ctrlFont32 =NULL;
-HFONT ctrlFont48 =NULL;
-HFONT ctrlFont64 =NULL;
-HFONT ctrlFont72 =NULL;
-HFONT ctrlFont100 =NULL;
 /* 默认英文字体 */
 HFONT defaultFontEn = NULL;
+
+#if(GUI_ICON_LOGO_EN)  
+/* logo字体 */
+HFONT logoFont =NULL;
+HFONT logoFont100 =NULL;
+HFONT logoFont_200 =NULL;
+/* 图标字体 */
+HFONT iconFont_100 =NULL;
+HFONT iconFont_200 =NULL;
+HFONT iconFont_252 =NULL;
+/* 控制图标字体 */
+HFONT controlFont_32 =NULL;
+HFONT controlFont_48 =NULL;
+HFONT controlFont_64 =NULL;
+HFONT controlFont_72 =NULL;
+HFONT controlFont_100 =NULL;
+#endif
+
+/* 其它 */
+HFONT GB2312_32_Font =NULL;
 
 /* 用于标记是否有资源文件无法找到 */
 BOOL res_not_found_flag = FALSE;
@@ -70,33 +83,14 @@ BOOL res_not_found_flag = FALSE;
 const FONT_PARAM_TypeDef gui_font_param[GUI_LCD_TYPE_NUM] = {
   /* 5寸屏 */
   {   
-    .default_en = GB2312_16_2BPP,                /* 默认英文字体，内部flash */
+    .default_en = ASCII_24_4BPP,                /* 默认英文字体，内部flash */
     .default_extern_cn = "GB2312_24_4BPP.xft", /* 默认中文字体，外部 */
-    .default_extern_logo50 = "LOGO_50_4BPP.xft",
     .default_extern_logo100 = "APP_ICON_100_100_4BPP.xft",
-    .default_extern_logo252 = "APP_ICON_252_252_4BPP.xft",
-    
-    
-    .default_extern_ctrl32 = "CONTROL_ICON_32_32_4BPP.xft",
-    .default_extern_ctrl48 = "CONTROL_ICON_48_48_4BPP.xft", 
-    .default_extern_ctrl64 = "CONTROL_ICON_64_64_4BPP.xft",    
-    .default_extern_ctrl72 = "CONTROL_ICON_72_72_4BPP.xft",
-    .default_extern_ctrl100 = "CONTROL_ICON_100_100_4BPP.xft",
   },
   /* 7寸屏 */
   {   
-    .default_en = GB2312_16_2BPP,                /* 默认英文字体，内部flash */
+    .default_en = ASCII_24_4BPP,                /* 默认英文字体，内部flash */
     .default_extern_cn = "GB2312_24_4BPP.xft", /* 默认中文字体，外部 */
-    .default_extern_logo50 = "LOGO_50_4BPP.xft",
-    .default_extern_logo100 = "APP_ICON_100_100_4BPP.xft",
-    .default_extern_logo252 = "APP_ICON_252_252_4BPP.xft",
-    
-    
-    .default_extern_ctrl32 = "CONTROL_ICON_32_32_4BPP.xft",
-    .default_extern_ctrl48 = "CONTROL_ICON_48_48_4BPP.xft", 
-    .default_extern_ctrl64 = "CONTROL_ICON_64_64_4BPP.xft",    
-    .default_extern_ctrl72 = "CONTROL_ICON_72_72_4BPP.xft",
-    .default_extern_ctrl100 = "CONTROL_ICON_100_100_4BPP.xft",
   },
   /* 4.3寸屏 */
   {   
@@ -107,14 +101,19 @@ const FONT_PARAM_TypeDef gui_font_param[GUI_LCD_TYPE_NUM] = {
 
 #if (GUI_FONT_LOAD_TO_RAM_EN)
   u8 *default_font_buf;
-  u8 *logo_font_buf_50;
   u8 *logo_font_buf_100;
-  u8 *logo_font_buf_252;
-  u8 *ctrl_font_buf_32;
-  u8 *ctrl_font_buf_48;
-  u8 *ctrl_font_buf_64;
-  u8 *ctrl_font_buf_72;
-  u8 *ctrl_font_buf_100;
+
+#if(GUI_ICON_LOGO_EN)  
+    u8 *logo_font_buf;
+    u8 *logo_font_buf_200;
+    u8 *icon_font_100_buf;
+    u8 *icon_font_252_buf;
+    u8 *control_font_32_buf;
+    u8 *control_font_48_buf;
+    u8 *control_font_64_buf;
+    u8 *control_font_72_buf;
+    u8 *control_font_100_buf;
+  #endif
 #endif
 
 /*===================================================================================*/
@@ -124,6 +123,7 @@ const FONT_PARAM_TypeDef gui_font_param[GUI_LCD_TYPE_NUM] = {
   #error Use extern must enable macro 'GUI_RES_DEV_EN' first!
 #endif
 
+/***********************第1部分*************************/
 /**
   * @brief  从流媒体加载内容的回调函数
   * @param  buf[out] 存储读取到的数据缓冲区
@@ -143,7 +143,7 @@ static int font_read_data_exFlash(void *buf,int offset,int size,LONG lParam)
 	RES_DevRead(buf,offset,size);
 	return size;
 }
-
+/***********************第2部分*************************/
 /**
   * @brief  初始化外部FLASH字体(流设备方式)
   * @param  res_name 字体资源名字
@@ -259,18 +259,27 @@ HFONT GUI_Init_Extern_Font(void)
 #if (GUI_FONT_LOAD_TO_RAM_EN  )
   {  
     defaultFont = GUI_Init_Extern_Font_2RAM(GUI_DEFAULT_EXTERN_FONT,&default_font_buf);
-    logoFont50 =  GUI_Init_Extern_Font_2RAM(GUI_LOGO_FONT_50,&logo_font_buf_50);
-    logoFont100 =  GUI_Init_Extern_Font_2RAM(GUI_LOGO_FONT_100,&logo_font_buf_100);   
-    logoFont252 =  GUI_Init_Extern_Font_2RAM(GUI_LOGO_FONT_252,&logo_font_buf_100);
-    
-    
-    ctrlFont32 =  GUI_Init_Extern_Font_2RAM(GUI_CTRL_FONT_32,&ctrl_font_buf_32);
-    ctrlFont48 =  GUI_Init_Extern_Font_2RAM(GUI_CTRL_FONT_48,&ctrl_font_buf_48);
-    
-    ctrlFont64 =  GUI_Init_Extern_Font_2RAM(GUI_CTRL_FONT_64,&ctrl_font_buf_64);
-    
-    ctrlFont72 =  GUI_Init_Extern_Font_2RAM(GUI_CTRL_FONT_72,&ctrl_font_buf_72); 
-    ctrlFont100 =  GUI_Init_Extern_Font_2RAM(GUI_CTRL_FONT_100,&ctrl_font_buf_100);
+//    logoFont100 = GUI_Init_Extern_Font_2RAM(GUI_LOGO_FONT_100,&logo_font_buf_100);
+      #if(GUI_ICON_LOGO_EN)  
+     {
+      /* 创建logo字体 */  
+      logoFont =  GUI_Init_Extern_Font_2RAM(GUI_LOGO_FONT,&logo_font_buf);
+      
+      logoFont_200 =  GUI_Init_Extern_Font_2RAM(GUI_ICON_FONT_200,&logo_font_buf_200);
+      /* 创建图标字体 */  
+      iconFont_100 =  GUI_Init_Extern_Font_2RAM(GUI_ICON_FONT_100,&icon_font_100_buf);
+      iconFont_252 =  GUI_Init_Extern_Font_2RAM(GUI_ICON_FONT_252,&icon_font_252_buf);   
+      /* 创建图标字体 */
+      controlFont_32 =  GUI_Init_Extern_Font_2RAM(GUI_CONTROL_FONT_32,&control_font_32_buf);      
+      /* 创建控制图标字体 */  
+      controlFont_48 =  GUI_Init_Extern_Font_2RAM(GUI_CONTROL_FONT_48,&control_font_48_buf); 
+      /* 创建控制图标字体 */  
+      controlFont_64 =  GUI_Init_Extern_Font_2RAM(GUI_CONTROL_FONT_64,&control_font_64_buf); 
+      /* 创建控制图标字体 */  
+      controlFont_72 =  GUI_Init_Extern_Font_2RAM(GUI_CONTROL_FONT_72,&control_font_72_buf); 
+      controlFont_100 =  GUI_Init_Extern_Font_2RAM(GUI_CONTROL_FONT_100,&control_font_100_buf);
+     }
+    #endif
   }
   
 #else

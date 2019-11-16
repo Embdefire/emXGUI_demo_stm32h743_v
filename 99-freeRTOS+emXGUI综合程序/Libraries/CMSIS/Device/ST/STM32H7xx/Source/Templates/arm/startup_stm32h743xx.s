@@ -1,8 +1,6 @@
 ;******************** (C) COPYRIGHT 2017 STMicroelectronics ********************
 ;* File Name          : startup_stm32h743xx.s
 ;* @author  MCD Application Team
-;* version            : V1.2.0
-;* Date               : 29-December-2017
 ;* Description        : STM32H7xx devices vector table for MDK-ARM toolchain. 
 ;*                      This module performs:
 ;*                      - Set the initial SP
@@ -13,21 +11,18 @@
 ;*                      After Reset the Cortex-M processor is in Thread mode,
 ;*                      priority is Privileged, and the Stack is set to Main.
 ;* <<< Use Configuration Wizard in Context Menu >>>   
-;*******************************************************************************
-; 
-; Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-; You may not use this file except in compliance with the License.
-; You may obtain a copy of the License at:
-; 
-;        http://www.st.com/software_license_agreement_liberty_v2
-; 
-; Unless required by applicable law or agreed to in writing, software 
-; distributed under the License is distributed on an "AS IS" BASIS, 
-; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-; See the License for the specific language governing permissions and
-; limitations under the License.
-; 
-;*******************************************************************************
+;******************************************************************************
+;* @attention
+;*
+;* Copyright (c) 2017 STMicroelectronics.
+;* All rights reserved.
+;*
+;* This software component is licensed by ST under BSD 3-Clause license,
+;* the "License"; You may not use this file except in compliance with the
+;* License. You may obtain a copy of the License at:
+;*                        opensource.org/licenses/BSD-3-Clause
+;*
+;******************************************************************************
 
 ; Amount of memory (in bytes) allocated for Stack
 ; Tailor this value to your application needs
@@ -35,7 +30,7 @@
 ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
 
-Stack_Size      EQU     0x00002000
+Stack_Size      EQU     0x00000800
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
 Stack_Mem       SPACE   Stack_Size
@@ -46,16 +41,15 @@ __initial_sp
 ;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
 
-Heap_Size       EQU     0x00000200
+Heap_Size       EQU     0x00020000
 
                 AREA    HEAP, NOINIT, READWRITE, ALIGN=3
-__heap_base
+__heap_base     EQU		0xd1ceb800		
 Heap_Mem        SPACE   Heap_Size
-__heap_limit
+__heap_limit 	EQU     (0xd1ceb800 + 0x00020000);¶Ñ¶¥
 
                 PRESERVE8
                 THUMB
-
 
 ; Vector Table Mapped to Address 0 at Reset
                 AREA    RESET, DATA, READONLY
@@ -226,7 +220,7 @@ __Vectors       DCD     __initial_sp                      ; Top of Stack
                 DCD     LPUART1_IRQHandler                ; LP UART1 interrupt                                                
                 DCD     0                                 ; Reserved                                                                              
                 DCD     CRS_IRQHandler                    ; Clock Recovery Global Interrupt                                   
-                DCD     0                                 ; Reserved                                              
+                DCD     ECC_IRQHandler                    ; ECC diagnostic Global Interrupt                                              
                 DCD     SAI4_IRQHandler                   ; SAI4 global interrupt                                                
                 DCD     0                                 ; Reserved                                 
                 DCD     0                                 ; Reserved                                    
@@ -243,10 +237,13 @@ __Vectors_Size  EQU  __Vectors_End - __Vectors
 Reset_Handler    PROC
                  EXPORT  Reset_Handler                    [WEAK]
         IMPORT  SystemInit
+		IMPORT  SDRAM_Init	
         IMPORT  __main
 
                  LDR     R0, =SystemInit
-                 BLX     R0
+                 BLX     R0	 
+                 LDR     R0, =SDRAM_Init
+                 BLX     R0				 
                  LDR     R0, =__main
                  BX      R0
                  ENDP
@@ -433,7 +430,8 @@ Default_Handler PROC
                 EXPORT  LPTIM4_IRQHandler                 [WEAK]                                            
                 EXPORT  LPTIM5_IRQHandler                 [WEAK]                                            
                 EXPORT  LPUART1_IRQHandler                [WEAK]                                                  
-                EXPORT  CRS_IRQHandler                    [WEAK]                                   
+                EXPORT  CRS_IRQHandler                    [WEAK]
+                EXPORT  ECC_IRQHandler                    [WEAK] 				
                 EXPORT  SAI4_IRQHandler                   [WEAK]                                                                                     
                 EXPORT  WAKEUP_PIN_IRQHandler             [WEAK] 
 
@@ -573,7 +571,8 @@ LPTIM3_IRQHandler
 LPTIM4_IRQHandler                                                                 
 LPTIM5_IRQHandler                                                                 
 LPUART1_IRQHandler                                                                                                                         
-CRS_IRQHandler                                                            
+CRS_IRQHandler
+ECC_IRQHandler                                                            
 SAI4_IRQHandler      
 WAKEUP_PIN_IRQHandler
 

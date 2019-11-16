@@ -6,7 +6,7 @@
   * @date    2018-xx-xx
   * @brief   emXGUI 桌面
   *********************************************************************
-  * 实验平台:野火 F429-挑战者 STM32 开发板
+  * 实验平台:野火 H743 STM32 开发板
   * 官网    :www.embedfire.com
   * 论坛    :http://www.firebbs.cn
   * 淘宝    :https://fire-stm32.taobao.com
@@ -15,18 +15,21 @@
   */ 
 
 
-
-#include "emXGUI.h"
 #include "GUI_AppDef.h"
+#include "emXGUI.h"
+#include "./pic_load/gui_pic_load.h"
+extern uint8_t Theme_Flag;   // 主题标志
 
 /* 外部资源加载完成标志 */
 BOOL Load_state = FALSE;
+/* 录音文件存放路径 */
+#define SCREENSHOTDIR	"0:/screenshot"
 
 /*===================================================================================*/
 extern void	GUI_Boot_Interface_Dialog(void *param);
 extern void GUI_AppMain(void);
 
-extern TaskHandle_t  task_play;
+
 void	gui_app_thread(void *p)
 {
     #if(GUI_TOUCHSCREEN_EN & GUI_TOUCHSCREEN_CALIBRATE)
@@ -53,7 +56,6 @@ void	gui_app_thread(void *p)
     while(1)
     {
 //      GUI_DEBUG("gui_app_thread");
-      
       GUI_msleep(500);
     }
 }
@@ -71,91 +73,109 @@ void	gui_app_thread(void *p)
 static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 {
 	RECT rc;
+  if (Theme_Flag == 1)
+  {
+		if(lprc==NULL)
+		{
+			GetClientRect(hwnd,&rc);
+		}
+		else
+		{
+			CopyRect(&rc,lprc);
+		}
 
-	if(lprc==NULL)
-	{
+		SetBrushColor(hdc,MapRGB(hdc,COLOR_DESKTOP_BACK_GROUND));
+		FillRect(hdc,&rc);
+			
+		SetTextColor(hdc,MapRGB(hdc,255,255,255));
+		
+	//  SetFont(hdc, iconFont_100);
+	//	DrawText(hdc,L" A B C D E \r\n F G H I J",-1,&rc,DT_LEFT|DT_VCENTER);
+		SetFont(hdc, GB2312_32_Font);
+		
+		SetTextColor(hdc,MapRGB(hdc,255,255,255));
+		rc.y +=20;
+		DrawText(hdc,L"emXGUI@Embedfire STM32H743 ",-1,&rc,DT_CENTER);
+			
+		/* 背景 */
 		GetClientRect(hwnd,&rc);
+		SetBrushColor(hdc,MapRGB(hdc,82,85,82));
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+		rc.h = HEAD_INFO_HEIGHT;
+		FillRect(hdc,&rc);
+		
+			/* 首栏 */ 
+		SetFont(hdc, logoFont);
+		/* 显示logo */
+		GetClientRect(hwnd,&rc);
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT-10;
+		rc.h = HEAD_INFO_HEIGHT;
+		
+		SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
+		DrawText(hdc,L" B",-1,&rc,DT_LEFT|DT_VCENTER);
+		
+		
+		GetClientRect(hwnd,&rc);
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+		rc.h = HEAD_INFO_HEIGHT;
+
+		/* 恢复默认字体 */
+		SetFont(hdc, defaultFont);
+		rc.x +=50;
+		DrawText(hdc,L" 野火@emXGUI",-1,&rc,DT_LEFT|DT_VCENTER);
+
+		GetClientRect(hwnd,&rc);
+		rc.x = 370;
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT+15;
+		rc.h = HEAD_INFO_HEIGHT;
+		rc.w = 80;    
+		/* 控制图标字体 */
+		SetFont(hdc, controlFont_72);
+
+		/* 向上图标 */
+		SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
+	//  DrawText(hdc,L"D",-1,&rc,DT_TOP|DT_CENTER);
+		DrawText(hdc,L"f",-1,&rc,DT_TOP);
+
+	// /* 恢复默认字体 */
+		SetFont(hdc, defaultFont);
+		OffsetRect(&rc,20,-5);
+		DrawText(hdc,L"说明",-1,&rc,DT_LEFT|DT_VCENTER);
+		rc.x = 360;
+		rc.w = 100;
+		rc.h = 40;
+		rc.y = 480-45-10;
+		SetPenColor(hdc, MapRGB(hdc, 250, 250, 250));
+		DrawRoundRect(hdc, &rc, MIN(rc.w, rc.h)>>1);
+	//  rc.y -= 20;
+	//  DrawText(hdc,L"\r\n\r\n详细",-1,&rc,DT_BOTTOM|DT_CENTER);
+		GetClientRect(hwnd,&rc);
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+		rc.h = HEAD_INFO_HEIGHT;
+
+		DrawText(hdc,L"www.firebbs.cn  ",-1,&rc,DT_RIGHT|DT_VCENTER);  
 	}
 	else
-	{
-		CopyRect(&rc,lprc);
+  {
+
+		/* 使用图片 */
+		rc.x = 0;
+		rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
+		rc.w = GUI_XSIZE;
+		rc.h = HEAD_INFO_HEIGHT;
+		
+		BitBlt(hdc, rc.x, rc.y, rc.w, rc.h, hdc_home_bk, rc.x, rc.y, SRCCOPY);
+
 	}
-	SetBrushColor(hdc,MapRGB(hdc,COLOR_DESKTOP_BACK_GROUND));
-	FillRect(hdc,&rc);
-
-  /* 恢复默认字体 */
-  SetFont(hdc, defaultFont);
-
-	SetTextColor(hdc,MapRGB(hdc,255,255,255));
-  rc.y +=20;
-  DrawText(hdc,L"emXGUI@embedFire STM32H743X ",-1,&rc,DT_CENTER);
-    
-  /* 背景 */
-  GetClientRect(hwnd,&rc);
-  SetBrushColor(hdc,MapRGB(hdc,82,85,82));
-  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
-  rc.h = HEAD_INFO_HEIGHT;
-  FillRect(hdc,&rc);
-  
-    /* 首栏 */ 
-  SetFont(hdc, logoFont50);
-  /* 显示logo */
-  GetClientRect(hwnd,&rc);
-  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT-10;
-  rc.h = HEAD_INFO_HEIGHT;
-  
-  SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
-  DrawText(hdc,L" B",-1,&rc,DT_LEFT|DT_VCENTER);
-  
-  
-  GetClientRect(hwnd,&rc);
-  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
-  rc.h = HEAD_INFO_HEIGHT;
-
-  /* 恢复默认字体 */
-  SetFont(hdc, defaultFont);
-  rc.x +=50;
-  DrawText(hdc,L" 野火@emXGUI",-1,&rc,DT_LEFT|DT_VCENTER);
-
-  GetClientRect(hwnd,&rc);
-  rc.x = 350;
-  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT-25;
-  rc.h = HEAD_INFO_HEIGHT;
-  rc.w = 80;    
-  /* 控制图标字体 */
-  SetFont(hdc, ctrlFont100);
-
-  /* 向上图标 */
-  SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
-//  DrawText(hdc,L"D",-1,&rc,DT_TOP|DT_CENTER);
-  DrawText(hdc,L"f",-1,&rc,DT_TOP);
-
-// /* 恢复默认字体 */
-  SetFont(hdc, defaultFont);
-  OffsetRect(&rc,20,-5);
-//  DrawText(hdc,L"广告",-1,&rc,DT_LEFT|DT_VCENTER);
-//  rc.x = 360;
-//  rc.w = 100;
-//  rc.h = 40;
-//  rc.y = 480-45-10;
-//  SetPenColor(hdc, MapRGB(hdc, 250, 250, 250));
-//  DrawRoundRect(hdc, &rc, MIN(rc.w, rc.h)>>1);
-//  rc.y -= 20;
-//  DrawText(hdc,L"\r\n\r\n详细",-1,&rc,DT_BOTTOM|DT_CENTER);
-  GetClientRect(hwnd,&rc);
-  rc.y = GUI_YSIZE - HEAD_INFO_HEIGHT;
-  rc.h = HEAD_INFO_HEIGHT;
-
-  DrawText(hdc,L"www.embedFire.com  ",-1,&rc,DT_RIGHT|DT_VCENTER);  
-
 }
-
+extern GUI_SEM *Input_Sem;
 /* 使用专用的线程来处理输入 */
-#if 0
-static	int	gui_input_thread(void *p)
+#if 1
+static	void	gui_input_thread(void *p)
 {
 	while(1)
 	{
+    GUI_SemWait(Input_Sem, 0xFFFFFFFF);
 		GUI_InputHandler(); //处理输入设备
 		GUI_msleep(20);
 	}
@@ -186,9 +206,15 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           
          GUI_Thread_Create(GUI_Boot_Interface_Dialog,  /* 任务入口函数 */
                               "Boot_Interface",/* 任务名字 */
-                              4*1024,  /* 任务栈大小 */
+                              8*1024,  /* 任务栈大小 */
                               NULL, /* 任务入口函数参数 */
                               5,    /* 任务的优先级 */
+                              10); /* 任务时间片，部分任务不支持 */
+          GUI_Thread_Create(gui_input_thread,  /* 任务入口函数 */
+                              "gui_input_thread",/* 任务名字 */
+                              1*1024,  /* 任务栈大小 */
+                              NULL, /* 任务入口函数参数 */
+                              11,    /* 任务的优先级 */
                               10); /* 任务时间片，部分任务不支持 */
 #else
           
@@ -212,12 +238,13 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
           id =LOWORD(wParam);
           if(id==1)
           {
-            
             GUI_InputHandler(); //处理输入设备
           }
         }
       #endif
 		break;
+        
+     /* 检测是否触摸到“详细”一栏 */    
     case WM_LBUTTONDOWN:
 		{
 
@@ -239,6 +266,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 			}
 		}
 		break;
+
     /* 客户区背景需要被擦除 */
 		case	WM_ERASEBKGND:
 		{   
@@ -252,7 +280,7 @@ static 	 LRESULT  	desktop_proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
        }
        else
        {
-          SetBrushColor(hdc, MapRGB(hdc, 0, 0, 0));
+          SetBrushColor(hdc, MapRGB(hdc, 0,0,0));
           FillRect(hdc, &rc);
        }
 		}

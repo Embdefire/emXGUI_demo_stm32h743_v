@@ -8,7 +8,7 @@
 ******************************************************************************
 * @attention
 *
-* 实验平台:秉火  STM32 F767 开发板  
+* 实验平台:野火  STM32 H750 开发板  
 * 论坛    :http://www.chuxue123.com
 * 淘宝    :http://firestm32.taobao.com
 *
@@ -20,7 +20,7 @@
 #include "./i2c/i2c.h"
 //#include "./Recorder/Recorder.h"
 #include "./delay/core_delay.h" 
-extern I2C_HandleTypeDef I2c_Handle;
+extern I2C_HandleTypeDef I2C_Handle;
 uint32_t AudioTotalSize ;         /* 音频文件的总大小 */
 uint32_t AudioRemSize;            /* 将剩余的数据保存在音频文件中 */
 uint16_t *CurrentPos;             /* 音频数据指针的当前位置 */
@@ -64,7 +64,7 @@ static uint8_t WM8978_I2C_WriteRegister(uint8_t RegisterAddr, uint16_t RegisterV
 
 	tmp  = (RegisterValue&0xff) << 8;
 	tmp |= ((RegisterAddr << 1) & 0xFE) | ((RegisterValue >> 8) & 0x1);
-	if(HAL_I2C_Master_Transmit(&I2c_Handle,WM8978_SLAVE_ADDRESS,(uint8_t *)&tmp,2,WM8978_I2C_FLAG_TIMEOUT)==HAL_OK)
+	if(HAL_I2C_Master_Transmit(&I2C_Handle,WM8978_SLAVE_ADDRESS,(uint8_t *)&tmp,2,WM8978_I2C_FLAG_TIMEOUT)==HAL_OK)
 	{
 		return 1; 
 	}

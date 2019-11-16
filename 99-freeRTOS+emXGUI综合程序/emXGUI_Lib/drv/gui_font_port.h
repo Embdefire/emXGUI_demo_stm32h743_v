@@ -16,35 +16,34 @@ typedef struct
 {
   const char *default_en;  //默认英文字体
   const char *default_extern_cn;  //默认中文字体
-  
-  const char *default_extern_logo50;  //LOGO字体
   const char *default_extern_logo100;  //LOGO字体
-  const char *default_extern_logo252;  //LOGO字体
-  
-  const char *default_extern_ctrl32;  //控制字体（32）
-  const char *default_extern_ctrl48;  //控制字体（48）  
-  const char *default_extern_ctrl64;  //控制字体（64） 
-  const char *default_extern_ctrl72;  //控制字体（72）  
-  const char *default_extern_ctrl100;  //控制字体（100）  
+
 }FONT_PARAM_TypeDef;
 
 /* 字体参数配置 */
 extern const FONT_PARAM_TypeDef gui_font_param[];
-
+extern HFONT logoFont100;
 /* 默认字体 */
 extern HFONT defaultFont;
-extern HFONT logoFont50;
-extern HFONT logoFont100;
-extern HFONT logoFont252;
-
-extern HFONT ctrlFont32;
-extern HFONT ctrlFont48;
-extern HFONT ctrlFont64;
-extern HFONT ctrlFont72;
-extern HFONT ctrlFont100;
 /* 默认英文字体 */
 extern HFONT defaultFontEn;
-  
+
+/* logo字体 */
+extern HFONT logoFont;
+/* 图标字体 */
+extern HFONT iconFont_100;
+extern HFONT iconFont_252;
+/* 控制图标字体 */
+extern HFONT controlFont_48;
+extern HFONT controlFont_64;
+extern HFONT controlFont_72;
+extern HFONT controlFont_32;
+extern HFONT controlFont_100;
+/* 其它 */
+extern HFONT GB2312_32_Font;
+extern HFONT iconFont_200;
+extern HFONT logoFont_200;
+
 /* 用于标记是否有资源文件无法找到 */
 extern BOOL res_not_found_flag;
 

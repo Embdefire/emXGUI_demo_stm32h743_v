@@ -703,7 +703,9 @@ Output:
 		
 		//获取触摸IC的型号
     GTP_Read_Version(); 
-
+		
+#if UPDATE_CONFIG
+		
 		config = (uint8_t *)malloc (GTP_CONFIG_MAX_LENGTH + GTP_ADDR_LENGTH);
 
 		config[0] = GTP_REG_CONFIG_DATA >> 8;
@@ -825,14 +827,15 @@ Output:
 	    		GTP_DEBUG("Config success ! i = %d ",i);
 	}
 #endif
-	
+	free(config);
+
+#endif	
 		
 	 /* emXGUI示例中不使能中断 */
 		I2C_GTP_IRQDisable();
 	
     GTP_Get_Info();
 		
-		free(config);
 
     return 0;
 }
@@ -1048,15 +1051,17 @@ static int32_t GT91xx_Config_Write_Proc(void)
   * @param 无
   * @retval 无
   */
+#if 0
 void GTP_IRQHandler(void)
 {
 	if(__HAL_GPIO_EXTI_GET_IT(GTP_INT_GPIO_PIN) != RESET) //确保是否产生了EXTI Line中断
-	{
+	{				
 		//LED2_TOGGLE;
         GTP_TouchProcess();    
         __HAL_GPIO_EXTI_CLEAR_IT(GTP_INT_GPIO_PIN);     //清除中断标志位
 	}  
 }
+#endif
 
 /**
   * @brief  触屏检测函数，本函数作为emXGUI的定制检测函数，

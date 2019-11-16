@@ -116,7 +116,7 @@ void I2S_READ(uint32_t buffer0,uint32_t buffer1,const uint32_t num);
 static HAL_StatusTypeDef I2Cx_ReadMultiple(I2C_HandleTypeDef *i2c_handler, uint8_t Addr, uint16_t Reg, uint16_t MemAddSize, uint8_t *Buffer, uint16_t Length);
 static HAL_StatusTypeDef I2Cx_WriteMultiple(I2C_HandleTypeDef *i2c_handler, uint8_t Addr, uint16_t Reg, uint16_t MemAddSize, uint8_t *Buffer, uint16_t Length);
 static HAL_StatusTypeDef I2Cx_IsDeviceReady(I2C_HandleTypeDef *i2c_handler, uint16_t DevAddress, uint32_t Trials);
-static void              I2Cx_Error(I2C_HandleTypeDef *i2c_handler, uint8_t Addr);
+//static void              I2Cx_Error(I2C_HandleTypeDef *i2c_handler, uint8_t Addr);
 
 void wm8978_CtrlGPIO1(uint8_t _ucValue);
 extern void (*I2S_DMA_TX_Callback)(void);		//I2S DMA TX回调函数指针  

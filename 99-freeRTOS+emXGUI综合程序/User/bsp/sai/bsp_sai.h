@@ -24,6 +24,11 @@
 #define SAI_SDA_GPIO_CLK_ENABLE()    __GPIOE_CLK_ENABLE()
 #define SAI_SDA_GPIO_AF              GPIO_AF6_SAI1
 
+#define SAI_SAD_PIN                  GPIO_PIN_3                 
+#define SAI_SAD_PORT                 GPIOE                     
+#define SAI_SAD_GPIO_CLK_ENABLE()    __GPIOE_CLK_ENABLE()
+#define SAI_SAD_GPIO_AF              GPIO_AF6_SAI1
+
 #define SAI_MCLK_PIN                  GPIO_PIN_2                 
 #define SAI_MCLK_PORT                 GPIOE                     
 #define SAI_MCLK_GPIO_CLK_ENABLE()    __GPIOE_CLK_ENABLE()
@@ -36,16 +41,21 @@
 #define DMA_Instance                  DMA1_Stream2
 #define DMA_IRQn                      DMA1_Stream2_IRQn
 #define DMA_CLK_ENABLE()              __HAL_RCC_DMA1_CLK_ENABLE(); 
-
+extern void (*SAI_DMA_TX_Callback)(void);		//I2S DMA TX回调函数指针
 extern DMA_HandleTypeDef h_txdma;   //DMA发送句柄
-
-extern void (*SAI_DMA_TX_Callback)(void);		//I2S DMA TX回调函数指针  
-void I2Sx_TX_DMA_STREAM_IRQFUN(void);
+void SAI_TX_DMA_STREAM_IRQFUN(void);
+void SAI_RX_DMA_STREAM_IRQFUN(void);
 void SAI_GPIO_Config(void);
+
+
+void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq);
+void SAIA_TX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num);
+void SAIxB_Rx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq);
 void SAI_Play_Stop(void);
 void SAI_Play_Start(void);
-void SAIxA_Tx_Config(const uint16_t _usStandard, const uint16_t _usWordLen, const uint32_t _usAudioFreq);
-void SAIA_TX_DMA_Init(uint16_t* buffer0,uint16_t *buffer1,const uint32_t num);
+void SAI_Rec_Start(void);
+void SAI_Rec_Stop(void);
+void SAIB_RX_DMA_Init(uint32_t buffer0,uint32_t buffer1,const uint32_t num);
 #endif /* _BSP_SAI_H */
 
 

@@ -15,7 +15,7 @@ typedef struct{
    char *icon_name;//图标名
    RECT rc;        //位置信息
    BOOL state;     //状态  
-}ICON_Typedef;
+}icon_S;
 
 typedef struct
 {

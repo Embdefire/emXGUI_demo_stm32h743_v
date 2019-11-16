@@ -14,12 +14,6 @@ typedef	struct tagGUI_SEM		GUI_SEM;
 
 /*===================================================================================*/
 
-typedef	struct	tagRECT_LL
-{
-	RECT   rc;
-	struct	tagRECT_LL *next;
-
-}RECT_LL;
 
 typedef struct tagCOLOR_CONVERT
 {
@@ -50,9 +44,9 @@ typedef	void    	FN_GL_SetPixelARGB(const SURFACE *pSurf,int x,int y,U8 a,U8 r,U
 typedef	void		FN_GL_HLine(const SURFACE *pSurf,int x0,int y0,int x1,COLORREF color);
 typedef	void		FN_GL_VLine(const SURFACE *pSurf,int x0,int y0,int y1,COLORREF color);
 typedef	void		FN_GL_Line(const SURFACE *pSurf,int x0,int y0,int x1,int y1,COLORREF color);
-typedef	void		FN_GL_FillArea(const SURFACE *pSurf,int x,int y,int w,int h,COLORREF color);
 typedef	void		FN_GL_FillRect(const SURFACE *pSurf,int x,int y,int w,int h,COLORREF color);
 typedef	void		FN_GL_FillRectARGB(const SURFACE *pSurf,int x,int y,int w,int h,U8 a,U8 r,U8 g,U8 b);
+
 typedef	int 		FN_GL_CopyBits(const SURFACE *pSurf,int x,int y,int w,int h,int width_bytes,U8 *buf);
 
 typedef	void		FN_GL_DrawBitmap_LUT1(const SURFACE *pSurf,int x,int y,int w,int h,int width_bytes,const U8 *bits,int bit_offset,const COLORREF *color_tbl);
@@ -146,6 +140,24 @@ struct tagSURFACE
 
 /*===================================================================================*/
 
+typedef struct
+{
+	void	(*pfnCTLColor)(HWND hwnd,CTLCOLOR *cr,u32 style,u32 state);
+	void 	(*pfnPaint)(DRAWITEM_HDR *di,CTLCOLOR *cr,const WCHAR *pText);
+}win_oem_t;
+
+win_oem_t*	GetButtonOEM(void);
+win_oem_t*	GetCheckBoxOEM(void);
+win_oem_t*	GetRadioBoxOEM(void);
+win_oem_t*	GetListBoxOEM(void);
+win_oem_t* 	GetTextBoxOEM(void);
+win_oem_t* 	GetProgressBarOEM(void);
+win_oem_t* 	GetScrollBarOEM(void);
+win_oem_t* 	GetGroupBoxOEM(void);
+
+
+/*===================================================================================*/
+
 BOOL 	X_GUI_Init(void);
 HWND GUI_CreateDesktop(U32 dwExStyle, const WNDCLASS* wcex, LPCWSTR lpWindowName,
 		U32 dwStyle, int x, int y, int nWidth, int nHeight, HWND hwndParent,
@@ -179,7 +191,7 @@ void		GUI_MutexDelete(GUI_MUTEX *hMutex);
 GUI_SEM*	GUI_SemCreate(int init,int max);
 BOOL		GUI_SemWait(GUI_SEM *hSem,U32 time);
 void		GUI_SemPost(GUI_SEM *hSem);
-void		GUI_SemPostISR(GUI_SEM *hSem);
+void GUI_SemPostISR(GUI_SEM *hsem);
 void		GUI_SemDelete(GUI_SEM *hSem);
 HANDLE		GUI_GetCurThreadHandle(void);
 U32			GUI_GetTickCount(void);
@@ -193,7 +205,6 @@ BOOL GUI_Thread_Create(void (*entry)(void *parameter),
                            u32  tick);
                            
 void GUI_Thread_Delete(HANDLE thread);
-
 
 /*===================================================================================*/
 
@@ -217,6 +228,9 @@ U16		EXT_LCD_ReadPixel(void);
 void	EXT_LCD_ReadRGB(U8 *r,U8 *g,U8 *b);
 
 void	EXT_LCD_ReadBits(U16 x,U16 y,U16 w,U16 h,U8 *out,int width_bytes);
+
+
+/*===================================================================================*/
 
 
 /*===================================================================================*/

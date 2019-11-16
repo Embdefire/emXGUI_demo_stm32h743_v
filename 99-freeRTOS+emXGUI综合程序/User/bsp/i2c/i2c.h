@@ -1,13 +1,19 @@
-#ifndef __BSP_I2C_H__
-#define __BSP_I2C_H__
+/*********************************************************************
+File    : i2c.h
+Purpose : 
+**********************************************************************/
+#ifndef __I2C_H__
+#define __I2C_H__
 /****************************** Includes *****************************/
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
+#include	"emXGUI_Arch.h"
 #include "./usart/bsp_usart.h"
 /****************************** Defines *******************************/
 
 #define I2C_OWN_ADDRESS           0x00
 #define OV5640_DEVICE_ADDRESS     0x78
+
 
 //毫秒级延时(需要定时器支持)，或者重写Delay宏
 #define Delay 		HAL_Delay
@@ -17,7 +23,6 @@
 #define I2Cx_LONG_TIMEOUT             ((uint32_t) (300 * I2Cx_FLAG_TIMEOUT)) //was300
  
  
-/*引脚定义*/ 
 /*引脚定义*/ 
 
 #define SENSORS_I2C_SCL_GPIO_PORT         		GPIOB
@@ -35,7 +40,6 @@
 
 #define SENSORS_I2C_FORCE_RESET()      			__HAL_RCC_I2C4_FORCE_RESET()
 #define SENSORS_I2C_RELEASE_RESET()    			__HAL_RCC_I2C4_RELEASE_RESET()
-
 
 /*信息输出*/
 #define I2C_DEBUG_ON         1
@@ -55,21 +59,33 @@
 
 
 																			 
-void I2CMaster_Init(void);
 unsigned short Get_I2C_Retry(void);
 																			 
-HAL_StatusTypeDef Sensors_I2C_ReadRegister(unsigned char slave_addr,
+int Sensors_I2C_ReadRegister(unsigned char slave_addr,
                                        unsigned char reg_addr,
                                        unsigned short len, 
                                        unsigned char *data_ptr);
-HAL_StatusTypeDef Sensors_I2C_WriteRegister(unsigned char slave_addr,
+int Sensors_I2C_WriteRegister(unsigned char slave_addr,
                                         unsigned char reg_addr,
                                         unsigned short len, 
                                         unsigned char *data_ptr);
 
+void I2CMaster_Init(void);
+unsigned short Get_I2C_Retry(void);
+																			 
+//HAL_StatusTypeDef Sensors_I2C_ReadRegister(unsigned char slave_addr,
+//                                       unsigned char reg_addr,
+//                                       unsigned short len, 
+//                                       unsigned char *data_ptr);
+//HAL_StatusTypeDef Sensors_I2C_WriteRegister(unsigned char slave_addr,
+//                                        unsigned char reg_addr,
+//                                        unsigned short len, 
+//                                        unsigned char *data_ptr);
+
 uint8_t OV5640_WriteReg(uint16_t Addr, uint8_t Data);
 uint8_t OV5640_ReadReg(uint16_t Addr);
 uint8_t OV5640_WriteFW(uint8_t *pBuffer ,uint16_t BufferSize);
-#endif // __BSP_I2C_H__
+
+#endif // __I2C_H__
 
 
