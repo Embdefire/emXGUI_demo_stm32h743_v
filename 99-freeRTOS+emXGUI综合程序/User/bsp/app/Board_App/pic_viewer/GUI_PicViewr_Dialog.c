@@ -384,7 +384,13 @@ static uint32_t Get_FlieNames(char *file_path)
   p++;
   }while(*p != '\0');
   
-  return pos[count-1];
+	if(count == 0)
+	{
+		return pos[0];
+	}else
+	{
+		return pos[count-1];
+	}
 }
 
 static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
