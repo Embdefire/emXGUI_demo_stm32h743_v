@@ -118,6 +118,7 @@ uint8_t NUM = 0;
 static uint16_t curtime,alltime;//歌词的当前的时间以及总时间长度
 void mp3PlayerDemo(HWND hwnd,const char *mp3file, uint8_t vol,uint8_t vol_horn, HDC hdc)
 {
+	GUI_SemWait(exit_sem,1);//进如播放前先获取一次信号量,确保信号量是由本次播放结束退出时释放的
 	uint8_t *read_ptr=inputbuf;
 	uint32_t frames=0;//歌曲的帧数（26ms一帧）
 	
@@ -135,7 +136,13 @@ void mp3PlayerDemo(HWND hwnd,const char *mp3file, uint8_t vol,uint8_t vol_horn, 
 	
 	//mp3player.ucFreq=SAI_AUDIOFREQ_DEFAULT;
 	mp3player.ucFreq    = SAI_AUDIOFREQ_DEFAULT;
-	mp3player.ucStatus  = STA_IDLE;
+	if(mp3player.ucStatus == STA_EXIT)
+	{
+		mp3player.ucStatus = STA_EXIT;    
+	}else
+	{
+		mp3player.ucStatus = STA_IDLE;  /* 开始设置为空闲状态  */
+	}
 	mp3player.ucVolume  = vol;//设置 WM8978的音量值
 	
   int ooo = 0;
@@ -187,23 +194,22 @@ void mp3PlayerDemo(HWND hwnd,const char *mp3file, uint8_t vol,uint8_t vol_horn, 
 	/* 配置WM8978音频接口为飞利浦标准I2S接口，16bit */
 	wm8978_CfgAudioIF(SAI_I2S_STANDARD, 16);
 	
-	/*  初始化并配置I2S  */
-#if 0
-	I2S_Stop();
-	I2S_GPIO_Config();
-	I2Sx_Mode_Config(I2S_Standard_Phillips,I2S_DataFormat_16b,mp3player.ucFreq);	
-	I2S_DMA_TX_Callback=MP3Player_I2S_DMA_TX_Callback;
-	I2Sx_TX_DMA_Init((uint16_t *)outbuffer[0],(uint16_t *)outbuffer[1],MP3BUFFER_SIZE);	
-#else
+	/*  初始化并配置SAI  */
 	SAI_Play_Stop();
 	SAI_GPIO_Config();
   SAI_DMA_TX_Callback = MusicPlayer_SAI_DMA_TX_Callback;
-#endif
 
 	bufflag=0;
 	Isread=0;
-	
-	mp3player.ucStatus = STA_PLAYING;		/* 放音状态 */
+	 
+	if(mp3player.ucStatus == STA_EXIT)
+	{
+		mp3player.ucStatus = STA_EXIT;    
+	}else
+	{
+		mp3player.ucStatus = STA_PLAYING;		/* 放音状态 */
+	}
+
   result=f_read(&file,inputbuf,	INPUTBUF_SIZE,&bw);
 	if(result!=FR_OK)
 	{
@@ -516,18 +522,13 @@ void mp3PlayerDemo(HWND hwnd,const char *mp3file, uint8_t vol,uint8_t vol_horn, 
     timecount++;
 	}
    lyriccount=0;
-	//I2S_Stop();   
 	 SAI_Play_Stop();
 	 mp3player.ucStatus=STA_IDLE;
 	 MP3FreeDecoder(Mp3Decoder);
 	 f_close(&file);	
   if(time2exit == 1)
   {
-    lyriccount=0;
-    //I2S_Stop();   
-		SAI_Play_Stop();
-    MP3FreeDecoder(Mp3Decoder);
-    f_close(&file);	 
+    time2exit = 0;
     GUI_SemPost(exit_sem);
   }
 }
@@ -544,14 +545,21 @@ void mp3PlayerDemo(HWND hwnd,const char *mp3file, uint8_t vol,uint8_t vol_horn, 
   * @param  无
   * @retval 无
   */
+
 void wavplayer(const char *wavfile, uint8_t vol, HDC hdc, HWND hwnd)
 {
-
+	GUI_SemWait(exit_sem,1);//进如播放前先获取一次信号量,确保信号量是由本次播放结束退出时释放的
 	static uint8_t timecount;//记录时间
   WCHAR wbuf[128];
   char ooo = 0;
-	mp3player.ucStatus=STA_IDLE;    /* 开始设置为空闲状态  */
-	//Recorder.ucFmtIdx=3;           /* 缺省飞利浦I2S标准，16bit数据长度，44K采样率  */
+	if(mp3player.ucStatus == STA_EXIT)
+	{
+		mp3player.ucStatus = STA_EXIT;    
+	}else
+	{
+		mp3player.ucStatus = STA_IDLE;  /* 开始设置为空闲状态  */
+	}
+	//Recorder.ucFmtIdx=3;            /* 缺省飞利浦I2S标准，16bit数据长度，44K采样率  */
 	//Recorder.ucVolume=vol;          /* 缺省耳机音量  */
    
   DWORD pos;//记录文字变量
@@ -659,7 +667,7 @@ void wavplayer(const char *wavfile, uint8_t vol, HDC hdc, HWND hwnd)
                   SendMessage(music_wnd_time, SBM_SETVALUE, TRUE, curtime*255/alltime);
                   InvalidateRect(music_wnd_time, NULL, TRUE);   
                   //InvalidateRect(GetDlgItem(hwnd, ID_TB2), NULL, TRUE); 
-
+#if 0
                   lrc.curtime = curtime;  
                   if(lrc.flag == 1){
                      //+100是提前显示，显示需要消耗一点时间
@@ -723,6 +731,7 @@ void wavplayer(const char *wavfile, uint8_t vol, HDC hdc, HWND hwnd)
                      SetWindowText(wnd_lrc4,L" ");
                      SetWindowText(wnd_lrc5,L" ");
                   }  
+#endif	   
                }   
                
                timecount=0;  
@@ -783,7 +792,11 @@ void wavplayer(const char *wavfile, uint8_t vol, HDC hdc, HWND hwnd)
 	    SAI_Rec_Stop();
 	    SAI_Play_Stop();
       wm8978_Reset();	/* 复位WM8978到复位状态 */
-		
+			if(time2exit == 1)
+			{
+				time2exit = 0;
+				GUI_SemPost(exit_sem);
+			}
 }
 
 /* DMA发送完成中断回调函数 */

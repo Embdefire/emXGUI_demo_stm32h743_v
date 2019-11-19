@@ -411,7 +411,7 @@ void AVI_play(char *filename)
     VideoDialog.SWITCH_STATE = 0;
   SAI_Play_Stop();
 	wm8978_Reset();	/* 复位WM8978到复位状态 */
-  HAL_TIM_Base_Stop_IT(&TIM3_Handle); //允许定时器3更新中断
+  HAL_TIM_Base_Stop_IT(&TIM3_Handle); //停止定时器3更新中断
   f_close(&fileR);
 	GUI_SemPost(Delete_VideoTask_Sem);
 

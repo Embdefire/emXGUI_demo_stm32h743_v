@@ -6,7 +6,8 @@
 #include "./mp3_player/Backend_mp3Player.h"
 #include "Backend_Recorder.h"
 #include "./sai/bsp_sai.h"
-
+uint16_t TaskGetState = 0;
+extern GUI_SEM * exit_sem;//创建一个信号量
 //图标管理数组
 recorder_icon_t record_icon[] = {
 
@@ -160,7 +161,7 @@ static void App_Record(void *p)
 		}
     GUI_Yield();
    }
-//  GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
+
 }
 
 /**
@@ -204,7 +205,10 @@ static void App_PlayRecord(HWND hwnd)
     GUI_msleep(20);
 	   
    }
-   GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
+	 while(1)
+	 {
+		GUI_msleep(20);//任务结束,等待任务回收
+	 }
 }
 
 static void exit_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
@@ -601,7 +605,9 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
          u32 jpeg_size;
          JPG_DEC *dec;
          BOOL res = NULL;
-
+				
+				 exit_sem = GUI_SemCreate(0,1);//创建播放线程结束信号量
+				
          res = RES_Load_Content(GUI_RECORDER_BACKGROUNG_PIC, (char**)&jpeg_buf, &jpeg_size);
          //res = FS_Load_Content(GUI_RECORDER_BACKGROUNG_PIC, (char**)&jpeg_buf, &jpeg_size);
          hdc_bk = CreateMemoryDC(SURF_SCREEN, GUI_XSIZE, GUI_YSIZE);
@@ -618,8 +624,6 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
          }
          /* 释放图片内容空间 */
          RES_Release_Content((char **)&jpeg_buf); 
-
-//         exit_sem = GUI_SemCreate(0,1);//创建一个信号量        
 
          for (uint8_t xC=0; xC<9; xC++)     // 0~7 ：按钮
          {
@@ -1184,12 +1188,28 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       //关闭窗口消息处理case
       case WM_DESTROY:
       {        
-        BUGLE_STATE = 0;
+				time2exit = 1; //准备释放结束信号量
+				
+				mp3player.ucStatus = STA_EXIT; //将已在播放的准备结束		
+		
+				TaskGetState = eTaskGetState(h_play_record);
+				if(TaskGetState == 3)//只要播放过音频,就死等,等待任务结束
+				{
+					vTaskResume(h_play_record);
+				}
+
+				GUI_SemWait(exit_sem,0xFFFFFFFF);
+				thread = 0;  //线程结束,不继续播放   				
         DeleteDC(hdc_bk);
+				
         vTaskDelete(h_record);
-        vTaskDelete(h_play_record);
+        vTaskDelete(h_play_record);//回收任务
+				
+				GUI_SemDelete(exit_sem);
+				
+				BUGLE_STATE = 0;
         music_file_num = 0;   // 复位文件记录
-        thread = 0;
+				
         SAI_Rec_Stop();		        /* 停止SAI录音和放音 */
 				SAI_Play_Stop();
         wm8978_Reset();	      /* 复位WM8978到复位状态 */ 
