@@ -17,6 +17,7 @@ enum
   STA_SWITCH,       /* ÇÐ¸è×´Ì¬ */
   STA_RECORDING,    /* Â¼Òô×´Ì¬  */
 	STA_ERR,          /*  error  */
+	STA_EXIT,					/* ÍË³ö×´Ì¬  */
 };
 
 typedef struct

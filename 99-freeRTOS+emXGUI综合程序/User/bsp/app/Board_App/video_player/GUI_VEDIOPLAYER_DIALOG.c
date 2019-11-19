@@ -12,6 +12,7 @@
 
 GUI_SEM *Delete_VideoTask_Sem;//做任务同步,结束播放器前先关闭播放任务
 TaskHandle_t VideoTask_Handle;
+extern volatile uint8_t video_timeout;//视频播放引入
 
 VIDEO_DIALOG_Typedef VideoDialog;
 static SCROLLINFO video_sif_time;/*设置进度条的参数*/
@@ -816,7 +817,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 //当音量icon被按下时，暂停
                 else
                 {          
-                   SAI_Play_Stop();;
+                   SAI_Play_Stop();
                    HAL_TIM_Base_Stop_IT(&TIM3_Handle);               
                    SetWindowText(GetDlgItem(hwnd, eID_Vedio_START), L"T");
                 }
@@ -1017,13 +1018,20 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
 			SAI_Play_Stop();			
 			thread_PlayVideo = 0;  //结束音乐播放线程
-			VideoDialog.SWITCH_STATE = 1;//切换状态,退出循环播放
-      
+			VideoDialog.SWITCH_STATE = 0xff;//切换状态,退出循环播放
+      video_timeout =1;//恢复任务
+			
 			GUI_SemWait(Delete_VideoTask_Sem,0xFFFFFFFF);//死等,同步结束播放线程
-
+			
+			/* 关闭硬件 */
+			SAI_Play_Stop();
+      HAL_TIM_Base_Stop_IT(&TIM3_Handle);    
 			vTaskDelete(VideoTask_Handle);
 			
+			/* 软件复位 */
       VideoDialog.playindex = 0;
+			VideoDialog.SWITCH_STATE = 0;
+			
       DeleteDC(VideoDialog.hdc_bk);
       GUI_GRAM_Free(vbuf);
       DeleteSurface(pSurf1);

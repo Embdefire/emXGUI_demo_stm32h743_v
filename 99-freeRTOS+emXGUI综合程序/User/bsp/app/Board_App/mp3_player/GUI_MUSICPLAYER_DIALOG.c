@@ -57,6 +57,8 @@ static HWND wnd_horn;//音量滑动条窗口句柄
 static HWND wnd_power;//音量icon句柄
 extern const unsigned char gImage_0[]; 
 GUI_SEM *exit_sem = NULL;
+extern FIL file;
+extern uint16_t TaskGetState;
 /*============================================================================*/
 static BITMAP bm_0;
 //static HDC rotate_disk_hdc;
@@ -392,14 +394,18 @@ static void App_PlayMusic(HWND hwnd)
             printf("wav\r");
            wavplayer(music_name, power, hdc, hwnd);
          }
-         else
+         else if(strstr(music_name,".mp3")||strstr(music_name,".MP3"))
          {
            mp3PlayerDemo(hwnd, music_name, power, power_horn, hdc);  
          }
+				 else
+				 {
+					 vTaskSuspend(h_music);//没有找到音乐文件,挂起自己
+				 }
 			 
          printf("播放结束\n");
          
-			app=0;
+				 app=0;
          //使用 GETDC之后需要释放掉HDC
          //ReleaseDC(hwnd, hdc);
          //进行任务调度
@@ -407,8 +413,10 @@ static void App_PlayMusic(HWND hwnd)
 		}
 	   
    }
-  GUI_Thread_Delete(GUI_GetCurThreadHandle()); 
-   
+	while(1)
+	{
+		GUI_msleep(20);
+	}
 }
 /**
   * @brief  scan_files 递归扫描sd卡内的歌曲文件
@@ -1499,24 +1507,25 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
       //关闭窗口消息处理case
       case WM_DESTROY:
       {        
-        mp3player.ucStatus = STA_IDLE;		/* 待机状态 */
-        time2exit = 1;
-        //GUI_SemWait(exit_sem, 0xFFFFFFFF);
-        vTaskDelete(h_music);//暂时挂起
-//        if(IsCreateList == 1)
-//        {
-//          IsCreateList = 0;
-//          vTaskDelete(h1);
-//        }
+				time2exit = 1; //准备释放结束信号量
+        mp3player.ucStatus = STA_EXIT;		/* 退出状态 */
+        
+				TaskGetState = eTaskGetState(h_music);
+				GUI_DEBUG("eTaskGetState ---- h_music :%d \r\n",TaskGetState);
+				if(TaskGetState == 3)//只要播放过音频,就死等,等待任务结束
+				{
+					vTaskResume(h_music);
+				}
+				
+        GUI_SemWait(exit_sem, 0xFFFFFFFF);
+				thread = 0;
+        vTaskDelete(h_music);//结束任务
+				
         GUI_SemDelete(exit_sem);
         DeleteSurface(pSurf);
-        //DeleteDC(hdc_mem11);
         DeleteDC(hdc_bk);
-       // DeleteDC(rotate_disk_hdc);
-        thread = 0;
-//        DeleteFont(Music_Player_hFont48);
-//        DeleteFont(Music_Player_hFont64);
-//        DeleteFont(Music_Player_hFont72);
+				
+        
         play_index = 0;
         res = FALSE;
         tt = 0;
