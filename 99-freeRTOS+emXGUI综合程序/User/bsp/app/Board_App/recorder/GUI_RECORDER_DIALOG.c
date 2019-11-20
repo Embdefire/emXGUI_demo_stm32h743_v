@@ -170,6 +170,7 @@ static void App_Record(void *p)
   * @retval 无
   */
 static int thread=0;
+extern int NoSource_flag;
 static void App_PlayRecord(HWND hwnd)
 {
   HDC hdc;
@@ -198,6 +199,11 @@ static void App_PlayRecord(HWND hwnd)
     {
       wavplayer(music_name, power, hdc, hwnd);
     }
+		else
+	 {
+		 NoSource_flag = 1;
+		 vTaskSuspend(h_play_record);//没有找到音乐文件,挂起自己
+	 }
 
     printf("播放结束\n");
 
@@ -548,6 +554,7 @@ static void listbox_owner_draw(DRAWITEM_HDR *ds)
   if (!SendMessage(hwnd,LB_GETCOUNT,0,0))
   {
     /* 列表为空，显示提示信息然后直接返回 */
+		NoSource_flag = 1;
     DrawText(hdc, L"还没有录音文件！", -1, &rc, DT_CENTER|DT_VCENTER);
     return;
   }
@@ -1193,12 +1200,20 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				mp3player.ucStatus = STA_EXIT; //将已在播放的准备结束		
 		
 				TaskGetState = eTaskGetState(h_play_record);
-				if(TaskGetState == 3)//只要播放过音频,就死等,等待任务结束
+				if(TaskGetState == 3)//获取任务状态,如果是挂起,则恢复任务以释放资源
 				{
 					vTaskResume(h_play_record);
 				}
 
-				GUI_SemWait(exit_sem,0xFFFFFFFF);
+				if(NoSource_flag == 0)
+				{
+					GUI_SemWait(exit_sem, 0xFFFFFFFF);//只要播放过音频,就死等,等待任务结束
+				}
+				else
+				{
+					NoSource_flag = 0;//NoSource_flag为1,因为没有找到资源,任务被挂起,清空标志位并退出
+				}
+				
 				thread = 0;  //线程结束,不继续播放   				
         DeleteDC(hdc_bk);
 				

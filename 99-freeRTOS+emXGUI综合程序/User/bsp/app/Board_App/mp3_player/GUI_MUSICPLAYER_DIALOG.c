@@ -309,7 +309,7 @@ static void exit_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
   * @notes  
   */
 
-int stop_flag = 0;
+int NoSource_flag = 0;
 static int thread=0;
 static void App_PlayMusic(HWND hwnd)
 {
@@ -400,6 +400,7 @@ static void App_PlayMusic(HWND hwnd)
          }
 				 else
 				 {
+					 NoSource_flag = 1;
 					 vTaskSuspend(h_music);//没有找到音乐文件,挂起自己
 				 }
 			 
@@ -767,7 +768,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
 
    RECT rc;
-   static int tt = 0;
+//   static int tt = 0;
    static int a=0;
    static BOOL res;
    switch(msg){
@@ -1399,43 +1400,8 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
       {
          PAINTSTRUCT ps;
          HDC hdc;//屏幕hdc
-//         HDC hdc_mem;//缓冲区
-         RECT rc = {0 ,0, 800, 480};//上边栏
-//         RECT rc_bot = {0 ,400, 800, 80};//下边栏
-         //RECT test={0,90,100,100};
-         
-         
          //开始绘制
          hdc = BeginPaint(hwnd, &ps); 
-//				 BitBlt(hdc, rc.x, rc.y, rc.w, rc.h, hdc_bk, rc.x, rc.y, SRCCOPY); 
-         // if(tt == 0)
-         // {
-         //    tt = 1;
-         //    BitBlt(hdc_mem11, 0, 0, 240, 240, hdc_bk, 280, 120, SRCCOPY);
-         //    RotateBitmap(hdc_mem11,120,120,&bm_0,0);
-         // }            
-         //显示歌曲时长
-         //DrawText(hdc, L"00:00", -1, &rc_MusicTimes, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-         /*上边栏目*/
-//         SetBrushColor(hdc_mem, MapARGB(hdc_mem, 50, 0, 0, 0));
-//         FillRect(hdc_mem, &rc_top);
-//         BitBlt(hdc, rc_top.x, rc_top.y, rc_top.w, rc_top.h, 
-//                hdc_mem, rc_top.x, rc_top.y, SRCCOPY);         
-//         /*下边栏目*/ 
-//         SetBrushColor(hdc_mem, MapARGB(hdc_mem, 50, 0, 0, 0));
-//         FillRect(hdc_mem, &rc_bot);                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-//         BitBlt(hdc, rc_bot.x, rc_bot.y, rc_bot.w, rc_bot.h, 
-//                hdc_mem, rc_bot.x, rc_bot.y, SRCCOPY);
-         
-         // rc.x=280;
-			// rc.y=120;
-			// rc.w=240;
-			// rc.h=240;
-         
-			// BitBlt(hdc,rc.x,rc.y,rc.w,rc.h,hdc_bk,0,0,SRCCOPY);
-         
-         
-         
          //获取屏幕点（385，404）的颜色，作为透明控件的背景颜色
          color_bg = GetPixel(hdc, 385, 404);
          EndPaint(hwnd, &ps);
@@ -1516,7 +1482,15 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					vTaskResume(h_music);
 				}
 				
-        GUI_SemWait(exit_sem, 0xFFFFFFFF);
+				if(NoSource_flag == 0)
+				{
+					GUI_SemWait(exit_sem, 0xFFFFFFFF);
+				}
+				else
+				{
+					NoSource_flag = 0;//NoSource_flag为1时标识没有找到资源任务被挂起,清空标志位并退出
+				}
+				
 				thread = 0;
         vTaskDelete(h_music);//结束任务
 				
@@ -1527,7 +1501,6 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
         
         play_index = 0;
         res = FALSE;
-        tt = 0;
         music_file_num = 0;
         power = 20;
         a = 0;
