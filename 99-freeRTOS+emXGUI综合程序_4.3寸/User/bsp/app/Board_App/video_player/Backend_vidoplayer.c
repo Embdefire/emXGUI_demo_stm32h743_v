@@ -258,7 +258,7 @@ void AVI_play(char *filename)
 
         bDrawVideo=TRUE;
 //        GUI_msleep(10);
-        InvalidateRect(hwnd,NULL,FALSE); //产生无效区...
+        InvalidateRect(hwnd,NULL,TRUE); //产生无效区...
 
 //			  ReleaseDC(VideoDialog.Video_Hwnd,hdc);
 			 // EndPaint(hwnd,&ps);

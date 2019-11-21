@@ -140,7 +140,7 @@
 #define GUI_CTRL_FONT_48          gui_font_param[cur_lcd].default_extern_ctrl48
 #define GUI_CTRL_FONT_64          gui_font_param[cur_lcd].default_extern_ctrl64
 #define GUI_CTRL_FONT_72          gui_font_param[cur_lcd].default_extern_ctrl72
-#define GUI_CTRL_FONT_100          gui_font_param[cur_lcd].default_extern_ctrl100
+#define GUI_CTRL_FONT_100         gui_font_param[cur_lcd].default_extern_ctrl100
 
 /* 是否支持ICON LOGO字体，使能时需要添加相应的字体数据文件 */
 #define  GUI_ICON_LOGO_EN         1
