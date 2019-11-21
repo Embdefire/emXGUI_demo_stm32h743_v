@@ -843,7 +843,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
          sif.nMin = 0;
          sif.nMax = 255;
          sif.nValue = 0;//初始值
-         sif.TrackSize = 30;//滑块值
+         sif.TrackSize = 22;//滑块值
          sif.ArrowSize = 0;//两端宽度为0        
          music_wnd_time = CreateWindow(SCROLLBAR, L"SCROLLBAR_Time",  WS_OWNERDRAW| WS_VISIBLE, 
                          162, 236, 167, 23 , hwnd, ID_SCROLLBAR_TIMER, NULL, NULL);
@@ -905,8 +905,8 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
          sif_power.fMask = SIF_ALL;
          sif_power.nMin = 0;
          sif_power.nMax = 63;//音量最大值为63
-         sif_power.nValue = 20;//初始音量值
-         sif_power.TrackSize = 30;//滑块值
+         sif_power.nValue = 30;//初始音量值
+         sif_power.TrackSize = 22;//滑块值
          sif_power.ArrowSize = 0;//上下端宽度为0
          
 				 /* 耳机音量调节 */
@@ -919,8 +919,8 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
          sif_power_horn.fMask = SIF_ALL;
          sif_power_horn.nMin = 0;
          sif_power_horn.nMax = 63;//音量最大值为63
-         sif_power_horn.nValue = 20;//初始音量值
-         sif_power_horn.TrackSize = 30;//滑块值
+         sif_power_horn.nValue = 30;//初始音量值
+         sif_power_horn.TrackSize = 22;//滑块值
          sif_power_horn.ArrowSize = 0;//上下端宽度为0
          /* 喇叭音量调节 */
          sif_power_horn.nValue = 40;//初始音量值
