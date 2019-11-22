@@ -20,6 +20,10 @@ static int b_close=FALSE;//窗口关闭标志位
 static RECT win_rc;//二级菜单位置信息
 GUI_SEM *cam_sem = NULL;//更新图像同步信号量（二值型）
 GUI_SEM *set_sem = NULL;//更新图像同步信号量（二值型）
+
+TaskHandle_t Update_Dialog_Handle;
+TaskHandle_t Set_AutoFocus_Task_Handle;
+
 /*
  * @brief  自定义参数设置按钮
  * @param  ds:	自定义绘制结构体
@@ -335,9 +339,7 @@ static void Set_AutoFocus(void *param)
 {
 	if(CamDialog.AutoFocus_Thread==0)
 	{  
-      GUI_Thread_Create(Set_AutoFocus,"Set_AutoFocus",5*1024,NULL,5,3);			
       CamDialog.AutoFocus_Thread =1;
-      return;
 	}
 	while(CamDialog.AutoFocus_Thread==1) //线程已创建了
 	{
@@ -356,9 +358,9 @@ static void Set_AutoFocus(void *param)
     } 
 
     GUI_Yield();
-		
+
 	}
-  GUI_Thread_Delete(GUI_GetCurThreadHandle());
+	while(1){GUI_Yield();}
 }
 
 
@@ -377,7 +379,7 @@ static void Update_Dialog(void *param)
 			GUI_Yield();
 		}
 	}
-  GUI_Thread_Delete(GUI_GetCurThreadHandle());
+	while(1){GUI_Yield();}
 }
 
 /*
@@ -1579,8 +1581,29 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       //设置按键
       CreateWindow(BUTTON,L"参数设置",WS_OWNERDRAW|WS_TRANSPARENT,370,232,90,25,hwnd,eID_SET,NULL,NULL);
 
-      GUI_Thread_Create(Update_Dialog,"Update_Dialog",512,NULL,6,5);
-      
+			BaseType_t xReturn = pdPASS;
+			xReturn = xTaskCreate((TaskFunction_t )Set_AutoFocus,      /* 任务入口函数 */
+														(const char*    )"Set_AutoFocus",    /* 任务名字 */
+														(uint16_t       )1024,                  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
+														(void*          )NULL,                      /* 任务入口函数参数 */
+														(UBaseType_t    )5,                         /* 任务的优先级 */
+														(TaskHandle_t*  )&Set_AutoFocus_Task_Handle);     /* 任务控制块指针 */
+														
+		 if(xReturn != pdPASS)  
+			{
+				GUI_ERROR("Fail to create Set_AutoFocus!\r\n");
+			}			
+			
+      xReturn = xTaskCreate((TaskFunction_t )Update_Dialog,      /* 任务入口函数 */
+														(const char*    )"Update_Dialog",    /* 任务名字 */
+														(uint16_t       )512,                  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
+														(void*          )NULL,                      /* 任务入口函数参数 */
+														(UBaseType_t    )6,                         /* 任务的优先级 */
+														(TaskHandle_t*  )&Update_Dialog_Handle);     /* 任务控制块指针 */
+      if(xReturn != pdPASS)  
+			{
+				GUI_ERROR("Fail to create Update_Dialog!\r\n");
+			}					
       
       //帧率
       // CreateWindow(BUTTON,L" ",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,rc.w-600,400,400,72,hwnd,eID_FPS,NULL,NULL);
@@ -1659,8 +1682,6 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       HDC hdc;
       RECT rc;
       static int switch_res = 0;
-//      static int old_fps = 0;
-      WCHAR wbuf[128];
       hdc = BeginPaint(hwnd,&ps);
       GetClientRect(hwnd,&rc);
       if(state==0)
@@ -1671,9 +1692,7 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         DrawText(hdc,L"正在初始化摄像头\r\n\n请等待...",-1,&rc,DT_VCENTER|DT_CENTER|DT_BKGND);
 
-      }   
-//      if(state == 2)
-//      {}
+      }
       if(state == 2)
       {     
         U16 *ptmp;
@@ -1804,11 +1823,15 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_DESTROY:
     {
-
+			GUI_SemDelete(cam_sem);
+			GUI_SemDelete(set_sem);
       CamDialog.Update_Thread = 0;
+      CamDialog.AutoFocus_Thread = 0;	
+			vTaskDelete(Set_AutoFocus_Task_Handle);
+			vTaskDelete(Update_Dialog_Handle);
+			
       cam_mode.cam_out_height = GUI_YSIZE;
       cam_mode.cam_out_width = GUI_XSIZE;
-      CamDialog.AutoFocus_Thread = 0;
       cam_mode.lcd_sx = 0;
       cam_mode.lcd_sy = 0;
       cam_mode.light_mode =0x04;
@@ -1825,7 +1848,6 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			cur_index = 0;
       GUI_VMEM_Free(CamDialog.cam_buff1);
       GUI_VMEM_Free(CamDialog.cam_buff0);
-			GUI_msleep(1);
       return PostQuitMessage(hwnd);
     }  
       

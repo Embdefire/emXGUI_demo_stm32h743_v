@@ -604,7 +604,7 @@ static LRESULT setting_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         for (uint8_t xC=11; xC<14; xC++)
         {
           /* 循环创建文本框 */
-          CreateWindow(TEXTBOX, clock_icon[xC].icon_name, WS_OWNERDRAW,
+          CreateWindow(TEXTBOX, clock_icon[xC].icon_name, WS_OWNERDRAW| WS_OVERLAPPED,
                         clock_icon[xC].rc.x, clock_icon[xC].rc.y,
                         clock_icon[xC].rc.w,clock_icon[xC].rc.h,
                         hwnd, clock_icon[xC].id, NULL, NULL);
@@ -849,6 +849,7 @@ static LRESULT setting_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             /* 下一步 */
             case ID_CLOCK_NEXT:
             {
+              RECT rc = {139, 52, 201, 166};							
               if (Set_Start.page == 0)
               {
                 Set_Start.page = 1;    // 标记为时钟设置界面
@@ -878,13 +879,14 @@ static LRESULT setting_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 ShowWindow(GetDlgItem(hwnd, ID_CLOCK_SetMonth), SW_SHOW);
                 ShowWindow(GetDlgItem(hwnd, ID_CLOCK_SETDATE),  SW_SHOW);
               }
-              
+              InvalidateRect(hwnd, &rc, TRUE);			  
             }
             break;
 
             /* 上一步 */
             case ID_CLOCK_BACK:
             {
+              RECT rc = {139, 52, 201, 166};							
               if (Set_Start.page == 2)
               {
                 Set_Start.page = 1;    // 标记为时间设置界面
@@ -912,8 +914,9 @@ static LRESULT setting_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 ShowWindow(GetDlgItem(hwnd, ID_CLOCK_SetMinute),    SW_HIDE);
                 ShowWindow(GetDlgItem(hwnd, ID_CLOCK_BACK),         SW_HIDE);
                 ShowWindow(GetDlgItem(hwnd, ID_CLOCK_SETTIME),      SW_HIDE);
-              }
-            }
+              }					
+              InvalidateRect(hwnd, &rc, TRUE); 
+			}			  
             break;
           }
         }
@@ -1393,7 +1396,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
               rc.h = GUI_YSIZE;
               
               // 创建"设置"窗口.
-              CreateWindow(&wcex, L"---", WS_CLIPCHILDREN | WS_VISIBLE,
+              CreateWindow(&wcex, L"---", WS_CLIPCHILDREN | WS_VISIBLE| WS_CLIPSIBLINGS,
                            rc.x, rc.y, rc.w, rc.h, hwnd, ID_CLOCK_SetWin, NULL, NULL);
             }
             break;

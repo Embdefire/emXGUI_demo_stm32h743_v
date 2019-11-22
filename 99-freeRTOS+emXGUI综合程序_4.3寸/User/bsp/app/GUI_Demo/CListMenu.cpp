@@ -221,7 +221,7 @@ void CListMenu::draw_icon_obj(HDC hdc, struct __x_obj_item *obj, u32 flag, u32 s
         BMP_GetInfo(&info, bmp);
 
         x = rc.x + (((int)rc.w - (int)info.Width) / 2);
-        y = rc.y;// + (((int)rc.h - (int)info.Height) / 2);
+        y = rc.y+5;// + (((int)rc.h - (int)info.Height) / 2);
         BMP_Draw(hdc, x, y, bmp, NULL);
 
         SetTextColor(hdc, MapXRGB8888(hdc, icon_color));

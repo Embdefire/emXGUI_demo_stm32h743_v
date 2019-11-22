@@ -15,7 +15,8 @@ enum
   ID_TEXTBOX_RemoteIP3   ,//0x09     // Ô¶¶ËIP
   ID_TEXTBOX_RemoteIP4  ,//0x0A     // Ô¶¶ËIP
   ID_TEXTBOX_RemotePort  ,//0x0B     // Ô¶¶Ë¶Ë¿Ú
-  
+  ID_TEXTBOX_Wait,
+	
   /* °´Å¥ ID */
   eID_Network_EXIT    ,//0x03
   eID_LINK_STATE      ,//0x04

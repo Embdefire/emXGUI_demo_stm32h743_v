@@ -722,7 +722,7 @@ static LRESULT video_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			/* 创建视频播放任务 */
 			xReturn = xTaskCreate((TaskFunction_t )App_PlayVideo,  /* 任务入口函数 */
 														(const char*    )"App_PlayVideo",/* 任务名字 */
-														(uint16_t       )16*1024,  /* 任务栈大小 */
+														(uint16_t       )3*1024,  /* 任务栈大小 */
 														(void*          )NULL,/* 任务入口函数参数 */
 														(UBaseType_t    )5, /* 任务的优先级 */
 														(TaskHandle_t*  )&VideoTask_Handle);/* 任务控制块指针 */ 

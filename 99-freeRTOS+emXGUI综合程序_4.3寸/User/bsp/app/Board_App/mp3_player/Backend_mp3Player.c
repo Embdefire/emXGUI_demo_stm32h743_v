@@ -52,14 +52,14 @@ static uint8_t bufflag=0;          /* 数据缓存区选择标志 */
 extern HFONT DEFAULT_FONT;
 uint32_t led_delay=0;
 
-uint8_t inputbuf[INPUTBUF_SIZE]={0};        /* 解码输入缓冲区，1940字节为最大MP3帧大小  */
-short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
+__EXRAM uint8_t inputbuf[INPUTBUF_SIZE]={0};        /* 解码输入缓冲区，1940字节为最大MP3帧大小  */
+__EXRAM short outbuffer[2][MP3BUFFER_SIZE];  /* 解码输出缓冲区，也是I2S输入数据，实际占用字节数：RECBUFFER_SIZE*2 */
 
 
 /*wav播放器*/
 REC_TYPE Recorder;          /* 录音设备 */
-uint16_t buffer0[RECBUFFER_SIZE] ;  /* 数据缓存区1 ，实际占用字节数：RECBUFFER_SIZE*2 */
-uint16_t buffer1[RECBUFFER_SIZE] ;  /* 数据缓存区2 ，实际占用字节数：RECBUFFER_SIZE*2 */
+__EXRAM uint16_t buffer0[RECBUFFER_SIZE] ;  /* 数据缓存区1 ，实际占用字节数：RECBUFFER_SIZE*2 */
+__EXRAM uint16_t buffer1[RECBUFFER_SIZE] ;  /* 数据缓存区2 ，实际占用字节数：RECBUFFER_SIZE*2 */
 static WavHead rec_wav;            /* WAV设备  */
 
 FIL file;											/* file objects */

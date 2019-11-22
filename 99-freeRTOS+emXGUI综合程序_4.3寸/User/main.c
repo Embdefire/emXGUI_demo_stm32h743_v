@@ -82,7 +82,7 @@ void BSP_Init(void)
 //	SCB->CACR|=1<<2;   //强制D-Cache透写,如不开启,实际使用中可能遇到各种问题	  
 
   /* 系统时钟初始化成400MHz */
-#if 0	
+#if 0
   /* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
 	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
 	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
@@ -90,14 +90,12 @@ void BSP_Init(void)
 #endif
 	/* 设置SDRAM为Normal类型,禁用共享, 直写模式*/  
 	Board_MPU_Config(0,MPU_Normal_WT,0xD0000000,MPU_32MB);
-//	Board_MPU_Config(1,MPU_Normal_WT,0xD1000000,MPU_8MB);
-//  Board_MPU_Config(2,MPU_Normal_WT,0xD1800000,MPU_8MB);	
 	
 	/* 设置AXI RAM为Normal类型,禁用共享, 直写模式*/ 
-	Board_MPU_Config(3,MPU_Normal_WT,0x20000000,MPU_128KB);
-  Board_MPU_Config(4,MPU_Normal_WT,0x00000000,MPU_64KB);
-  Board_MPU_Config(5,MPU_Normal_WT,0x24000000,MPU_512KB);
-  Board_MPU_Config(6,MPU_Normal_WT,0x08000000,MPU_2MB);
+	Board_MPU_Config(1,MPU_Normal_WT,0x20000000,MPU_128KB);
+  Board_MPU_Config(2,MPU_Normal_WT,0x00000000,MPU_64KB);
+  Board_MPU_Config(3,MPU_Normal_WT,0x24000000,MPU_512KB);
+  Board_MPU_Config(4,MPU_Normal_WT,0x08000000,MPU_2MB);
 	
 	MPU_Config();	
 	

@@ -637,7 +637,7 @@ static LRESULT	ADCWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       ScreenToClient(hwnd, (POINT *)&rc, 1);
       BitBlt(hdc, rc.x, rc.y, GUI_XSIZE, rc.h, hdc_adc_bk, 0, TitleHeight, SRCCOPY);
 
-      BitBlt(hdc, 0, 0, 350, 340, hdc_adc_png[hdc_adc_H7_RP], 0, 0, SRCCOPY);
+      BitBlt(hdc, 0, 5, 350, 340, hdc_adc_png[hdc_adc_H7_RP], 0, 0, SRCCOPY);
 
       /* œ‘ æ¡¡∂»Õº±Í */
       SetFont(hdc, controlFont_32);

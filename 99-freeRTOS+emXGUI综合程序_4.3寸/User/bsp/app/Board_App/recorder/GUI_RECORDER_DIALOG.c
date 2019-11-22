@@ -12,10 +12,10 @@ extern GUI_SEM * exit_sem;//创建一个信号量
 recorder_icon_t record_icon[] = {
 
    {L"A",        {184, 240, 26, 24},   ID_RECORD_bPOWER},    // 0. 音量
-   {L"Q",        {431, 241, 24, 24},   ID_RECORD_BUGLE},     // 1. 喇叭按钮
-   {L"S",        {290, 241, 24, 24},   ID_RECORD_BACK},      // 2. 上一首
-   {L"T",        {328, 237, 35, 35},   ID_RECORD_PLAY},      // 3. 播放
-   {L"V",        {370, 241, 24, 24},   ID_RECORD_NEXT},      // 4. 下一首
+   {L"Q",        {431, 236, 36, 36},   ID_RECORD_BUGLE},     // 1. 喇叭按钮
+   {L"S",        {290, 236, 36, 36},   ID_RECORD_BACK},      // 2. 上一首
+   {L"T",        {325, 237, 35, 35},   ID_RECORD_PLAY},      // 3. 播放
+   {L"V",        {370, 236, 36, 36},   ID_RECORD_NEXT},      // 4. 下一首
    {L"U",        {47,  174, 32, 32},   ID_RECORD_STOP},      // 5. 停止录音
    {L"U",        {109, 174, 32, 32},   ID_RECORD_START},     // 6. 开始录音
    {L"U",        {109, 174, 32, 32},   ID_RECORD_PADNC},     // 7. 暂停继续
@@ -328,7 +328,7 @@ static void start_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
   DrawCircle(hdc, rc.x+rc.w/2, rc.y+rc.h/2, rc.w/2);
 
   /* 绘制圆角矩形 */
-  FillCircle(hdc, rc.x+rc.w/2, rc.x+rc.w/2, 27);
+  FillCircle(hdc, rc.x+rc.w/2, rc.x+rc.w/2, 10);
   
   EnableAntiAlias(hdc, FALSE);
 }

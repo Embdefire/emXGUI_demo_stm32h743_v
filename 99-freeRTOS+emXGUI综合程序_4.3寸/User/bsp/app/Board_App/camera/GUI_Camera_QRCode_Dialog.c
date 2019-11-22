@@ -336,7 +336,6 @@ static void QR_ExitButton_OwnerDraw(DRAWITEM_HDR *ds)
     rc.y += 6;
   }
 
-
 }
 
 void ScanCompleteDialog(HWND hwndParent, RECT rc,const WCHAR *pText,const WCHAR *pCaption,const MSGBOX_OPTIONS *ops)
@@ -430,7 +429,7 @@ static LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       OV5640_ReadID(&OV5640_Camera_ID);
       
        CreateWindow(BUTTON, L"O", WS_TRANSPARENT|BS_FLAT | BS_NOTIFY |WS_OWNERDRAW|WS_VISIBLE,
-                  720, 5, 80, 80, hwnd, eID_QR_EXIT, NULL, NULL); 
+                  444, 0, 36, 36, hwnd, eID_QR_EXIT, NULL, NULL); 
 
       if(OV5640_Camera_ID.PIDH  == 0x56)
       {
