@@ -14,7 +14,14 @@ LR_IROM1 0x08000000 0x02000000  {    ; load region size_region
   }
   RW_IRAM2 0x24000000 0x00080000  {
    .ANY (+RW +ZI)
+   gui_fs_port.o (+RW +ZI);由于DMA访问权限,功能要正常使用的话,缓冲区要放在非TCM区中
    bsp_adc.o (+RW +ZI)
+   ethernetif.o (+RW +ZI)
+   ip4.o (+RW +ZI)
+   etharp.o (+RW +ZI)
+   memp.o (+RW +ZI)
+   dhcp.o (+RW +ZI)
+   mem.o (+RW +ZI)
   }  
   RW_ERAM1 (0xd18bb800+0x00350000) 0x00400000 {  ; 外部SDRAM  //100000
   ;*.o (HEAP)          选择堆区
