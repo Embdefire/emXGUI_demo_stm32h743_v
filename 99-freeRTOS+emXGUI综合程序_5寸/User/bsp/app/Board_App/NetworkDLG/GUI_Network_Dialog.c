@@ -259,7 +259,6 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
     case WM_CREATE:
     {
-			SetTimer(hwnd, 5, 50, TMR_START, NULL);
       RECT rc;
       GetClientRect(hwnd, &rc); 
       HWND Temp_Handle;

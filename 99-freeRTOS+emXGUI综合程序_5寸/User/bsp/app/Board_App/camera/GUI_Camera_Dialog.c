@@ -20,6 +20,10 @@ static int b_close=FALSE;//窗口关闭标志位
 static RECT win_rc;//二级菜单位置信息
 GUI_SEM *cam_sem = NULL;//更新图像同步信号量（二值型）
 GUI_SEM *set_sem = NULL;//更新图像同步信号量（二值型）
+
+TaskHandle_t Update_Dialog_Handle;
+TaskHandle_t Set_AutoFocus_Task_Handle;
+
 /*
  * @brief  自定义参数设置按钮
  * @param  ds:	自定义绘制结构体
@@ -329,51 +333,40 @@ static void Button_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 
 static void Set_AutoFocus(void *param)
 {
-	if(CamDialog.AutoFocus_Thread==0)
-	{  
-      GUI_Thread_Create(Set_AutoFocus,"Set_AutoFocus",5*1024,NULL,5,3);			
-      CamDialog.AutoFocus_Thread =1;
-      return;
-	}
 	while(CamDialog.AutoFocus_Thread==1) //线程已创建了
 	{
-    GUI_SemWait(set_sem, 0xFFFFFFFF);
-    if(CamDialog.focus_status != 1)
-    {
-      //暂停对焦
-      OV5640_FOCUS_AD5820_Pause_Focus();
+    if(GUI_SemWait(set_sem, 1))
+		{
+			if(CamDialog.focus_status != 1)
+			{
+				//暂停对焦
+				OV5640_FOCUS_AD5820_Pause_Focus();
 
-    }
-    else
-    {
-      //自动对焦
-      OV5640_FOCUS_AD5820_Constant_Focus();
+			}
+			else
+			{
+				//自动对焦
+				OV5640_FOCUS_AD5820_Constant_Focus();
 
-    } 
-
-    GUI_Yield();
-		
+			} 		
+		}
+		GUI_Yield();
 	}
-  GUI_Thread_Delete(GUI_GetCurThreadHandle());
+	while(1){GUI_Yield();}
 }
 
 
 static void Update_Dialog(void *param)
 {
-	int app=0;
-  CamDialog.Update_Thread = 1;
 	while(CamDialog.Update_Thread) //线程已创建了
 	{
-		if(app==0)
-		{
-      app=1;
-			GUI_SemWait(cam_sem, 0xFFFFFFFF);
-      InvalidateRect(CamDialog.Cam_Hwnd,NULL,FALSE);
-			app=0;
+			if(GUI_SemWait(cam_sem, 0x1))
+			{
+       InvalidateRect(CamDialog.Cam_Hwnd,NULL,FALSE);
+			}
 			GUI_Yield();
-		}
 	}
-  GUI_Thread_Delete(GUI_GetCurThreadHandle());
+	while(1){GUI_Yield();}
 }
 
 /*
@@ -1552,6 +1545,8 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if(OV5640_Camera_ID.PIDH  == 0x56)
       {
         GUI_DEBUG("OV5640 ID:%x %x",OV5640_Camera_ID.PIDH ,OV5640_Camera_ID.PIDL);
+				CamDialog.AutoFocus_Thread = 1;
+				CamDialog.Update_Thread = 1;
       }
       else
       {
@@ -1567,6 +1562,8 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         x =(GUI_XSIZE-w)>>1;
         y =(GUI_YSIZE-h)>>1;
         MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"消息",&ops); 
+				CamDialog.AutoFocus_Thread = 0;
+				CamDialog.Update_Thread = 0;
 				PostCloseMessage(hwnd);
         break;  
       }
@@ -1576,8 +1573,29 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       //设置按键
       CreateWindow(BUTTON,L"参数设置",WS_OWNERDRAW|WS_TRANSPARENT,rc.w-135,419,120,40,hwnd,eID_SET,NULL,NULL);
 
-      GUI_Thread_Create(Update_Dialog,"Update_Dialog",512,NULL,6,5);
-      
+			BaseType_t xReturn = pdPASS;
+			xReturn = xTaskCreate((TaskFunction_t )Set_AutoFocus,      /* 任务入口函数 */
+														(const char*    )"Set_AutoFocus",    /* 任务名字 */
+														(uint16_t       )1024,                  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
+														(void*          )NULL,                      /* 任务入口函数参数 */
+														(UBaseType_t    )5,                         /* 任务的优先级 */
+														(TaskHandle_t*  )&Set_AutoFocus_Task_Handle);     /* 任务控制块指针 */
+														
+		 if(xReturn != pdPASS)  
+			{
+				GUI_ERROR("Fail to create Set_AutoFocus!\r\n");
+			}			
+			
+      xReturn = xTaskCreate((TaskFunction_t )Update_Dialog,      /* 任务入口函数 */
+														(const char*    )"Update_Dialog",    /* 任务名字 */
+														(uint16_t       )512,                  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
+														(void*          )NULL,                      /* 任务入口函数参数 */
+														(UBaseType_t    )6,                         /* 任务的优先级 */
+														(TaskHandle_t*  )&Update_Dialog_Handle);     /* 任务控制块指针 */
+      if(xReturn != pdPASS)  
+			{
+				GUI_ERROR("Fail to create Update_Dialog!\r\n");
+			}					
       
       //帧率
       CreateWindow(BUTTON,L" ",WS_OWNERDRAW|WS_TRANSPARENT|WS_VISIBLE,rc.w-600,400,400,72,hwnd,eID_FPS,NULL,NULL);
@@ -1803,11 +1821,19 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_DESTROY:
     {
-
-      CamDialog.Update_Thread = 0;
+      if( CamDialog.Update_Thread == 1 && CamDialog.AutoFocus_Thread == 1)
+			{
+				CamDialog.Update_Thread = 0;
+				CamDialog.AutoFocus_Thread = 0;
+				vTaskDelete(Set_AutoFocus_Task_Handle);
+				vTaskDelete(Update_Dialog_Handle);
+				
+				GUI_SemDelete(cam_sem);
+				GUI_SemDelete(set_sem);
+			}
+			
       cam_mode.cam_out_height = GUI_YSIZE;
       cam_mode.cam_out_width = GUI_XSIZE;
-      CamDialog.AutoFocus_Thread = 0;
       cam_mode.lcd_sx = 0;
       cam_mode.lcd_sy = 0;
       cam_mode.light_mode =0x04;
@@ -1824,7 +1850,6 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			cur_index = 0;
       GUI_VMEM_Free(CamDialog.cam_buff1);
       GUI_VMEM_Free(CamDialog.cam_buff0);
-			GUI_msleep(1);
       return PostQuitMessage(hwnd);
     }  
       

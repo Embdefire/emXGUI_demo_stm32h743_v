@@ -52,7 +52,6 @@ static void BtCam_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
     DrawRoundRect(hdc, &rc, MIN(rc.w,rc.h)>>1); 
     
     FillRoundRect(hdc, &rc, MIN(rc.w,rc.h)>>1); 
-		rc.y += 3;
     DrawText(hdc, wbuf, -1, &rc, DT_VCENTER | DT_CENTER);//绘制文字(居中对齐方式) 
     
 	}
@@ -64,7 +63,6 @@ static void BtCam_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
     DrawRoundRect(hdc, &rc, MIN(rc.w,rc.h)>>1);
     InflateRect(&rc, -1, -1);
     DrawRoundRect(hdc, &rc, MIN(rc.w,rc.h)>>1);
-		rc.y += 3;
     DrawText(hdc, wbuf, -1, &rc, DT_VCENTER | DT_CENTER);//绘制文字(居中对齐方式)    
 	}
 }
@@ -337,28 +335,24 @@ static void Button_owner_draw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 
 static void Set_AutoFocus(void *param)
 {
-	if(CamDialog.AutoFocus_Thread==0)
-	{  
-      CamDialog.AutoFocus_Thread =1;
-	}
 	while(CamDialog.AutoFocus_Thread==1) //线程已创建了
 	{
-    GUI_SemWait(set_sem, 0xFFFFFFFF);
-    if(CamDialog.focus_status != 1)
-    {
-      //暂停对焦
-      OV5640_FOCUS_AD5820_Pause_Focus();
+    if(GUI_SemWait(set_sem, 1))
+		{
+			if(CamDialog.focus_status != 1)
+			{
+				//暂停对焦
+				OV5640_FOCUS_AD5820_Pause_Focus();
 
-    }
-    else
-    {
-      //自动对焦
-      OV5640_FOCUS_AD5820_Constant_Focus();
+			}
+			else
+			{
+				//自动对焦
+				OV5640_FOCUS_AD5820_Constant_Focus();
 
-    } 
-
-    GUI_Yield();
-
+			} 		
+		}
+		GUI_Yield();
 	}
 	while(1){GUI_Yield();}
 }
@@ -366,18 +360,13 @@ static void Set_AutoFocus(void *param)
 
 static void Update_Dialog(void *param)
 {
-	int app=0;
-  CamDialog.Update_Thread = 1;
 	while(CamDialog.Update_Thread) //线程已创建了
 	{
-		if(app==0)
-		{
-      app=1;
-			GUI_SemWait(cam_sem, 0xFFFFFFFF);
-      InvalidateRect(CamDialog.Cam_Hwnd,NULL,FALSE);
-			app=0;
+			if(GUI_SemWait(cam_sem, 0x1))
+			{
+       InvalidateRect(CamDialog.Cam_Hwnd,NULL,FALSE);
+			}
 			GUI_Yield();
-		}
 	}
 	while(1){GUI_Yield();}
 }
@@ -1557,6 +1546,8 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if(OV5640_Camera_ID.PIDH  == 0x56)
       {
         GUI_DEBUG("OV5640 ID:%x %x",OV5640_Camera_ID.PIDH ,OV5640_Camera_ID.PIDL);
+				CamDialog.AutoFocus_Thread = 1;
+				CamDialog.Update_Thread = 1;
       }
       else
       {
@@ -1572,6 +1563,8 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         x =(GUI_XSIZE-w)>>1;
         y =(GUI_YSIZE-h)>>1;
         MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"错误",&ops); 
+				CamDialog.AutoFocus_Thread = 0;
+				CamDialog.Update_Thread = 0;
 				PostCloseMessage(hwnd);
         break;  
       }
@@ -1823,12 +1816,16 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_DESTROY:
     {
-			GUI_SemDelete(cam_sem);
-			GUI_SemDelete(set_sem);
-      CamDialog.Update_Thread = 0;
-      CamDialog.AutoFocus_Thread = 0;	
-			vTaskDelete(Set_AutoFocus_Task_Handle);
-			vTaskDelete(Update_Dialog_Handle);
+      if( CamDialog.Update_Thread == 1 && CamDialog.AutoFocus_Thread == 1)
+			{
+				CamDialog.Update_Thread = 0;
+				CamDialog.AutoFocus_Thread = 0;
+				vTaskDelete(Set_AutoFocus_Task_Handle);
+				vTaskDelete(Update_Dialog_Handle);
+				
+				GUI_SemDelete(cam_sem);
+				GUI_SemDelete(set_sem);
+			}
 			
       cam_mode.cam_out_height = GUI_YSIZE;
       cam_mode.cam_out_width = GUI_XSIZE;

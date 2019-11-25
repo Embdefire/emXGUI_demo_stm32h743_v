@@ -665,7 +665,6 @@ static LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       QR_Task=0;
 			GUI_Thread_Delete(Syn_Updata);
-      GUI_VMEM_Free(CamDialog.cam_buff1);
       GUI_VMEM_Free(CamDialog.cam_buff0);
       //复位摄像头配置参数
       Camera_ReConfig();
@@ -718,11 +717,7 @@ void	GUI_Camera_QRCode_DIALOG(void)
    g_dma2d_en = TRUE;
 	wcex.Tag = WNDCLASS_TAG;  
   
-  
   CamDialog.cam_buff0 = (uint16_t *)GUI_VMEM_Alloc(LCD_XSIZE*LCD_YSIZE*2);
-  CamDialog.cam_buff1 = (uint16_t *)GUI_VMEM_Alloc(LCD_XSIZE*LCD_YSIZE*2);
-
-  
   
 	wcex.Style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = WinProc; //设置主窗口消息处理的回调函数.

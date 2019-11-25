@@ -105,7 +105,7 @@ static void DHT11_Mode_Out_PP(void)
 static uint8_t Read_Byte(void)
 {
 	uint8_t i, temp=0;
-
+  uint16_t count = 0;
 	for(i=0;i<8;i++)    
 	{	 
 		/*每bit以50us低电平标置开始，轮询直到从机发出 的50us 低电平 结束*/  
@@ -119,7 +119,14 @@ static uint8_t Read_Byte(void)
 		if(DHT11_DATA_IN()==Bit_SET)/* x us后仍为高电平表示数据“1” */
 		{
 			/* 等待数据1的高电平结束 */
-			while(DHT11_DATA_IN()==Bit_SET);
+			while(DHT11_DATA_IN()==Bit_SET)			
+			{
+				count++;
+				if(count>0x5fff)
+				{
+					return 0;
+				}
+			}
 
 			temp|=(uint8_t)(0x01<<(7-i));  //把第7-i位置1，MSB先行 
 		}

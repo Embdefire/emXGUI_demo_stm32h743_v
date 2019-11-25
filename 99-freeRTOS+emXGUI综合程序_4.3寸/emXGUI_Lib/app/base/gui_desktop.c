@@ -112,7 +112,7 @@ static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 		rc.h = HEAD_INFO_HEIGHT;
 		
 		SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
-		DrawText(hdc,L" B",-1,&rc,DT_LEFT|DT_VCENTER);
+		DrawText(hdc,L"B",-1,&rc,DT_LEFT|DT_VCENTER);
 		
 		
 		GetClientRect(hwnd,&rc);
@@ -130,16 +130,16 @@ static	void	_EraseBackgnd(HDC hdc,const RECT *lprc,HWND hwnd)
 		rc.h = HEAD_INFO_HEIGHT;
 		rc.w = 58;    
 		/* 控制图标字体 */
-		SetFont(hdc, controlFont_72);
+		SetFont(hdc, controlFont_48);
 
 		/* 向上图标 */
 		SetTextColor(hdc,MapRGB(hdc,255,255,255)); 
 	//  DrawText(hdc,L"D",-1,&rc,DT_TOP|DT_CENTER);
-		DrawText(hdc,L"f",-1,&rc,DT_TOP);
+		DrawText(hdc,L"f",-1,&rc,DT_BOTTOM);
 
 	// /* 恢复默认字体 */
 		SetFont(hdc, defaultFont);
-		OffsetRect(&rc,10,-7);
+		OffsetRect(&rc,12,-9);
 		DrawText(hdc,L"说明",-1,&rc,DT_LEFT|DT_VCENTER);
 		rc.x = 211;
 		rc.w = 58;
