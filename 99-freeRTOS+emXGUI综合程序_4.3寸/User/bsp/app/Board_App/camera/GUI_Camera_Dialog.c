@@ -287,7 +287,6 @@ static void camera_return_ownerdraw(DRAWITEM_HDR *ds) //绘制一个按钮外观
 
 	DrawText(hdc, wbuf, -1, &rc, DT_VCENTER);//绘制文字(居中对齐方式)
    rc.x = 35; 
-   rc.y+=3;
   /* 恢复默认字体 */
 	SetFont(hdc, defaultFont);
   DrawText(hdc, L"返回", -1, &rc, DT_VCENTER);
@@ -1558,11 +1557,11 @@ static LRESULT Cam_win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ops.Flag =MB_ICONERROR;
         ops.pButtonText =btn;
         ops.ButtonCount =1;
-        w =180;
-        h =120;
+        w =230;
+        h =150;
         x =(GUI_XSIZE-w)>>1;
         y =(GUI_YSIZE-h)>>1;
-        MessageBox(hwnd,x,y,w,h,L"没有检测到OV5640摄像头，\n请重新检查连接。",L"错误",&ops); 
+        MessageBox(hwnd,x,y,w,h,L"未检测到OV5640摄像头，\n请重新检查连接。",L"错误",&ops); 
 				CamDialog.AutoFocus_Thread = 0;
 				CamDialog.Update_Thread = 0;
 				PostCloseMessage(hwnd);

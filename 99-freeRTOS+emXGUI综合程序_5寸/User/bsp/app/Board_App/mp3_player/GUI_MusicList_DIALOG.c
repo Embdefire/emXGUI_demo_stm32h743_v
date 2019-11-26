@@ -159,7 +159,7 @@ static void listbox_owner_draw(DRAWITEM_HDR *ds)
 	HWND hwnd;
 	HDC hdc;
 	RECT rc;
-	int i,count,cursel;
+	int i,count;
 	WCHAR wbuf[128];
 
 	hwnd =ds->hwnd;
@@ -181,8 +181,7 @@ static void listbox_owner_draw(DRAWITEM_HDR *ds)
 
 	i=SendMessage(hwnd,LB_GETTOPINDEX,0,0);
 	count=SendMessage(hwnd,LB_GETCOUNT,0,0);
-	cursel=SendMessage(hwnd,LB_GETCURSEL,0,0);
-
+//	cursel=SendMessage(hwnd,LB_GETCURSEL,0,0);
 	while(i<count)
 	{
 		SendMessage(hwnd,LB_GETITEMRECT,i,(LPARAM)&rc);
@@ -193,7 +192,7 @@ static void listbox_owner_draw(DRAWITEM_HDR *ds)
 
 		SetTextColor(hdc,MapRGB(hdc,50,10,10));
 
-		if(i==cursel)
+		if(i==play_index)
 		{
 			SetTextColor(hdc,MapRGB(hdc,2,167,240));
 		}
@@ -235,7 +234,7 @@ static LRESULT Win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                       ID_LIST_1,
                       NULL,
                       NULL);         
-         SendMessage(wnd, MSG_SET_SEL, play_index, 0);
+				SendMessage(wnd, LB_SETCURSEL, play_index, 0);
          WCHAR wbuf1[128];
          for (uint16_t xC=0; xC<music_file_num; xC++)
          {
@@ -308,11 +307,9 @@ static LRESULT Win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                case ID_LIST_1:
                  {
-                     play_index = SendMessage(GetDlgItem(hwnd, ID_LIST_1), LB_GETCURSEL,0,0);               // 获得当前选中行;//切换至下一首
+                     play_index = SendMessage(GetDlgItem(hwnd, ID_LIST_1),LB_GETCURSEL,0,0);               // 获得当前选中行;//切换至下一首
                      mp3player.ucStatus = STA_SWITCH;	                  
-
-               }
-
+                }
                break;
             }
 

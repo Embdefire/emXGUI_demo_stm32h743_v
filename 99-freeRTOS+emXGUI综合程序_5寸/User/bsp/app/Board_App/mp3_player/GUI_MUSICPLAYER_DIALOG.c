@@ -22,9 +22,9 @@ icon_S music_icon[] = {
    {"geci",             {728,404,72,72},      FALSE},//歌词栏
    {"NULL",             {0,0,0,0},            FALSE},//无
    {"NULL",             {0,0,0,0},            FALSE},//无
-   {"shangyishou",      {9, 410, 64, 64},   FALSE},//上一首
+   {"shangyishou",      {9, 410, 60, 60},   FALSE},//上一首
    {"zanting/bofang",   {68, 406, 72, 72},   FALSE},//播放
-   {"xiayishou",        {140, 410, 64, 64},   FALSE},//下一首
+   {"xiayishou",        {140, 410, 60, 60},   FALSE},//下一首
    {"Q",                {620, 415,48, 48},   FALSE},     // 8. 喇叭按钮
 };
 extern HWND music_list_hwnd;
@@ -925,33 +925,8 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
          wnd_horn = CreateWindow(SCROLLBAR, L"SCROLLBAR_H", WS_TRANSPARENT|SBS_VERT|WS_OWNERDRAW|SBS_BOTTOM_ALIGN|SBS_NOARROWS,
                             688, 294, 31, 100, hwnd, ID_SCROLLBAR_HORN, NULL, NULL);
          SendMessage(wnd_horn, SBM_SETSCROLLINFO, TRUE, (LPARAM)&sif_power_horn);
-
-			//设置位图结构参数
-//			bm_0.Format	= BM_ARGB8888;     //位图格式
-//			bm_0.Width  = 240;              //宽度
-//			bm_0.Height = 240;             //高度
-//			bm_0.WidthBytes =bm_0.Width*4; //每行字节数
-//			bm_0.LUT =NULL;                //查找表(RGB/ARGB格式不使用该参数)
-//			bm_0.Bits =(void*)gImage_0;    //位图数据
-      
-        /* 创建蓝鱼的memdc */
-         // rotate_disk_hdc = CreateMemoryDC((SURF_FORMAT)COLOR_FORMAT_ARGB8888,240,240); 
-         // /* 清空背景为透明 */
-         // ClrDisplay(rotate_disk_hdc,NULL,0);
-         // //BitBlt(rotate_disk_hdc, 0, 0, 240, 240, hdc_bk, 280, 120, SRCCOPY);
-         // /* 绘制bmp到hdc */
-         // RECT rc = {0,0,240,240};
-         // SetTextColor(rotate_disk_hdc, MapARGB(rotate_disk_hdc, 255, 50, 205, 50));
-         // SetFont(rotate_disk_hdc, iconFont_252);
-         // DrawTextEx(rotate_disk_hdc,L"a",-1,&rc,DT_SINGLELINE|DT_VCENTER|DT_CENTER,NULL);
-         // /* 转换成bitmap */
-         // DCtoBitmap(rotate_disk_hdc,&bm_0);
-
-         //pSurf =CreateSurface(SURF_RGB565,240,240,-1,NULL);
-         
-         
-         //SetTimer(hwnd, 1, 200, TMR_START,NULL);
-          GUI_MusicList_DIALOG(hwnd);
+				 
+          GUI_MusicList_DIALOG(hwnd);//创建播放列表
           rc.x =0;
           rc.y =0;
           rc.w =240;
@@ -1172,7 +1147,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                                 
                   x_mbstowcs_cp936(wbuf, music_lcdlist[play_index], FILE_NAME_LEN);
                   SetWindowText(GetDlgItem(hwnd, ID_TB5), wbuf);
-                                 
+								  RedrawWindow(music_list_hwnd, NULL, RDW_ALLCHILDREN|RDW_INVALIDATE);//重绘播放列表
                   SendMessage(music_wnd_time, SBM_SETVALUE, TRUE, 0); //设置进度值
                   SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB1), L"00:00"); 
                   SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB2), L"00:00"); 
@@ -1190,6 +1165,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                   if(play_index > music_file_num) play_index = 0;
                   if(play_index < 0) play_index = music_file_num - 1;
                   mp3player.ucStatus = STA_SWITCH;   
+								  RedrawWindow(music_list_hwnd, NULL, RDW_ALLCHILDREN|RDW_INVALIDATE);//重绘播放列表
                   hdc = GetDC(hwnd);
                   ReleaseDC(hwnd, hdc);            
                   break;

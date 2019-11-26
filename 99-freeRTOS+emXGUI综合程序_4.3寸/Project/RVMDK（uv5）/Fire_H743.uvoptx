@@ -160,26 +160,6 @@
           <WinNumber>1</WinNumber>
           <ItemText>xFreeBytesRemaining,0x0A</ItemText>
         </Ww>
-        <Ww>
-          <count>1</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>info,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>wParam,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>rc</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>lParam,0x0A</ItemText>
-        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>

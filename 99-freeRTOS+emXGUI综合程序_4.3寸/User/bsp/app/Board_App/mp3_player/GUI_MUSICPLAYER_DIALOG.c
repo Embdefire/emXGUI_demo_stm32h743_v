@@ -874,11 +874,11 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                       225,38,249,25,hwnd,ID_TB5,NULL,NULL);
 
          CreateWindow(BUTTON,L"00:00",WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE,
-                      331,242,43,17,hwnd,ID_TB1,NULL,NULL);
+                      331,238,43,17,hwnd,ID_TB1,NULL,NULL);
      
 
          CreateWindow(BUTTON,L"00:00",WS_TRANSPARENT|WS_OWNERDRAW|WS_VISIBLE,
-                       118,242,43,17,hwnd,ID_TB2,NULL,NULL);
+                       118,238,43,17,hwnd,ID_TB2,NULL,NULL);
     
          //获取音乐列表
          memset(music_playlist,0,sizeof(music_playlist));
@@ -1174,7 +1174,7 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                                 
                   x_mbstowcs_cp936(wbuf, music_lcdlist[play_index], FILE_NAME_LEN);
                   SetWindowText(GetDlgItem(hwnd, ID_TB5), wbuf);
-                                 
+                  RedrawWindow(music_list_hwnd, NULL, RDW_ALLCHILDREN|RDW_INVALIDATE);
                   SendMessage(music_wnd_time, SBM_SETVALUE, TRUE, 0); //设置进度值
                   SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB1), L"00:00"); 
                   SetWindowText(GetDlgItem(MusicPlayer_hwnd, ID_TB2), L"00:00"); 
@@ -1191,7 +1191,8 @@ static LRESULT win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
                   play_index--;
                   if(play_index > music_file_num) play_index = 0;
                   if(play_index < 0) play_index = music_file_num - 1;
-                  mp3player.ucStatus = STA_SWITCH;   
+                  mp3player.ucStatus = STA_SWITCH;  
+                  RedrawWindow(music_list_hwnd, NULL, RDW_ALLCHILDREN|RDW_INVALIDATE);								 
                   hdc = GetDC(hwnd);
                   ReleaseDC(hwnd, hdc);            
                   break;

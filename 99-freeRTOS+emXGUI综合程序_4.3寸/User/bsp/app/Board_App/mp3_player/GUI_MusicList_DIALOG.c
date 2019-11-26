@@ -181,7 +181,7 @@ static void listbox_owner_draw(DRAWITEM_HDR *ds)
 
 	i=SendMessage(hwnd,LB_GETTOPINDEX,0,0);
 	count=SendMessage(hwnd,LB_GETCOUNT,0,0);
-	cursel=SendMessage(hwnd,LB_GETCURSEL,0,0);
+	cursel=play_index;
 
 	while(i<count)
 	{
@@ -235,7 +235,7 @@ static LRESULT Win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                       ID_LIST_1,
                       NULL,
                       NULL);         
-         SendMessage(wnd, MSG_SET_SEL, play_index, 0);
+         SendMessage(wnd, LB_SETCURSEL, play_index, 0);
          WCHAR wbuf1[128];
          for (uint16_t xC=0; xC<music_file_num; xC++)
          {

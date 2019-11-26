@@ -614,6 +614,8 @@ static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       code=HIWORD(wParam);//获取消息的类型    
       if(code == BN_CLICKED && id == eID_Pic_EXIT)
       {
+				if(s_PicViewer_Dialog.ms_gif.m_gif_state == 1)
+          SendMessage(hwnd, CloseGif, NULL, NULL);
         PostCloseMessage(hwnd);
         break;
       }
