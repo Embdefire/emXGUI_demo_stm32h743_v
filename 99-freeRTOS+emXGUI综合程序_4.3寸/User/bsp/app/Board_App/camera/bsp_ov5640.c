@@ -1523,8 +1523,6 @@ void OV5640_Capture_Control(FunctionalState state)
 //uint8_t fps;count*BLOCKSIZE + ((uint32_t)buff - alignedAddr)
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
-    CamDialog.fps++; //帧率计数
-
     GUI_SemPostISR(cam_sem);  
 
 	if(cur_index == 0)//0--准备配置第二块内存，当前使用的是第一块内存
@@ -1532,18 +1530,7 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 		  cur_index = 1;
 			if (QR_Task)
 			{
-//				SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0,cam_mode.cam_out_width * cam_mode.cam_out_height *2);
 				cur_index = 0;
-		    HAL_DCMI_Suspend(&DCMI_Handle);
-        __HAL_DCMI_DISABLE(hdcmi);
-				SCB_InvalidateDCache_by_Addr((uint32_t *)CamDialog.cam_buff0, cam_mode.cam_out_height*cam_mode.cam_out_width / 2);
-        get_image((uint32_t)CamDialog.cam_buff0,cam_mode.cam_out_width , cam_mode.cam_out_height);//从缓存好的第一块内存中获取图像数据
-				/*重新开始采集*/
-				 HAL_DCMI_Resume(&DCMI_Handle);
-//				 __HAL_DCMI_ENABLE(hdcmi);
-       
-				OV5640_DMA_Config((uint32_t)CamDialog.cam_buff0,
-													cam_mode.cam_out_height*cam_mode.cam_out_width/2); 
 			}
 			else
 			{
