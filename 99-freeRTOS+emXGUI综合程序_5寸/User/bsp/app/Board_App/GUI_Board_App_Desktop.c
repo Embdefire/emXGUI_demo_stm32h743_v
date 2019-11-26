@@ -172,7 +172,6 @@ struct __obj_list menu_list_1[] = {
       L"»ù´¡¿Ø¼þ",	    NULL, 	L"D",   RGB_WHITE,				(void(*)(void *))GUI_DEMO_RadiaMenu,
       L"·äÃùÆ÷",	      NULL, 	L"i",   RGB_WHITE,				(void(*)(void *))GUI_Beeper_Dialog,
 			L"LED&KEY",       NULL,	  L"j",   RGB_WHITE,		 	  (void(*)(void *))GUI_LED_KEY_Dialog,				
-
 //        L"Radiobox",	NULL,   L"E", RGB_WHITE,				dummy,
 //        L"Textbox",	NULL,	  L"F", RGB_WHITE,				dummy,
 

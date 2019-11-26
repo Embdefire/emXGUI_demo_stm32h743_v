@@ -163,27 +163,27 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>i,0x0A</ItemText>
+          <ItemText>s_PicViewer_Dialog.ms_gif.m_delay,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>count,0x0A</ItemText>
+          <ItemText>s_PicViewer_Dialog.ms_gif,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>cursel,0x0A</ItemText>
+          <ItemText>res</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>play_index,0x0A</ItemText>
+          <ItemText>s_PicViewer_Dialog.ms_gif.frame_num</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>play_index</ItemText>
+          <ItemText>s_PicViewer_Dialog.ms_gif.m_gif_state,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -3559,7 +3559,7 @@
 
   <Group>
     <GroupName>tutorial/camera</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -4784,6 +4784,26 @@
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\User\Jepg.h</PathWithFileName>
       <FilenameWithoutPath>Jepg.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>test</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>46</GroupNumber>
+      <FileNumber>329</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>D:\GUI_DEMO_GIF.c</PathWithFileName>
+      <FilenameWithoutPath>GUI_DEMO_GIF.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
