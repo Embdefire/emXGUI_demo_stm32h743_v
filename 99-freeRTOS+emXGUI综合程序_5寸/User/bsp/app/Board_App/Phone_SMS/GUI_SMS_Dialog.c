@@ -384,7 +384,7 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
     case WM_CREATE:
     {
-      RECT rc, m_rc[12];
+      RECT rc;
       
       GetClientRect(hwnd, &rc);
 
