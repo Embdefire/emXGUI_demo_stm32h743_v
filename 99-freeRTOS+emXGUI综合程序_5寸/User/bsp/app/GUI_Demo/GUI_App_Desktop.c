@@ -522,7 +522,7 @@ void	GUI_App_Desktop(void *p)
 		/*WS_MEMSURFACE|*/WS_CLIPCHILDREN,
 
 		0, 0, GUI_XSIZE, 400,
-		GetDesktopWindow(), NULL, NULL, NULL);
+		NULL, NULL, NULL, NULL);
 
 	//ÏÔÊ¾Ö÷´°¿Ú
 	ShowWindow(hwnd, SW_SHOW);

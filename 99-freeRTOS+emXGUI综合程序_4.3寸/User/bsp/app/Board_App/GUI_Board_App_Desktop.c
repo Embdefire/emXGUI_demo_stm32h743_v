@@ -171,7 +171,7 @@ struct __obj_list menu_list_1[] = {
       L"录音机",	      NULL,	  L"Y", 	RGB_WHITE,			  (void(*)(void *))GUI_RECORDER_DIALOG,//dummy,        
       L"基础控件",	    NULL, 	L"D",   RGB_WHITE,				(void(*)(void *))GUI_DEMO_RadiaMenu,
       L"蜂鸣器",	      NULL, 	L"i",   RGB_WHITE,				(void(*)(void *))GUI_Beeper_Dialog,
-			L"LED&KEY",       NULL,	  L"j",   RGB_WHITE,		 	  (void(*)(void *))GUI_LED_KEY_Dialog,				
+			L"LED&KEY",       NULL,	  L"j",   RGB_WHITE,		 	  (void(*)(void *))GUI_LED_KEY_Dialog,	
 
 //        L"Radiobox",	NULL,   L"E", RGB_WHITE,				dummy,
 //        L"Textbox",	NULL,	  L"F", RGB_WHITE,				dummy,
@@ -522,7 +522,7 @@ void	GUI_Board_App_Desktop(void *p)
         /*WS_MEMSURFACE|*/WS_CLIPCHILDREN,
 
         0, 0, GUI_XSIZE, GUI_YSIZE - HEAD_INFO_HEIGHT,
-        GetDesktopWindow(), NULL, NULL, NULL);
+        NULL, NULL, NULL, NULL);
 
     //显示主窗口
     ShowWindow(hwnd_home, SW_SHOW);

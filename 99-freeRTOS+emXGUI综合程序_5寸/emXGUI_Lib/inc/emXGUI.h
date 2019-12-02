@@ -7,8 +7,8 @@
 /...
 /----------------------------------------------------------------------------*/
 
-#ifndef	__EMXGUI_H_20190904_1705__
-#define	__EMXGUI_H_20190904_1705__
+#ifndef	__EMXGUI_H_20191127_1602__
+#define	__EMXGUI_H_20191127_1602__
 
 #ifdef	__cplusplus
 extern	"C"{
@@ -315,25 +315,25 @@ typedef union
 
 /*============================================================================*/
 
-#define	COLOR_FORMAT_LUT1		1
-#define	COLOR_FORMAT_LUT2		2
-#define	COLOR_FORMAT_LUT4		3
-#define	COLOR_FORMAT_LUT8		4
-#define	COLOR_FORMAT_XRGB2222	5
-#define	COLOR_FORMAT_ARGB2222	6
-#define	COLOR_FORMAT_RGB332		7
-#define	COLOR_FORMAT_RGB565		8
-#define	COLOR_FORMAT_XRGB1555	9
-#define	COLOR_FORMAT_ARGB1555	10
-#define	COLOR_FORMAT_XRGB4444	11
-#define	COLOR_FORMAT_ARGB4444	12
-#define	COLOR_FORMAT_RGB888		13
-#define	COLOR_FORMAT_XRGB8888	14
-#define	COLOR_FORMAT_ARGB8888	15
-#define	COLOR_FORMAT_AL1		16
-#define	COLOR_FORMAT_AL2		17
-#define	COLOR_FORMAT_AL4		18
-#define	COLOR_FORMAT_AL8		19
+#define	COLOR_FORMAT_LUT1		1  //1位索引色.
+#define	COLOR_FORMAT_LUT2		2  //2位索引色.
+#define	COLOR_FORMAT_LUT4		3  //4位索引色.
+#define	COLOR_FORMAT_LUT8		4  //8位索引色.
+#define	COLOR_FORMAT_XRGB2222	5  //XXRRGGBB.
+#define	COLOR_FORMAT_ARGB2222	6  //AARRGGBB.
+#define	COLOR_FORMAT_RGB332		7  //RRRGGGBB.
+#define	COLOR_FORMAT_RGB565		8  //RRRRRGGGGGGBBBBB
+#define	COLOR_FORMAT_XRGB1555	9  //XRRRRRGGGGGBBBBB
+#define	COLOR_FORMAT_ARGB1555	10 //ARRRRRGGGGGBBBBB
+#define	COLOR_FORMAT_XRGB4444	11 //XXXXRRRRGGGGBBBB
+#define	COLOR_FORMAT_ARGB4444	12 //AAAARRRRGGGGBBBB
+#define	COLOR_FORMAT_RGB888		13 //RRRRRRRRGGGGGGGGBBBBBBBB
+#define	COLOR_FORMAT_XRGB8888	14 //XXXXXXXXRRRRRRRRGGGGGGGGBBBBBBBB
+#define	COLOR_FORMAT_ARGB8888	15 //AAAAAAAARRRRRRRRGGGGGGGGBBBBBBBB
+#define	COLOR_FORMAT_AL1		16 //1位Alpha/灰度.
+#define	COLOR_FORMAT_AL2		17 //2位Alpha/灰度.
+#define	COLOR_FORMAT_AL4		18 //4位Alpha/灰度.
+#define	COLOR_FORMAT_AL8		19 //8位Alpha/灰度.
 
 #define	RGB332(r,g,b)		((r&0x7)<<5)|((g&0x7)<<2)|(b&0x3)
 #define	RGB565(r,g,b)		((r&0x1F)<<11)|((g&0x3F)<<5)|(b&0x1F)
@@ -532,7 +532,7 @@ typedef	struct	tagIMAGE_INFO
 #define	FT_VAR		(1<<1) //非等宽字体.
 #define	FT_SMOOTH	(1<<2) //平滑字体.
 
-typedef struct
+typedef struct //字体信息结构体.
 {
 	U16 Flag;   //字体标记.
 	S16	Height; //字体高度.
@@ -541,10 +541,11 @@ typedef struct
 
 }FONT_INFO;
 
-typedef struct
+typedef struct //字符信息结构体.
 {
-	S16 Width,Height;
-	S16 X0,Y0,X1,Y1;
+	S16 Width,Height; //字符的宽度和高度.
+	S16 X0,Y0; //字符起始X,Y坐标.
+	S16 X1,Y1; //字符结束X,Y坐标.
 }CHAR_INFO;
 
 
@@ -555,13 +556,13 @@ typedef	BOOL (FN_GetCharInfo)(const void *handler,CHAR_INFO *chr_info,int chr);
 typedef	BOOL (FN_DrawChar)(const void *handler,HDC hdc,int x,int y,int chr,COLORREF color,CHAR_INFO *chr_info);
 
 
-typedef	struct __FONT_OPS
+typedef	struct //字体操作函数集结构体(回调函数).
 {	
-    FN_CreateFont   *pfCreateFont;
-    FN_DeleteFont   *pfDeleteFont;
-	FN_GetFontInfo	*pfGetFontInfo;
-	FN_GetCharInfo	*pfGetCharInfo;
-	FN_DrawChar		*pfDrawChar;
+    FN_CreateFont   *pfCreateFont;    //创建字体.
+    FN_DeleteFont   *pfDeleteFont;    //删除字体.
+	FN_GetFontInfo	*pfGetFontInfo;   //获得字体信息.
+	FN_GetCharInfo	*pfGetCharInfo;   //获得指定字符信息.
+	FN_DrawChar		*pfDrawChar;      //绘制单个指定字符.
 }FONT_OPS;
 
 
@@ -856,7 +857,6 @@ typedef struct tagNMHDR
  * 窗口公共的风格标志(使用高16位,低16位保留给各控件作私有风格标志) / Common Window Styles
  */
 
-#define WS_OVERLAPPED       0x80000000UL // 可叠层的窗口,具备该属性的窗口可以相互叠层,桌面与主窗口默认是可以叠层的.
 #define WS_TRANSPARENT      0x40000000UL // 窗口有透明属性,不会被父窗口剪裁.
 //#define WS_MINIMIZE         0x20000000UL
 //#define WS_MAXIMIZE         0x10000000UL
@@ -873,6 +873,8 @@ typedef struct tagNMHDR
 //#define WS_WINSURFACE       0x00040000UL
 #define WS_OWNERDRAW        0x00020000UL // 窗口自绘,对子窗口有效,将产生WM_DRAWITEM消息.
 //#define WS_OWNERDC          0x00010000UL
+
+#define WS_OVERLAPPED       WS_CLIPSIBLINGS // 可叠层的窗口,具备该属性的窗口可以相互叠层,桌面与主窗口默认是可以叠层的.
 
 //默认的窗口风格
 #define WS_OVERLAPPEDWINDOW (\
@@ -1664,19 +1666,21 @@ typedef	struct	{
  */
 
 /// Listbox 私有的风格标志
+#define	LBS_ALIGNMASK			0x0003 //文字对齐mask码.
+#define	LBS_LEFTTEXT			0x0000 //文字左对齐.
+#define	LBS_CENTERTEXT			0x0001 //文字中间对齐.
+#define	LBS_RIGHTTEXT			0x0002 //文字右对齐.
+
 //#define LBS_SORT              0x0002L
-//#define LBS_NOREDRAW          0x0004L
+
 //#define LBS_MULTIPLESEL       0x0008L
-#define LBS_LINE    		  0x0010L //列表项之间有分行线条.
-//#define LBS_OWNERDRAWVARIABLE 0x0020L
-//#define LBS_HASSTRINGS        0x0040L
-//#define LBS_USETABSTOPS       0x0080L
-//#define LBS_NOINTEGRALHEIGHT  0x0100L
+
 //#define LBS_MULTICOLUMN       0x0200L
 //#define LBS_WANTKEYBOARDINPUT 0x0400L
 //#define LBS_EXTENDEDSEL       0x0800L
 //#define LBS_DISABLENOSCROLL   0x1000L
 //#define LBS_NODATA            0x2000L
+#define LBS_LINE    		  0x2000L //列表项之间有分行线条.
 #define LBS_NOSEL             0x4000L //没有可选择项.
 #define LBS_NOTIFY            0x8000L //产生额外的通知码(0x80值以上的 LBN_xxx).
 
@@ -2044,7 +2048,18 @@ HFONT   CreateFont(const FONT_OPS *ft_ops,const void *pdata);
 void    DeleteFont(HFONT hFont);
 HFONT	SetFont(HDC hdc,HFONT hFont);
 HFONT	GetFont(HDC hdc);
+
+
 BOOL	SetTextInterval(HDC hdc, S16 IntervalX,S16 IntervalY);
+/* 函数: SetTextInterval:设置字符显示区间大小(每个字符显示所占的宽度和高度).
+ * 参数: IntervalX/IntervalY:区间值(像素大小),如果设置为0,则使用字体内部默认值.
+ */
+
+BOOL	SetTextSpace(HDC hdc, S16 SpaceX,S16 SpaceY);
+/* 函数: SetTextSpace:设置字符显示空间大小(相邻字符的字距及行距).
+ * 参数: SpaceX/SpaceY:间距值(像素大小).
+ */
+
 BOOL 	GetFontInfo(HFONT hFont,FONT_INFO *ft_info);
 int 	GetFontAveHeight(HFONT hFont);
 int     GetTextWidth(HDC hdc, const WCHAR *lpString, int Count);
@@ -2134,8 +2149,16 @@ BOOL	BMP_DrawEx(HDC hdc,int x,int y,GUI_GET_DATA *read_data,const RECT *lprc);
 typedef struct	tagGIF_DECODE* HGIF;
 typedef	S32	GIF_DELAY;
 
+typedef	struct	tagGIF_INFO
+{
+	U16 FrameCount;  //帧数量.
+	U16	Width;       //图像宽度.
+	U16	Height;      //图像高度.
+	U16 Rsv;         //保留.
+}GIF_INFO;
+
 HGIF    GIF_Open(const void *dat);
-BOOL    GIF_GetInfo(HGIF hGIF,IMAGE_INFO *Info);
+BOOL	GIF_GetInfo(HGIF gif_dec,GIF_INFO *Info);
 UINT    GIF_GetFrameCount(HGIF hGIF);
 GIF_DELAY    GIF_GetFrameDelay(HGIF gif_dec,UINT frame_idx);
 GIF_DELAY    GIF_DrawFrame(HDC hdc,int x,int y,COLORREF bk_color,HGIF hGIF,UINT frame_idx);
@@ -2326,16 +2349,11 @@ HFONT	XFT_CreateFontEx(FN_XFT_GetData *pfnGetData,LONG lParam);
 
 
 /*===================================================================================*/
-
 #include "gui_os_port.h"
 #include "emXGUI_Arch.h"
 #include "gui_drv.h"
 #include "web_color.h"
-
 #ifdef	__cplusplus
 }
 #endif
 #endif
-
-
-

@@ -62,7 +62,7 @@ typedef struct
   uint32_t frame_num;
   uint8_t m_gif_state;
   uint8_t m_gif_curnums;
-  IMAGE_INFO img_info;
+  GIF_INFO img_info;
   uint8_t *gif_buf;
   uint32_t gif_size;
   uint32_t m_delay;

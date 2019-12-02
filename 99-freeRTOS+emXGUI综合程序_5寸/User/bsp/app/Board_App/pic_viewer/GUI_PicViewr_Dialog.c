@@ -205,14 +205,13 @@ static void Recursion_Cut(void *W,void *H,uint32_t limitX,uint32_t limitY)//递归
 	}
 }
 
-static void Draw_Pic_JPG(char *file_name)
+static void Draw_Pic_JPG(char *file_name,HDC mhdc)
 {
   BOOL res;
   u8 *jpeg_buf;
   u32 jpeg_size;
   JPG_DEC *dec;
   
-  HDC PicView_Hdc;
   res= FS_Load_Content(file_name, (char**)&jpeg_buf, &jpeg_size);
   if(res)
   {
@@ -221,7 +220,6 @@ static void Draw_Pic_JPG(char *file_name)
     /* 读取图片文件信息 */
     JPG_GetImageSize(&s_PicViewer_Dialog.ms_jpg.m_jpg_wid, &s_PicViewer_Dialog.ms_jpg.m_jpg_high,dec);
     u16 wid = s_PicViewer_Dialog.ms_jpg.m_jpg_wid, high = s_PicViewer_Dialog.ms_jpg.m_jpg_high;
-    PicView_Hdc = GetDC(s_PicViewer_Dialog.PicView_Handle);
         
     HDC hdc_tmp;
     /* 根据图片大小申请临时HDC */
@@ -229,14 +227,14 @@ static void Draw_Pic_JPG(char *file_name)
     
     JPG_Draw(hdc_tmp, 0,0, dec);
 		/* 判断图片尺寸,自适应尺寸显示 */
-		if(s_PicViewer_Dialog.ms_jpg.m_jpg_wid >= GUI_XSIZE || s_PicViewer_Dialog.ms_jpg.m_jpg_high >= GUI_YSIZE)
+		if(s_PicViewer_Dialog.ms_jpg.m_jpg_wid > GUI_XSIZE || s_PicViewer_Dialog.ms_jpg.m_jpg_high > GUI_YSIZE)
 		{
 			uint32_t point_w = s_PicViewer_Dialog.ms_jpg.m_jpg_wid;
 			uint32_t point_h = s_PicViewer_Dialog.ms_jpg.m_jpg_high;
 			
 			Recursion_Cut(&point_w ,&point_h , GUI_XSIZE,GUI_YSIZE );
 
-			StretchBlt(PicView_Hdc,GUI_XSIZE/2-point_w/2,     \
+			StretchBlt(mhdc,GUI_XSIZE/2-point_w/2,     \
 														GUI_YSIZE/2 - point_h/2,    \
 														point_w,                    \
 														point_h,                    \
@@ -245,10 +243,10 @@ static void Draw_Pic_JPG(char *file_name)
 		}
 		else
 		{
-      BitBlt(PicView_Hdc, GUI_XSIZE/2-wid/2, GUI_YSIZE/2 - high/2, wid, high, hdc_tmp,0,0,SRCCOPY);
+      BitBlt(mhdc, GUI_XSIZE/2-wid/2, GUI_YSIZE/2 - high/2, wid, high, hdc_tmp,0,0,SRCCOPY);
 		}
+
     DeleteDC(hdc_tmp);
-		ReleaseDC(s_PicViewer_Dialog.PicView_Handle, PicView_Hdc);
     /* 关闭JPG_DEC句柄 */
     JPG_Close(dec);
   }
@@ -257,15 +255,14 @@ static void Draw_Pic_JPG(char *file_name)
 }
 
 
-static void Draw_Pic_BMP(char *file_name)
+static void Draw_Pic_BMP(char *file_name,HDC mhdc)
 {
-  HDC hdc, hdc_tmp;
+  HDC hdc_tmp;  
   PIC_BMP_GetInfo_FS(&s_PicViewer_Dialog.ms_bmp.bm_info,file_name);
   RECT rc = {0, 0, s_PicViewer_Dialog.ms_bmp.bm_info.Width, s_PicViewer_Dialog.ms_bmp.bm_info.Height};
-  hdc = GetDC(s_PicViewer_Dialog.PicView_Handle);
-  
+	
 	hdc_tmp = CreateMemoryDC(SURF_SCREEN, s_PicViewer_Dialog.ms_bmp.bm_info.Width, s_PicViewer_Dialog.ms_bmp.bm_info.Height); 
-  
+	
   SetBrushColor(hdc_tmp, MapRGB(hdc_tmp, PICVIWER_BACK_GROUND));
   FillRect(hdc_tmp, &rc);
   
@@ -278,7 +275,7 @@ static void Draw_Pic_BMP(char *file_name)
 			
 			Recursion_Cut(&point_w ,&point_h , GUI_XSIZE,GUI_YSIZE );
 
-			StretchBlt(hdc,GUI_XSIZE/2- point_w/2,    \
+			StretchBlt(mhdc,GUI_XSIZE/2- point_w/2,    \
 										GUI_YSIZE/2 - point_h/2,    \
 										point_w,                    \
 										point_h,                    \
@@ -286,21 +283,20 @@ static void Draw_Pic_BMP(char *file_name)
 	}
 	else
 	{
-		BitBlt(hdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_bmp.bm_info.Width/2, GUI_YSIZE/2 - s_PicViewer_Dialog.ms_bmp.bm_info.Height/2,
+		BitBlt(mhdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_bmp.bm_info.Width/2, GUI_YSIZE/2 - s_PicViewer_Dialog.ms_bmp.bm_info.Height/2,
 					s_PicViewer_Dialog.ms_bmp.bm_info.Width,s_PicViewer_Dialog.ms_bmp.bm_info.Height,hdc_tmp,0,0,SRCCOPY);  
 	}
-  ReleaseDC(s_PicViewer_Dialog.PicView_Handle, hdc);
   DeleteDC(hdc_tmp);  
 }
 
-static void Draw_Pic_PNG(char *file_name)
+static void Draw_Pic_PNG(char *file_name,HDC mhdc)
 {
   BOOL res;
   
   u8 *png_buf;
   u32 png_size;
   PNG_DEC *png_dec;
-  HDC hdc, hdc_tmp;
+  HDC hdc_tmp;
 
   res= FS_Load_Content(file_name, (char**)&png_buf, &png_size);
   if(res)
@@ -309,16 +305,14 @@ static void Draw_Pic_PNG(char *file_name)
     
     PNG_GetBitmap(png_dec, &s_PicViewer_Dialog.ms_png.png_bm);
     
-    hdc = GetDC(s_PicViewer_Dialog.PicView_Handle);
-    
-		RECT rc = {0, 0, s_PicViewer_Dialog.ms_png.png_bm.Width , s_PicViewer_Dialog.ms_png.png_bm.Height};
+	  RECT rc = {0, 0, s_PicViewer_Dialog.ms_png.png_bm.Width , s_PicViewer_Dialog.ms_png.png_bm.Height};
 
     hdc_tmp = CreateMemoryDC(SURF_SCREEN, s_PicViewer_Dialog.ms_png.png_bm.Width, s_PicViewer_Dialog.ms_png.png_bm.Height); 
     SetBrushColor(hdc_tmp, MapRGB(hdc_tmp, PICVIWER_BACK_GROUND));
     FillRect(hdc_tmp, &rc);  
-    
-    DrawBitmap(hdc_tmp, 0,0, &s_PicViewer_Dialog.ms_png.png_bm, NULL);
-    
+		
+		DrawBitmap(hdc_tmp, 0,0, &s_PicViewer_Dialog.ms_png.png_bm, NULL);
+
 		if(s_PicViewer_Dialog.ms_png.png_bm.Width > GUI_XSIZE || s_PicViewer_Dialog.ms_png.png_bm.Height > GUI_YSIZE)
 		{
 			uint32_t point_w = s_PicViewer_Dialog.ms_png.png_bm.Width;
@@ -326,7 +320,7 @@ static void Draw_Pic_PNG(char *file_name)
 			
 			Recursion_Cut(&point_w ,&point_h , GUI_XSIZE,GUI_YSIZE );
 
-			StretchBlt(hdc,GUI_XSIZE/2- point_w/2,    \
+			StretchBlt(mhdc,GUI_XSIZE/2- point_w/2,    \
 										GUI_YSIZE/2 - point_h/2,    \
 										point_w,                    \
 										point_h,                    \
@@ -334,20 +328,18 @@ static void Draw_Pic_PNG(char *file_name)
 		}
 		else
 		{
-			 BitBlt(hdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_png.png_bm.Width/2, GUI_YSIZE/2 - s_PicViewer_Dialog.ms_png.png_bm.Height/2,
+			 BitBlt(mhdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_png.png_bm.Width/2, GUI_YSIZE/2 - s_PicViewer_Dialog.ms_png.png_bm.Height/2,
 							s_PicViewer_Dialog.ms_png.png_bm.Width,s_PicViewer_Dialog.ms_png.png_bm.Height,hdc_tmp,0,0,SRCCOPY);  
 		}
 			DeleteDC(hdc_tmp);
-			ReleaseDC(s_PicViewer_Dialog.PicView_Handle, hdc);
 			PNG_Close(png_dec);
-  }
+		}
   RES_Release_Content((char **)&png_buf);
 }
 
 HDC gif_hdc_tmp;//GIF图片DC,针对不完整的GIF帧修改
-static BOOL Draw_Pic_GIF(char *file_name)
+static BOOL Draw_Pic_GIF(char *file_name,HDC mhdc)
 {
-  HDC hdc;
 	BOOL res;
 
     switch(s_PicViewer_Dialog.ms_gif.m_gif_state)
@@ -363,9 +355,9 @@ static BOOL Draw_Pic_GIF(char *file_name)
 					return FALSE;
 				}
         s_PicViewer_Dialog.ms_gif.m_hgif = GIF_Open(s_PicViewer_Dialog.ms_gif.gif_buf);
-        GIF_GetInfo(s_PicViewer_Dialog.ms_gif.m_hgif,&(s_PicViewer_Dialog.ms_gif.img_info));
+        GIF_GetInfo(s_PicViewer_Dialog.ms_gif.m_hgif,&(s_PicViewer_Dialog.ms_gif.gif_info));
         s_PicViewer_Dialog.ms_gif.frame_num = GIF_GetFrameCount(s_PicViewer_Dialog.ms_gif.m_hgif); 
-        gif_hdc_tmp = CreateMemoryDC(SURF_SCREEN,s_PicViewer_Dialog.ms_gif.img_info.Width,s_PicViewer_Dialog.ms_gif.img_info.Height);
+        gif_hdc_tmp = CreateMemoryDC(SURF_SCREEN,s_PicViewer_Dialog.ms_gif.gif_info.Width,s_PicViewer_Dialog.ms_gif.gif_info.Height);
       }break;
       case 1:
       {
@@ -373,35 +365,33 @@ static BOOL Draw_Pic_GIF(char *file_name)
         {
            s_PicViewer_Dialog.ms_gif.m_gif_curnums = 0;
         }
-        hdc = GetDC(s_PicViewer_Dialog.PicView_Handle);
 				
-				s_PicViewer_Dialog.ms_gif.m_delay = GIF_DrawFrame(gif_hdc_tmp,0,0,MapRGB(hdc,PICVIWER_BACK_GROUND),
+				s_PicViewer_Dialog.ms_gif.m_delay = GIF_DrawFrame(gif_hdc_tmp,0,0,MapRGB(mhdc,PICVIWER_BACK_GROUND),
 																														s_PicViewer_Dialog.ms_gif.m_hgif,
 																														s_PicViewer_Dialog.ms_gif.m_gif_curnums); 
  
-				if(s_PicViewer_Dialog.ms_gif.img_info.Width >= GUI_XSIZE || s_PicViewer_Dialog.ms_gif.img_info.Height >= GUI_YSIZE)
+				if(s_PicViewer_Dialog.ms_gif.gif_info.Width >= GUI_XSIZE || s_PicViewer_Dialog.ms_gif.gif_info.Height >= GUI_YSIZE)
 				{
-					uint32_t point_w = s_PicViewer_Dialog.ms_gif.img_info.Width;
-					uint32_t point_h = s_PicViewer_Dialog.ms_gif.img_info.Height;
+					uint32_t point_w = s_PicViewer_Dialog.ms_gif.gif_info.Width;
+					uint32_t point_h = s_PicViewer_Dialog.ms_gif.gif_info.Height;
 					
 					Recursion_Cut(&point_w ,&point_h , GUI_XSIZE,GUI_YSIZE );//0.8倍缩小至合适尺寸
 
-					StretchBlt(hdc, GUI_XSIZE/2- point_w/2,    \
+					StretchBlt(mhdc, GUI_XSIZE/2- point_w/2,    \
 										  		GUI_YSIZE/2 - point_h/2,   \
 										  		point_w,                   \
 											  	point_h,                   \
-										 gif_hdc_tmp,0,0, s_PicViewer_Dialog.ms_gif.img_info.Width , s_PicViewer_Dialog.ms_gif.img_info.Height ,SRCCOPY);
+										 gif_hdc_tmp,0,0, s_PicViewer_Dialog.ms_gif.gif_info.Width , s_PicViewer_Dialog.ms_gif.gif_info.Height ,SRCCOPY);
 
 				}
 				else
 				{
-					BitBlt( hdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_gif.img_info.Width/2,
-											GUI_YSIZE/2 - s_PicViewer_Dialog.ms_gif.img_info.Height/2,
-											s_PicViewer_Dialog.ms_gif.img_info.Width,
-											s_PicViewer_Dialog.ms_gif.img_info.Height,
+					BitBlt( mhdc,GUI_XSIZE/2-s_PicViewer_Dialog.ms_gif.gif_info.Width/2,
+											GUI_YSIZE/2 - s_PicViewer_Dialog.ms_gif.gif_info.Height/2,
+											s_PicViewer_Dialog.ms_gif.gif_info.Width,
+											s_PicViewer_Dialog.ms_gif.gif_info.Height,
 											gif_hdc_tmp,0,0,SRCCOPY);     
 				}
-        ReleaseDC(s_PicViewer_Dialog.PicView_Handle, hdc);
         s_PicViewer_Dialog.ms_gif.m_gif_curnums++;  
       }break;
     }
@@ -562,45 +552,45 @@ static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case Type_JPG:
         {
           tick = xTaskGetTickCount();
-          Draw_Pic_JPG(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index]);
+          Draw_Pic_JPG(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index],hdc);
           time = (float)(xTaskGetTickCount() - tick)/1000;
           break;
         }
         case Type_PNG:
         {
           tick = xTaskGetTickCount();
-          Draw_Pic_PNG(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index]);
+          Draw_Pic_PNG(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index],hdc);
           time = (float)(xTaskGetTickCount() - tick)/1000;
           break;
         }
         case Type_GIF:
         {
           tick = xTaskGetTickCount();
-          if( Draw_Pic_GIF(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index]) )
+          if ( Draw_Pic_GIF(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index],hdc) )
 					{
 						time = (float)(xTaskGetTickCount() - tick)/1000;
 						ResetTimer(hwnd,2,s_PicViewer_Dialog.ms_gif.m_delay,TMR_SINGLE|TMR_START,NULL);
 					}
 					else
-						{/* 打开GIF图片失败,释放资源并切换下一张图片 */
+					{
 						s_PicViewer_Dialog.m_file_index++;
 						if(s_PicViewer_Dialog.ms_gif.m_gif_state == 1)
 							SendMessage(hwnd, CloseGif, NULL, NULL);
 						SendMessage(hwnd, UpdateButtonState, (WPARAM)eID_Pic_NEXT, NULL);
-						InvalidateRect(hwnd,NULL,TRUE);
+						InvalidateRect(hwnd,NULL, TRUE);
 					}
-					break;
+          break;
         }
         case Type_BMP:
         {
           tick = xTaskGetTickCount();
-          Draw_Pic_BMP(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index]);
+          Draw_Pic_BMP(s_PicViewer_Dialog.mp_file_list[s_PicViewer_Dialog.m_file_index],hdc);
           time = (float)(xTaskGetTickCount() - tick)/1000;
           break;
-        }
-      }
-
-      SendMessage(hwnd, UpdatePicInfo, (WPARAM)e_pictype, (LPARAM)(time*1000));
+        }          
+      
+      }      
+      PostMessage(hwnd, UpdatePicInfo, (WPARAM)e_pictype, (LPARAM)(time*1000));
      
       return FALSE;
     }   
@@ -761,7 +751,7 @@ static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           case Type_GIF:
           {
-            x_wsprintf(wbuf, L"%d*%d",s_PicViewer_Dialog.ms_gif.img_info.Width, s_PicViewer_Dialog.ms_gif.img_info.Height);
+            x_wsprintf(wbuf, L"%d*%d",s_PicViewer_Dialog.ms_gif.gif_info.Width, s_PicViewer_Dialog.ms_gif.gif_info.Height);
             SetWindowText(GetDlgItem(hwnd, eID_Pic_Res_Value), wbuf);
             break;
           }
@@ -790,8 +780,8 @@ static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
           if(s_PicViewer_Dialog.m_file_index == 255)
           {
-            s_PicViewer_Dialog.m_file_index = 0;
-            EnableWindow(GetDlgItem(hwnd, eID_Pic_PREV), FALSE);
+            s_PicViewer_Dialog.m_file_index = s_PicViewer_Dialog.m_file_nums - 1;//超过最大图片数量255,将下标移至最后一张图片处
+//            EnableWindow(GetDlgItem(hwnd, eID_Pic_PREV), FALSE);
           }       
           break;
         }
@@ -803,8 +793,8 @@ static LRESULT	PicViewer_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           else
           {
-            s_PicViewer_Dialog.m_file_index--;
-            EnableWindow(GetDlgItem(hwnd, eID_Pic_NEXT), FALSE);
+            s_PicViewer_Dialog.m_file_index = 0;
+//            EnableWindow(GetDlgItem(hwnd, eID_Pic_NEXT), FALSE);
           }           
           break;
         }

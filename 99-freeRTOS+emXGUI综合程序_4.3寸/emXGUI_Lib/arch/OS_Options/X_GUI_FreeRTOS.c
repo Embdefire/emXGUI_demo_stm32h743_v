@@ -232,7 +232,7 @@ BOOL GUI_Thread_Create(void (*entry)(void *parameter),
    xReturn = xTaskCreate((TaskFunction_t )entry,  /* 任务入口函数 */
                             (const char*    )name,/* 任务名字 */
                             (uint16_t       )stack_size/4,  /* 任务栈大小FreeRTOS的任务栈以字为单位 */
-                            (void*          )NULL,/* 任务入口函数参数 */
+                            (void*          )parameter,/* 任务入口函数参数 */
                             (UBaseType_t    )priority, /* 任务的优先级 */
                             (TaskHandle_t*  )NULL);/* 任务控制块指针 */
                             

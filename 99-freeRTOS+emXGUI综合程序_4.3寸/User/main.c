@@ -261,9 +261,6 @@ static void DEBUG_Thread_Entry(void* parameter)
   {
 
     vTaskDelay(5000);   /* ÑÓÊ±500¸ötick */
-//	  uint16_t test_status = 0;
-//		test_status =  disk_status(0);
-//		printf("************************ test_status %d ************************\r\n",test_status);
 {
 	memset(tasks_buf, 0, 512);
 
@@ -346,7 +343,7 @@ static void MPU_Config(void)
 void vApplicationStackOverflowHook(TaskHandle_t xTask,
                                      char * pcTaskName)
 {
-	printf(" Heap Overflow! Cheak : %s \r\n",pcTaskName);
+	printf(" Stack Overflow! Check Task: %s \r\n",pcTaskName);
 	while(1);
 }
 
