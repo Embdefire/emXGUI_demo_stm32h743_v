@@ -2496,14 +2496,9 @@
           </GroupOption>
           <Files>
             <File>
-              <FileName>Jepg.c</FileName>
+              <FileName>Jpeg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\Jepg.c</FilePath>
-            </File>
-            <File>
-              <FileName>Jepg.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\User\Jepg.h</FilePath>
+              <FilePath>..\..\User\bsp\jpeg\Jpeg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5158,14 +5153,9 @@
           <GroupName>JPEG_SingleBuffer</GroupName>
           <Files>
             <File>
-              <FileName>Jepg.c</FileName>
+              <FileName>Jpeg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\Jepg.c</FilePath>
-            </File>
-            <File>
-              <FileName>Jepg.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\User\Jepg.h</FilePath>
+              <FilePath>..\..\User\bsp\jpeg\Jpeg.c</FilePath>
             </File>
           </Files>
         </Group>

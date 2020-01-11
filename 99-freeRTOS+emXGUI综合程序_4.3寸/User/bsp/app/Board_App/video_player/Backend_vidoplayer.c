@@ -145,7 +145,7 @@ void AVI_play(char *filename)
 	/* 配置WM8978音频接口为飞利浦标准I2S接口，16bit */
 	wm8978_CfgAudioIF(SAI_I2S_STANDARD, 16);
   SAI_GPIO_Config();
-  SAIxA_Tx_Config(SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, wavinfo->SampleRate);
+  SAIxA_Tx_Config(SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, SAI_AUDIO_FREQUENCY_11K);
   SAI_DMA_TX_Callback=MUSIC_SAI_DMA_TX_Callback;			//回调函数指wav_i2s_dma_callback
 //  I2S_Play_Stop();
   SAIA_TX_DMA_Init((uint32_t )Sound_buf[1],(uint32_t )Sound_buf[2],audiosize/2);

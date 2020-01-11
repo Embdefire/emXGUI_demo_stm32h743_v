@@ -381,7 +381,7 @@ void SDRAM_Init(void)
   RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_SAI1;
   RCC_PeriphClkInit.PLL2.PLL2M = 5;
   RCC_PeriphClkInit.PLL2.PLL2N = 144;
-  RCC_PeriphClkInit.PLL2.PLL2P = 3;//SAI使用PLLp,作为时钟源
+  RCC_PeriphClkInit.PLL2.PLL2P = 6;//SAI使用PLLp,作为时钟源
   RCC_PeriphClkInit.PLL2.PLL2Q = 2;
   RCC_PeriphClkInit.PLL2.PLL2R = 3;//SDRAM使用PLLr
   RCC_PeriphClkInit.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_2;
