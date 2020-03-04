@@ -24,7 +24,7 @@ TaskHandle_t Network_Task_Handle =NULL;
 TaskHandle_t TCPIP_Init_Task_Handle=NULL;
 SemaphoreHandle_t Wait_TCPIP_Init_Sem;
 extern void My_TCPIP_initialization(uint8_t *ipaddr_test);
-int8_t NetworkTypeSelection = 0;
+int8_t NetworkTypeSelection = 1;
 
 HWND Send_Handle;
 HWND Receive_Handle;
@@ -65,8 +65,6 @@ static void TCPIP_Init_Task(void *p)
 
 void Network_Dispose_Task(void *p) 
 {
-	EnableWindow(GetDlgItem(Network_Main_Handle, eID_LINK_STATE), DISABLE);
-	
 	if(network_start_flag == 0)
 	{
 	if(xSemaphoreTake( Wait_TCPIP_Init_Sem,5000) != pdTRUE)
@@ -681,6 +679,7 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           else
           {
+						drv_network.net_connect=0;
             /* 断开连接 */
             SetWindowText(GetDlgItem(hwnd, eID_LINK_STATE), L"未连接");
             switch(drv_network.net_type)
@@ -695,7 +694,6 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 udp_echoclient_disconnect();	
                 break;            
             }
-            drv_network.net_connect=0;
           }
         }
         if(code == BN_CLICKED && id == eID_Network_Send)
@@ -740,7 +738,7 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
     { 
 
-      NetworkTypeSelection = 0;                  // 复位默认的选项
+      NetworkTypeSelection = 1;                  // 复位默认的选项
       udp_echoclient_disconnect();
 			tcp_echoclient_disconnect();
 			tcp_echoserver_close();
