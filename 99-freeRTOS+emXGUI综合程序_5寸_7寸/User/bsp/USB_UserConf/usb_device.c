@@ -43,7 +43,7 @@
 
 /* USB Device Core handle declaration. */
 USBD_HandleTypeDef hUsbDeviceHS;
-
+void Error_Handler(void);
 /*
  * -- Insert your variables declaration here --
  */
@@ -95,7 +95,9 @@ void MX_USB_DEVICE_Init(void)
 /**
   * @}
   */
-
+void Error_Handler()
+{
+}
 /**
   * @}
   */

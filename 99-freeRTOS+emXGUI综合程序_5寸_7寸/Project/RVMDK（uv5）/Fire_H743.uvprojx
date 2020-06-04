@@ -791,7 +791,7 @@
             <File>
               <FileName>stm32h7xx_ll_usb.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
+              <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2524,37 +2524,37 @@
             <File>
               <FileName>usbd_core.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
             </File>
             <File>
               <FileName>usbd_ctlreq.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
             </File>
             <File>
               <FileName>usbd_ioreq.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_bot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_data.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_scsi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2564,27 +2564,27 @@
             <File>
               <FileName>usb_device.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usb_device.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usb_device.c</FilePath>
             </File>
             <File>
               <FileName>usbd_conf.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
             </File>
             <File>
               <FileName>usbd_desc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_usb_init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
             </File>
             <File>
               <FileName>usbd_storage_if.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_usb_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -3378,7 +3378,7 @@
             <File>
               <FileName>stm32h7xx_ll_usb.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
+              <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5267,37 +5267,37 @@
             <File>
               <FileName>usbd_core.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
             </File>
             <File>
               <FileName>usbd_ctlreq.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
             </File>
             <File>
               <FileName>usbd_ioreq.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_bot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_data.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
             </File>
             <File>
               <FileName>usbd_msc_scsi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5307,27 +5307,27 @@
             <File>
               <FileName>usb_device.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usb_device.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usb_device.c</FilePath>
             </File>
             <File>
               <FileName>usbd_conf.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
             </File>
             <File>
               <FileName>usbd_desc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_usb_init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
             </File>
             <File>
               <FileName>usbd_storage_if.c</FileName>
               <FileType>1</FileType>
-              <FilePath>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_usb_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
             </File>
           </Files>
         </Group>

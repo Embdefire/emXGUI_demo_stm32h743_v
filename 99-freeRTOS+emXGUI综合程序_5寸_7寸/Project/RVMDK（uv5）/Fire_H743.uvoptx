@@ -1469,7 +1469,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</PathWithFileName>
+      <PathWithFileName>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</PathWithFileName>
       <FilenameWithoutPath>stm32h7xx_ll_usb.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1758,7 +1758,7 @@
 
   <Group>
     <GroupName>Fafts</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -4786,7 +4786,7 @@
 
   <Group>
     <GroupName>Usb_Lib</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -4797,7 +4797,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</PathWithFileName>
       <FilenameWithoutPath>usbd_core.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4809,7 +4809,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</PathWithFileName>
       <FilenameWithoutPath>usbd_ctlreq.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4821,7 +4821,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</PathWithFileName>
       <FilenameWithoutPath>usbd_ioreq.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4833,7 +4833,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</PathWithFileName>
       <FilenameWithoutPath>usbd_msc.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4845,7 +4845,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</PathWithFileName>
       <FilenameWithoutPath>usbd_msc_bot.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4857,7 +4857,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</PathWithFileName>
       <FilenameWithoutPath>usbd_msc_data.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4869,7 +4869,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</PathWithFileName>
       <FilenameWithoutPath>usbd_msc_scsi.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4889,7 +4889,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usb_device.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\USB_UserConf\usb_device.c</PathWithFileName>
       <FilenameWithoutPath>usb_device.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4901,7 +4901,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_conf.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\USB_UserConf\usbd_conf.c</PathWithFileName>
       <FilenameWithoutPath>usbd_conf.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4913,7 +4913,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_desc.c</PathWithFileName>
+      <PathWithFileName>..\..\User\bsp\USB_UserConf\usbd_desc.c</PathWithFileName>
       <FilenameWithoutPath>usbd_desc.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -4925,8 +4925,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\user_usb_init.c</PathWithFileName>
-      <FilenameWithoutPath>user_usb_init.c</FilenameWithoutPath>
+      <PathWithFileName>..\..\User\bsp\USB_UserConf\usbd_storage_if.c</PathWithFileName>
+      <FilenameWithoutPath>usbd_storage_if.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -4937,8 +4937,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>F:\Tools\fireclass\野火开源图书\[野火]《emXGUI应用开发实战指南》\综合例程\H743_Pro\99-freeRTOS+emXGUI综合程序_5寸_7寸\User\bsp\USB_UserConf\usbd_storage_if.c</PathWithFileName>
-      <FilenameWithoutPath>usbd_storage_if.c</FilenameWithoutPath>
+      <PathWithFileName>..\..\User\bsp\USB_UserConf\user_usb_init.c</PathWithFileName>
+      <FilenameWithoutPath>user_usb_init.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
