@@ -74,6 +74,8 @@ extern void GUI_Phone_Dialog(void);//电话
 extern void GUI_SMS_Dialog(void);//短信
 extern void GUI_Beeper_Dialog(void);//蜂鸣器
 extern void	GUI_LED_KEY_Dialog(void);//按键和灯
+extern void	GUI_SimulateUDisk_Dialog(void);//
+
 //
 extern BOOL player_state;
 int thread_ctrl = 1;
@@ -149,20 +151,18 @@ struct __obj_list menu_list_1[] = {
       L"GUI应用",		    NULL, 	L"J", 	RGB_WHITE,		  	(void(*)(void *))GUI_App_Desktop,//GUI_App_Desktop,
       L"MP3播放器",		  NULL,	  L"I",   RGB_WHITE,			  (void(*)(void *))GUI_MUSICPLAYER_DIALOG,//dummy,
       L"视频播放器",		NULL,	  L"D",   RGB_WHITE,				(void(*)(void *))GUI_VideoPlayer_DIALOG,
-      L"时钟",		      NULL,	  L"H",   RGB_WHITE,				(void(*)(void *))GUI_CLOCK_DIALOG,//dummy,
-				
+      L"时钟",		      NULL,	  L"H",   RGB_WHITE,				(void(*)(void *))GUI_CLOCK_DIALOG,//dummy,	
 			L"陀螺仪",	      NULL,	  L"R", 	RGB_WHITE,			  (void(*)(void *))GUI_Gyro_Dialog,//dummy,
-      L"RGB彩灯",	     	NULL,	  L"L",   RGB_WHITE,				(void(*)(void *))GUI_LED_DIALOG,
+
       L"摄像头",	    	NULL,	  L"M",   RGB_WHITE, 				(void(*)(void *))GUI_Camera_DIALOG,//dummy,
       L"图片浏览器",  	NULL, 	L"G",   RGB_WHITE,				(void(*)(void *))GUI_PicViewer_Dialog,
 			
       L"温湿度",	      NULL,   L"O",   RGB_WHITE,				(void(*)(void *))GUI_T_RH_Dialog,//dummy,
       L"电压表",		    NULL,	  L"W",   RGB_WHITE,				(void(*)(void *))GUI_ADC_CollectVoltage_Dialog,//dummy,  
-			L"设置",        	NULL,	  L"h",   RGB_WHITE,				(void(*)(void *))GUI_Settings_DIALOG,
 			L"以太网",	     	NULL,	  L"Q",   RGB_WHITE,				(void(*)(void *))GUI_NetworkDLG_Dialog,//dummy,
-				
-			L"游戏",        	NULL,	  L"S",   RGB_WHITE,				(void(*)(void *))dummy,
-      //L"模拟U盘",   	NULL,	  L"N",   RGB_WHITE,				dummy,       
+      L"蜂鸣器",	      NULL, 	L"i",   RGB_WHITE,				(void(*)(void *))GUI_Beeper_Dialog,
+			L"LED&KEY",       NULL,	  L"j",   RGB_WHITE,		 	  (void(*)(void *))GUI_LED_KEY_Dialog,		
+
       //L"WiFi",	    	NULL,	  L"P",   RGB_WHITE,				dummy,
       L"电话",	        NULL, 	L"T",   RGB_WHITE,				(void(*)(void *))GUI_Phone_Dialog,
       L"短信",         	NULL,   L"U",   RGB_WHITE,				(void(*)(void *))GUI_SMS_Dialog,
@@ -170,8 +170,9 @@ struct __obj_list menu_list_1[] = {
 				
       L"录音机",	      NULL,	  L"Y", 	RGB_WHITE,			  (void(*)(void *))GUI_RECORDER_DIALOG,//dummy,        
       L"基础控件",	    NULL, 	L"D",   RGB_WHITE,				(void(*)(void *))GUI_DEMO_RadiaMenu,
-      L"蜂鸣器",	      NULL, 	L"i",   RGB_WHITE,				(void(*)(void *))GUI_Beeper_Dialog,
-			L"LED&KEY",       NULL,	  L"j",   RGB_WHITE,		 	  (void(*)(void *))GUI_LED_KEY_Dialog,				
+      L"RGB彩灯",	     	NULL,	  L"L",   RGB_WHITE,				(void(*)(void *))GUI_LED_DIALOG,
+			L"设置",        	NULL,	  L"h",   RGB_WHITE,				(void(*)(void *))GUI_Settings_DIALOG,
+      L"模拟U盘",   	NULL,	  L"N",   RGB_WHITE,				(void(*)(void *))GUI_SimulateUDisk_Dialog,       
 //        L"Radiobox",	NULL,   L"E", RGB_WHITE,				dummy,
 //        L"Textbox",	NULL,	  L"F", RGB_WHITE,				dummy,
 
@@ -272,25 +273,24 @@ static	LRESULT	WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         menu_list_1[3].bmp = bmp_icon[bmp_clock_icon];
 			
         menu_list_1[4].bmp = bmp_icon[bmp_gyro_icon];
-        menu_list_1[5].bmp = bmp_icon[bmp_rgbled_icon];
-        menu_list_1[6].bmp = bmp_icon[bmp_camera_icon];
-        menu_list_1[7].bmp = bmp_icon[bmp_photo_icon];
+        menu_list_1[5].bmp = bmp_icon[bmp_camera_icon];
+        menu_list_1[6].bmp = bmp_icon[bmp_photo_icon];
+        menu_list_1[7].bmp = bmp_icon[bmp_humiture_icon];
 			
-        menu_list_1[8].bmp = bmp_icon[bmp_humiture_icon];
-        menu_list_1[9].bmp = bmp_icon[bmp_adc_icon];
-        menu_list_1[10].bmp = bmp_icon[bmp_setting_icon];
-//        menu_list_1[11].bmp = bmp_icon[bmp_sudish_icon];
-        menu_list_1[11].bmp = bmp_icon[bmp_entwork_icon];
+        menu_list_1[8].bmp = bmp_icon[bmp_adc_icon];
+        menu_list_1[9].bmp = bmp_icon[bmp_entwork_icon];
+        menu_list_1[10].bmp = bmp_icon[bmp_beeper_icon];
+        menu_list_1[11].bmp = bmp_icon[bmp_keyled_icon];
 				
-				menu_list_1[12].bmp = bmp_icon[bmp_game_icon];
-        menu_list_1[13].bmp = bmp_icon[bmp_phone_icon];
-        menu_list_1[14].bmp = bmp_icon[bmp_note_icon];
-        menu_list_1[15].bmp = bmp_icon[bmp_QRcode_icon];
+				menu_list_1[12].bmp = bmp_icon[bmp_phone_icon];
+        menu_list_1[13].bmp = bmp_icon[bmp_note_icon];
+        menu_list_1[14].bmp = bmp_icon[bmp_QRcode_icon];
+        menu_list_1[15].bmp = bmp_icon[bmp_record_icon];
 				
-        menu_list_1[16].bmp = bmp_icon[bmp_record_icon];
-        menu_list_1[17].bmp = bmp_icon[bmp_widget_icon];
-        menu_list_1[18].bmp = bmp_icon[bmp_beeper_icon];
-				menu_list_1[19].bmp = bmp_icon[bmp_keyled_icon];
+        menu_list_1[16].bmp = bmp_icon[bmp_widget_icon];
+        menu_list_1[17].bmp = bmp_icon[bmp_rgbled_icon];
+        menu_list_1[18].bmp = bmp_icon[bmp_setting_icon];
+				menu_list_1[19].bmp = bmp_icon[bmp_sudish_icon];
 //        menu_list_1[19].bmp = bmp_icon[bmp_flash_icon];
 
               //ListMenu控件，需要在创建时传入一个 list_menu_cfg_t 的结构体参数.

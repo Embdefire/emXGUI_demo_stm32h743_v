@@ -70,6 +70,7 @@ void SD_Test(void)
   */
 HAL_StatusTypeDef BSP_SD_Init(void)
 { 
+	RCC_PeriphCLKInitTypeDef PeriphClkInit;
     HAL_StatusTypeDef sd_state = HAL_OK;
     
     /* 定义SDMMC句柄 */
@@ -79,12 +80,13 @@ HAL_StatusTypeDef BSP_SD_Init(void)
     /* 关闭节能模式 */
     uSdHandle.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
     /* 总线宽度为4 */
-    uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_4B;
+    uSdHandle.Init.BusWide             = SDMMC_BUS_WIDE_1B;
     /* 关闭硬件流控制 */
     uSdHandle.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
     /* 时钟分频因子为0 */
-    uSdHandle.Init.ClockDiv            = 8;
-    
+    uSdHandle.Init.ClockDiv            = 20;
+    HAL_RCCEx_GetPeriphCLKConfig(  &PeriphClkInit);
+	printf(" SdmmcClockSelection %d \n",PeriphClkInit.SdmmcClockSelection);
     /* 初始化SD底层驱动 */
     BSP_SD_MspInit();
 
@@ -98,7 +100,7 @@ HAL_StatusTypeDef BSP_SD_Init(void)
     if(sd_state == HAL_OK)
     {
       /* 配置为4bit模式 */
-      if(HAL_SD_ConfigWideBusOperation(&uSdHandle, uSdHandle.Init.BusWide) != HAL_OK)
+      if(HAL_SD_ConfigWideBusOperation(&uSdHandle, SDMMC_BUS_WIDE_4B) != HAL_OK)
       {
         sd_state = HAL_ERROR;
       }
@@ -107,7 +109,8 @@ HAL_StatusTypeDef BSP_SD_Init(void)
         sd_state = HAL_OK;
       }
     }
-    
+	/* 使能DMA传输完成中断 */
+//  __HAL_SD_ENABLE_IT(&uSdHandle,SDMMC_IT_IDMABTC);
   return  sd_state;
 }
 /**

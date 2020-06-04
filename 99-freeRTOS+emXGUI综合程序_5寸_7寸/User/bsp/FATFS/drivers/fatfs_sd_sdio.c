@@ -23,7 +23,7 @@
 #include "emXGUI.h"
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
-static GUI_SEM *sem_sd = NULL;
+GUI_SEM *sem_sd = NULL;
 static GUI_MUTEX *mutex_lock=NULL;
 extern SD_HandleTypeDef uSdHandle;
 //发送标志位
@@ -75,12 +75,13 @@ DRESULT SD_ReadBlocks(BYTE *buff,//数据缓存区
   uint32_t timeout;
   uint32_t alignedAddr;
   RX_Flag = 0;
+
   taskENTER_CRITICAL();
   if(HAL_SD_ReadBlocks_DMA(&uSdHandle, (uint8_t*)buff,
                            (uint32_t) (sector),
                            count) == HAL_OK)
   {
-    taskEXIT_CRITICAL();
+	taskEXIT_CRITICAL();
     /* Wait that the reading process is completed or a timeout occurs */
 //    timeout = HAL_GetTick();
 //    while((RX_Flag == 0) && ((HAL_GetTick() - timeout) < SD_TIMEOUT))
@@ -115,6 +116,9 @@ DRESULT SD_ReadBlocks(BYTE *buff,//数据缓存区
         }
       }
     }
+  }else
+  {
+	taskEXIT_CRITICAL();//if the HAL_SD_ReadBlocks_DMA operate failed "taskEXIT_CRITICAL" also should be run 
   }
 
   return res;  
@@ -127,6 +131,7 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
                 DWORD sector, //扇区首地址
                 UINT count)//扇区个数(1..128)
 {
+
   DRESULT res = RES_ERROR;
   uint32_t i;
   DWORD pbuff[512/4];	
@@ -157,20 +162,12 @@ DRESULT SD_read(BYTE lun,//物理扇区，多个设备时用到(0...)
     GUI_MutexLock(mutex_lock,0xffffff);
 	 	for(i=0;i<count;i++)
 		{
-      //GUI_DEBUG("1");
 		 	res = SD_ReadBlocks((BYTE *)pbuff,sector+i,1);//单个sector的读操作
-      taskENTER_CRITICAL();
+		  taskENTER_CRITICAL();
 			memcpy(buff,pbuff,512);
-      taskEXIT_CRITICAL();
+		  taskEXIT_CRITICAL();
 			buff+=512;
 		} 
-	
-//  else 
-//  {
-////    GUI_msleep(2);
-//    res = SD_ReadBlock(buff,sector,count);	//单个/多个sector     
-
-//  }
   GUI_MutexUnlock(mutex_lock);
   return RES_OK;
 }
@@ -294,6 +291,14 @@ void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
 {
   GUI_SemPostISR(sem_sd);
   RX_Flag=1;
+}
+void HAL_SD_ErrorCallback  (SD_HandleTypeDef *hsd)
+{
+	printf("Error Happend : code->%d  , state->%d",hsd->ErrorCode,hsd->State);
+}
+void HAL_SD_AbortCallback  (SD_HandleTypeDef *hsd)
+{
+	printf("Abort Happend : code->%d  , state->%d",hsd->ErrorCode,hsd->State);
 }
 /*****************************END OF FILE****************************/
 
