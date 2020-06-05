@@ -92,6 +92,11 @@ void MX_USB_DEVICE_Init(void)
   /* USER CODE END USB_DEVICE_Init_PostTreatment */
 }
 
+void MX_USB_DEVICE_CLOSE(void)
+{
+	USBD_LL_Stop(&hUsbDeviceHS);
+	USBD_LL_DeInit(&hUsbDeviceHS);
+}
 /**
   * @}
   */

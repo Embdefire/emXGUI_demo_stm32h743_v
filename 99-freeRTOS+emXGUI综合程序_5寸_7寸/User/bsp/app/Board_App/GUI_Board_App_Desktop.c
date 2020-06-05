@@ -153,8 +153,7 @@ struct __obj_list menu_list_1[] = {
       L"视频播放器",		NULL,	  L"D",   RGB_WHITE,				(void(*)(void *))GUI_VideoPlayer_DIALOG,
       L"时钟",		      NULL,	  L"H",   RGB_WHITE,				(void(*)(void *))GUI_CLOCK_DIALOG,//dummy,	
 			L"陀螺仪",	      NULL,	  L"R", 	RGB_WHITE,			  (void(*)(void *))GUI_Gyro_Dialog,//dummy,
-
-      L"摄像头",	    	NULL,	  L"M",   RGB_WHITE, 				(void(*)(void *))GUI_Camera_DIALOG,//dummy,
+      L"模拟U盘",   	NULL,	  L"N",   RGB_WHITE,				(void(*)(void *))GUI_SimulateUDisk_Dialog,
       L"图片浏览器",  	NULL, 	L"G",   RGB_WHITE,				(void(*)(void *))GUI_PicViewer_Dialog,
 			
       L"温湿度",	      NULL,   L"O",   RGB_WHITE,				(void(*)(void *))GUI_T_RH_Dialog,//dummy,
@@ -172,7 +171,7 @@ struct __obj_list menu_list_1[] = {
       L"基础控件",	    NULL, 	L"D",   RGB_WHITE,				(void(*)(void *))GUI_DEMO_RadiaMenu,
       L"RGB彩灯",	     	NULL,	  L"L",   RGB_WHITE,				(void(*)(void *))GUI_LED_DIALOG,
 			L"设置",        	NULL,	  L"h",   RGB_WHITE,				(void(*)(void *))GUI_Settings_DIALOG,
-      L"模拟U盘",   	NULL,	  L"N",   RGB_WHITE,				(void(*)(void *))GUI_SimulateUDisk_Dialog,       
+      L"摄像头",	    	NULL,	  L"M",   RGB_WHITE, 				(void(*)(void *))GUI_Camera_DIALOG,//dummy,
 //        L"Radiobox",	NULL,   L"E", RGB_WHITE,				dummy,
 //        L"Textbox",	NULL,	  L"F", RGB_WHITE,				dummy,
 
@@ -273,7 +272,7 @@ static	LRESULT	WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         menu_list_1[3].bmp = bmp_icon[bmp_clock_icon];
 			
         menu_list_1[4].bmp = bmp_icon[bmp_gyro_icon];
-        menu_list_1[5].bmp = bmp_icon[bmp_camera_icon];
+        menu_list_1[19].bmp = bmp_icon[bmp_camera_icon];
         menu_list_1[6].bmp = bmp_icon[bmp_photo_icon];
         menu_list_1[7].bmp = bmp_icon[bmp_humiture_icon];
 			
@@ -290,7 +289,7 @@ static	LRESULT	WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         menu_list_1[16].bmp = bmp_icon[bmp_widget_icon];
         menu_list_1[17].bmp = bmp_icon[bmp_rgbled_icon];
         menu_list_1[18].bmp = bmp_icon[bmp_setting_icon];
-				menu_list_1[19].bmp = bmp_icon[bmp_sudish_icon];
+				menu_list_1[5].bmp = bmp_icon[bmp_sudish_icon];
 //        menu_list_1[19].bmp = bmp_icon[bmp_flash_icon];
 
               //ListMenu控件，需要在创建时传入一个 list_menu_cfg_t 的结构体参数.

@@ -335,18 +335,12 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 #endif
 HAL_StatusTypeDef state;
 UBaseType_t uxSavedInterruptStatus;
-RX_Flag=0;
 uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
 state = HAL_SD_ReadBlocks(&uSdHandle, (uint8_t*)buf,
                              (uint32_t) (blk_addr),//blk_len*STORAGE_BLK_SIZ
                              1,10000);
-//							 printf("HAL_SD_ReadBlocks_DMA ---> %d\n",state);
 taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
-__IO uint32_t time=0xffff;
-while(time !=0)
-{time--;
-}
-//while(RX_Flag==0){};
+
   /* USER CODE BEGIN 13 */
   return (USBD_OK);
   /* USER CODE END 13 */
@@ -435,21 +429,12 @@ int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
 	GUI_DEBUG("3333\n");
 #endif
 HAL_StatusTypeDef state;
-TX_Flag=0;
 UBaseType_t uxSavedInterruptStatus;
 uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
 state = HAL_SD_WriteBlocks(&uSdHandle, (uint8_t*)buf,
                              (uint32_t) (blk_addr),//blk_len*STORAGE_BLK_SIZ
                              1,10000 );
 taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
-if (state!= 0){
-							 printf("HAL_SD_WriteBlocks_DMA ---> %d\n",state);
-}
-__IO uint32_t time=0xffff;
-while(time !=0)
-{time--;
-}
-//while(TX_Flag==0){}
   return (USBD_OK);
   /* USER CODE END 14 */
 }

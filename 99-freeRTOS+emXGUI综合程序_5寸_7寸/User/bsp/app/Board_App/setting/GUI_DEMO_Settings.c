@@ -622,7 +622,7 @@ static void Set_Icon_Bmp_Or_Xtf(void)
         menu_list_1[3].bmp = bmp_icon[bmp_clock_icon];
 			
         menu_list_1[4].bmp = bmp_icon[bmp_gyro_icon];
-        menu_list_1[5].bmp = bmp_icon[bmp_camera_icon];
+        menu_list_1[19].bmp = bmp_icon[bmp_camera_icon];
         menu_list_1[6].bmp = bmp_icon[bmp_photo_icon];
         menu_list_1[7].bmp = bmp_icon[bmp_humiture_icon];
 			
@@ -639,7 +639,7 @@ static void Set_Icon_Bmp_Or_Xtf(void)
         menu_list_1[16].bmp = bmp_icon[bmp_widget_icon];
         menu_list_1[17].bmp = bmp_icon[bmp_rgbled_icon];
         menu_list_1[18].bmp = bmp_icon[bmp_setting_icon];
-				menu_list_1[19].bmp = bmp_icon[bmp_sudish_icon];
+				menu_list_1[5].bmp = bmp_icon[bmp_sudish_icon];
 //        menu_list_1[19].bmp = bmp_icon[bmp_flash_icon];
 	}else
 	{
