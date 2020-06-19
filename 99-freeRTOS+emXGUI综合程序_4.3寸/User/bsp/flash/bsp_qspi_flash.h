@@ -210,6 +210,6 @@ static uint8_t QSPI_AutoPollingMemReady  (void);
 void WaitQSPIReady(uint8_t flag);
 uint32_t QSPI_FLASH_ReadDeviceID(void);
 uint32_t QSPI_FLASH_ReadID(void);
-static void Error_Handler(void);
+//static void Error_Handler(void);
 #endif /* __SPI_FLASH_H */
 

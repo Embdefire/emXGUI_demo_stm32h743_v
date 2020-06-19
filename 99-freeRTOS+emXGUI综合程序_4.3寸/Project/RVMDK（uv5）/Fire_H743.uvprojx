@@ -185,6 +185,7 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
+            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>1</hadIROM2>
             <StupSel>8</StupSel>
@@ -338,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,X_GUI_USE_FREERTOS,APPLICATION_ADDRESS=0x8000000,Fire_H7_InFlash,USE_DMP,MPL_LOG_NDEBUG=1,EMPL,MPU6050,EMPL_TARGET_STM32F7,NDEBUG,</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw;..\..\emXGUI_Lib\app\tutorial\music_player;..\..\User\bsp\mp3\real;..\..\User\bsp\mp3\pub;..\..\emXGUI_Lib\app\tutorial\pic_view;..\..\emXGUI_Lib\app\tutorial\camera;..\..\emXGUI_Lib\app\base\boot_interface;..\..\User\bsp\app\Board_App;..\..\User\bsp\app\Board_App;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\include;..\..\User\bsp\app\Board_App\gyro\mpu6050\mllite;..\..\User\bsp\app\Board_App\gyro\i2c;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\eMPL;..\..\User\bsp\app\Board_App\gyro\mpu6050\mpl;..\..\User\bsp\app\Board_App\gyro\mpu6050\eMPL-hal;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\stm32L;..\..\User\bsp\app\Board_App\gyro\mpu6050;..\..\User\bsp\app\GUI_Demo;..\..\User\bsp\app\Board_App\NetworkDLG\lwipapp;..\..\User\bsp\app\Board_App\NetworkDLG\bsp\;..\..\User\bsp\app\Board_App\NetworkDLG\bsp\LAN8720A;..\..\User\bsp\app\Board_App\gyro\mpu6050;..\..\User\bsp\app\Board_App\NetworkDLG\LwIP\include\lwip;..\..\User\bsp\app\Board_App\NetworkDLG\LwIP\include;..\..\User\bsp\app\Board_App\NetworkDLG;..\..\User\bsp\app\Board_App\NetworkDLG\arch;..\..\emXGUI_Lib\;..\..\User\bsp\app\Board_App\camera;..\..\User\bsp\app\Board_App\camera\QR_Decoder</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32H7xx\Include;..\..\Libraries\STM32H7xx_HAL_Driver\Inc;..\..\User;..\..\User\bsp;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM7\r0p1;..\..\User\bsp\cm_backtrace;..\..\emXGUI_Lib\inc;..\..\emXGUI_Lib\drv;..\..\emXGUI_Lib\arch\Inc;..\..\emXGUI_Lib\app\base;..\..\User\bsp\FATFS;..\..\emXGUI_Lib\app\base\res_writer;..\..\emXGUI_Lib\app\tutorial\rgb_led;..\..\User\OwnerDraw;..\..\emXGUI_Lib\app\tutorial\music_player;..\..\User\bsp\mp3\real;..\..\User\bsp\mp3\pub;..\..\emXGUI_Lib\app\tutorial\pic_view;..\..\emXGUI_Lib\app\tutorial\camera;..\..\emXGUI_Lib\app\base\boot_interface;..\..\User\bsp\app\Board_App;..\..\User\bsp\app\Board_App;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\include;..\..\User\bsp\app\Board_App\gyro\mpu6050\mllite;..\..\User\bsp\app\Board_App\gyro\i2c;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\eMPL;..\..\User\bsp\app\Board_App\gyro\mpu6050\mpl;..\..\User\bsp\app\Board_App\gyro\mpu6050\eMPL-hal;..\..\User\bsp\app\Board_App\gyro\mpu6050\driver\stm32L;..\..\User\bsp\app\Board_App\gyro\mpu6050;..\..\User\bsp\app\GUI_Demo;..\..\User\bsp\app\Board_App\NetworkDLG\lwipapp;..\..\User\bsp\app\Board_App\NetworkDLG\bsp\;..\..\User\bsp\app\Board_App\NetworkDLG\bsp\LAN8720A;..\..\User\bsp\app\Board_App\gyro\mpu6050;..\..\User\bsp\app\Board_App\NetworkDLG\LwIP\include\lwip;..\..\User\bsp\app\Board_App\NetworkDLG\LwIP\include;..\..\User\bsp\app\Board_App\NetworkDLG;..\..\User\bsp\app\Board_App\NetworkDLG\arch;..\..\emXGUI_Lib\;..\..\User\bsp\app\Board_App\camera;..\..\User\bsp\app\Board_App\camera\QR_Decoder;..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Inc;..\..\User\bsp\STM32_USB_Device_Library\Core\Inc;..\..\User\bsp\app\Board_App\usbdisk;..\..\User\bsp\USB_UserConf</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -351,7 +352,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <uClangAs>0</uClangAs>
+            <ClangAsOpt>4</ClangAsOpt>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>__EVAL</Define>
@@ -787,6 +788,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_sdmmc.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32h7xx_ll_usb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2532,7 +2538,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
-                <uClangAs>2</uClangAs>
+                <ClangAsOpt>0</ClangAsOpt>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -2547,6 +2553,86 @@
               <FileName>Jpeg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\JPEG\Jpeg.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>tutorial/usbdisk</GroupName>
+          <Files>
+            <File>
+              <FileName>GUI_SimulateUDisk_Dialog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\app\Board_App\usbdisk\GUI_SimulateUDisk_Dialog.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Usb_Lib</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_ctlreq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_ioreq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_bot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_data.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_scsi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Usb_UserConf</GroupName>
+          <Files>
+            <File>
+              <FileName>usb_device.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usb_device.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_conf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_desc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_storage_if.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_usb_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2734,6 +2820,7 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
+            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>1</hadIROM2>
             <StupSel>8</StupSel>
@@ -2900,7 +2987,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <uClangAs>0</uClangAs>
+            <ClangAsOpt>4</ClangAsOpt>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -3336,6 +3423,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_sdmmc.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32h7xx_ll_usb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Libraries\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -4385,7 +4477,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
-                <uClangAs>2</uClangAs>
+                <ClangAsOpt>0</ClangAsOpt>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -4484,7 +4576,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
-                <uClangAs>2</uClangAs>
+                <ClangAsOpt>0</ClangAsOpt>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -4603,7 +4695,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
-                <uClangAs>2</uClangAs>
+                <ClangAsOpt>0</ClangAsOpt>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -4707,7 +4799,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
-                <uClangAs>2</uClangAs>
+                <ClangAsOpt>0</ClangAsOpt>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -5256,6 +5348,86 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>tutorial/usbdisk</GroupName>
+          <Files>
+            <File>
+              <FileName>GUI_SimulateUDisk_Dialog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\app\Board_App\usbdisk\GUI_SimulateUDisk_Dialog.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Usb_Lib</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_ctlreq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_ioreq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_bot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_bot.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_data.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_data.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_msc_scsi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\STM32_USB_Device_Library\Class\MSC\Src\usbd_msc_scsi.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Usb_UserConf</GroupName>
+          <Files>
+            <File>
+              <FileName>usb_device.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usb_device.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_conf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_conf.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_desc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_desc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_storage_if.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\usbd_storage_if.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_usb_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\USB_UserConf\user_usb_init.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>::Compiler</GroupName>
         </Group>
       </Groups>
@@ -5275,5 +5447,20 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>&lt;Project Info&gt;</LayName>
+        <LayDesc></LayDesc>
+        <LayUrl></LayUrl>
+        <LayKeys></LayKeys>
+        <LayCat></LayCat>
+        <LayLic></LayLic>
+        <LayTarg>0</LayTarg>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

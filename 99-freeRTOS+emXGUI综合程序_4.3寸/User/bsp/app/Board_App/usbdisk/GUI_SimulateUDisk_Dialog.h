@@ -1,5 +1,3 @@
-#include <emXGUI.h>
-
 #ifndef __GUI_SIMULATEUDISK_DIALOG
 #define	__GUI_SIMULATEUDISK_DIALOG
 
@@ -12,6 +10,5 @@ enum
   
 };
 
+
 #endif
-
-

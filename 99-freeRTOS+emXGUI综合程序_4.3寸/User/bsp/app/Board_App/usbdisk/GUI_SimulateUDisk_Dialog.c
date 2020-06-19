@@ -7,15 +7,11 @@
 #include "emXGUI_JPEG.h"
 #include "emxgui_png.h"
 
-#include "usbd_msc_core.h"
-#include "usbd_usr.h"
-#include "usbd_desc.h"
-#include "usb_conf.h"
-#include "usb_bsp.h"
+#include "user_usb_init.h"
+#include "usb_device.h"
 
 #include "./pic_load/gui_pic_load.h"
 
-__ALIGN_BEGIN USB_OTG_CORE_HANDLE     USB_OTG_dev __ALIGN_END ;
 
 //退出按钮重绘制
 static void _ExitButton_OwnerDraw(DRAWITEM_HDR *ds)
@@ -43,14 +39,13 @@ static void _ExitButton_OwnerDraw(DRAWITEM_HDR *ds)
 		SetPenColor(hdc, MapRGB(hdc, 250, 250, 250));      //设置画笔色
 	}
 
-  SetPenSize(hdc, 2);
-
-  InflateRect(&rc, 0, -1);
+  rc.w = 25;
+  OffsetRect(&rc, 0, 11);
   
   for(int i=0; i<4; i++)
   {
     HLine(hdc, rc.x, rc.y, rc.w);
-    rc.y += 9;
+    rc.y += 6;
   }
 
 }
@@ -98,10 +93,10 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       GetClientRect(hwnd, &rc);
                       
       CreateWindow(BUTTON, L"O", WS_TRANSPARENT|BS_FLAT | BS_NOTIFY |WS_OWNERDRAW|WS_VISIBLE,
-                  740, 22, 36, 36, hwnd, eID_SUD_EXIT, NULL, NULL);
+                  444, 0, 36, 36, hwnd, eID_SUD_EXIT, NULL, NULL);
 
       CreateWindow(BUTTON, L"连接", WS_TRANSPARENT| BS_NOTIFY | WS_VISIBLE | BS_3D|WS_OWNERDRAW,
-                  318, 390, 166,  70, hwnd, eID_SUD_LINK, NULL, NULL);    // 使用时钟的按钮背景
+                  190, 222, 100,  40, hwnd, eID_SUD_LINK, NULL, NULL);    // 使用时钟的按钮背景
       
     //   BOOL res;
     //   u8 *jpeg_buf;
@@ -158,16 +153,16 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
       HDC hdc;
       PAINTSTRUCT ps;
-      RECT rc  = {0, 80, GUI_XSIZE, 330};
-      RECT rc1 = {100, 0, 600, 80};
+      RECT rc  = {0, 80, GUI_XSIZE, 112};
+      RECT rc1 = {100, 0, 280, 45};
 
       hdc = BeginPaint(hwnd, &ps);
       
       SetFont(hdc, defaultFont); 
       SetTextColor(hdc, MapRGB(hdc, 250, 250, 250));
-      DrawText(hdc, L"外部FLASH模拟U盘", -1, &rc1, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
-      SetTextInterval(hdc, -1, 30);
-      DrawText(hdc, L"本应用使用外部FLASH的后10M模拟U盘\r\n请在点击连接前使用Micro USB\r\n数据线连接开发板的J24到电脑！", -1, &rc, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
+      DrawText(hdc, L"SD卡模拟U盘", -1, &rc1, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
+      SetTextInterval(hdc, -1, 20);
+      DrawText(hdc, L"本应用使用SD模拟U盘\r\n请在点击连接前插入SD卡并使用Micro USB\r\n数据线连接开发板的USB OTG到电脑！\r\n本程序不检测SD卡是否插入", -1, &rc, DT_VCENTER|DT_CENTER);//绘制文字(居中对齐方式)
    
       EndPaint(hwnd, &ps);
 
@@ -230,11 +225,9 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         To reconfigure the default setting of SystemInit() function, refer to
                         system_stm32fxxx.c file
                         */       
-                        USBD_Init(&USB_OTG_dev,
-                                  USB_OTG_HS_CORE_ID,
-                                  &USR_desc,
-                                  &USBD_MSC_cb, 
-                                  &USR_cb);
+						if ( !usb_clockconfig())
+							GUI_DEBUG("set clock failed\n");
+						MX_USB_DEVICE_Init();
                       
                       SetWindowText(GetDlgItem(hwnd, eID_SUD_LINK), L"已连接");
                       EnableWindow(GetDlgItem(hwnd, eID_SUD_LINK), FALSE);
@@ -250,9 +243,7 @@ static LRESULT	win_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
     { 
-      // DeleteDC(bk_hdc);
-      DCD_DevDisconnect(&USB_OTG_dev);
-      USB_OTG_STOP();
+		MX_USB_DEVICE_CLOSE();
       return PostQuitMessage(hwnd);	
     } 
 

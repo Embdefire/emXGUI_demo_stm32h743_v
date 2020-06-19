@@ -253,7 +253,7 @@ void LCD_ClockConfig(int lcd_clk_mhz)
   static RCC_PeriphCLKInitTypeDef  periph_clk_init_struct;
 
   /* 根据时钟计算分频因子 */
-  div = 420/lcd_clk_mhz;
+  div = 384/lcd_clk_mhz;
 
 	/* 液晶屏时钟配置 */
 	/* 5寸屏的典型PCLK为lcd_clk_mhz MHz，因此PLL3R配置为提供此时钟 */ 
@@ -261,12 +261,13 @@ void LCD_ClockConfig(int lcd_clk_mhz)
 	/* PLL3_VCO Output = PLL3_VCO Input * PLL3N = 420 Mhz */
 	/* PLLLCDCLK = PLL3_VCO Output/PLL3R = 420/div = lcd_clk_mhz Mhz */
 	/* LTDC clock frequency = PLLLCDCLK = lcd_clk_mhz Mhz */    
-	periph_clk_init_struct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
+	periph_clk_init_struct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_USB;
 	periph_clk_init_struct.PLL3.PLL3M = 25;    
-	periph_clk_init_struct.PLL3.PLL3N = 420;
+	periph_clk_init_struct.PLL3.PLL3N = 384;
 	periph_clk_init_struct.PLL3.PLL3P = 2;
-	periph_clk_init_struct.PLL3.PLL3Q = 2;
+	periph_clk_init_struct.PLL3.PLL3Q = 8;
 	periph_clk_init_struct.PLL3.PLL3R = div;  
+	periph_clk_init_struct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
 	HAL_RCCEx_PeriphCLKConfig(&periph_clk_init_struct);  
 }
 
